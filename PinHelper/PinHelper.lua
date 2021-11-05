@@ -26,56 +26,102 @@ local DEFAULT_DATA = {
     PinHelper_areaofinterest_incomplete = true,
     PinHelper_ayleidruin_complete = false,
     PinHelper_ayleidruin_incomplete = true,
+    PinHelper_battlefield_complete = false,
+    PinHelper_battlefield_incomplete = true,
+    PinHelper_boss_complete = false,
+    PinHelper_boss_incomplete = true,
     PinHelper_camp_complete = false,
     PinHelper_camp_incomplete = true,
-    PinHelper_cemetery_complete = false,
-    PinHelper_cemetery_incomplete = true,
+    PinHelper_cave_complete = false,
+    PinHelper_cave_incomplete = true,
+    PinHelper_cemetary_complete = false,
+    PinHelper_cemetary_incomplete = true,
     PinHelper_city_complete = false,
     PinHelper_city_incomplete = true,
     PinHelper_crafting_complete = true,
     PinHelper_crafting_incomplete = true,
+    PinHelper_crypt_complete = false,
+    PinHelper_crypt_incomplete = true,
+    PinHelper_daedricruin_complete = false,
+    PinHelper_daedricruin_incomplete = true,
+    PinHelper_darkbrotherhood_complete = false,
+    PinHelper_darkbrotherhood_incomplete = true,
     PinHelper_delve_complete = false,
     PinHelper_delve_incomplete = true,
     PinHelper_dock_complete = false,
     PinHelper_dock_incomplete = true,
     PinHelper_dungeon_complete = false,
     PinHelper_dungeon_incomplete = true,
-    PinHelper_group_house_complete = true,
-    PinHelper_group_house_incomplete = true,
-    PinHelper_groupboss_complete = false,
-    PinHelper_groupboss_incomplete = true,
-    PinHelper_groupinstance_complete = false,
-    PinHelper_groupinstance_incomplete = false,
+    PinHelper_dwemerruin_complete = false,
+    PinHelper_dwemerruin_incomplete = true,
+    PinHelper_estate_complete = false,
+    PinHelper_estate_incomplete = true,
+    PinHelper_explorable_complete = false,
+    PinHelper_explorable_incomplete = true,
+    PinHelper_farm_complete = false,
+    PinHelper_farm_incomplete = true,
+    PinHelper_gate_complete = false,
+    PinHelper_gate_incomplete = true,
     PinHelper_grove_complete = false,
     PinHelper_grove_incomplete = true,
+    PinHelper_house_complete = true,
+    PinHelper_house_incomplete = true,
+    PinHelper_instance_complete = false,
+    PinHelper_instance_incomplete = false,
+    PinHelper_keep_complete = false,
+    PinHelper_keep_incomplete = true,
+    PinHelper_lighthouse_complete = false,
+    PinHelper_lighthouse_incomplete = true,
     PinHelper_mine_complete = false,
     PinHelper_mine_incomplete = true,
     PinHelper_mundus_complete = true,
     PinHelper_mundus_incomplete = true,
     PinHelper_portal_complete = true,
     PinHelper_portal_incomplete = true,
+    PinHelper_raiddungeon_complete = false,
+    PinHelper_raiddungeon_incomplete = true,
     PinHelper_ruin_complete = false,
     PinHelper_ruin_incomplete = true,
+    PinHelper_sewer_complete = false,
+    PinHelper_sewer_incomplete = true,
+    PinHelper_solotrial_complete = false,
+    PinHelper_solotrial_incomplete = true,
+    PinHelper_tower_complete = false,
+    PinHelper_tower_incomplete = true,
     PinHelper_town_complete = false,
     PinHelper_town_incomplete = true,
-    PinHelper_unknown_complete = true,
-    PinHelper_unknown_incomplete = true,
+    PinHelper_u26_dwemergear_complete = false,
+    PinHelper_u26_dwemergear_incomplete = true,
+    PinHelper_u26_nord_boat_complete = false,
+    PinHelper_u26_nord_boat_incomplete = true,
+    PinHelper_unknown = true,
     PinHelper_wayshrine_complete = false,
     PinHelper_wayshrine_incomplete = false,
   }
 }
 
 local function GetPinTypeFromTexture(texture)
-  -- "poi_mine_compete" is a fun typo
+  if texture == "/esoui/art/icons/icon_missing.dds" then
+    return "PinHelper_unknown"
+  end
+
+  -- fix ESO typos
   texture = string.gsub(texture, "_compete", "_complete")
+  texture = string.gsub(texture, "aylied", "ayleid")
+  texture = string.gsub(texture, "cemetery", "cemetary")
 
   local pinBaseType =
     string.match(texture, "^/esoui/art/icons/poi/poi_(.+)_i?n?complete.?d?d?s?$") or
-    string.match(texture, "^/esoui/art/icons/poi/poi_(.+)_u?n?owned.?d?d?s?$")
+    string.match(texture, "^/esoui/art/icons/poi/poi_(.+)_u?n?owned.?d?d?s?$") or
+    "unknown"
 
   local isComplete =
     string.match(texture, "^/esoui/art/icons/poi/poi_.+_(incomplete).?d?d?s?$") == nil and
     string.match(texture, "^/esoui/art/icons/poi/poi_.+_(unowned).?d?d?s?$") == nil
+
+  -- share filters between group and solo content
+  pinBaseType = string.gsub(pinBaseType, "^group_", "")
+  pinBaseType = string.gsub(pinBaseType, "^group", "")
 
   local pinType = nil
   if pinBaseType ~= nil then
@@ -86,20 +132,25 @@ local function GetPinTypeFromTexture(texture)
     d("[|c3399FFPinHelper|r] |cFF9933Warning|r: nil pin type \"" .. texture .. "\"")
   elseif SAVED_DATA.mapFilters[pinType] == nil then
     d("[|c3399FFPinHelper|r] |cFF9933Warning|r: unknown pin type \"" .. pinBaseType .. "\"")
-    pinType = "PinHelper_unknown_" .. (isComplete and "complete" or "incomplete")
+    pinType = "PinHelper_unknown"
   end
 
   return pinType
 end
 
 local function GetCategoryNameFromPinType(pinType)
-  local pinBaseType = string.match(pinType, "^PinHelper_(.+)_i?n?complete$")
+  local pinBaseType = string.match(pinType, "^PinHelper_(.+)_i?n?complete$") or "unknown"
   local isComplete = string.match(pinType, "^PinHelper_.+_incomplete$") == nil
 
   local texture = ""
   if pinBaseType == "unknown" then
     texture = "/esoui/art/icons/u26_unknown_antiquity_questionmark.dds"
   else
+    -- fix icons for activities that don't have a solo counterpart
+    if pinBaseType == "boss" then pinBaseType = "groupboss" end
+    if pinBaseType == "house" then pinBaseType = "group_house" end
+    if pinBaseType == "instance" then pinBaseType = "groupinstance" end
+
     if pinBaseType == "group_house" then
       texture = isComplete
         and ("/esoui/art/icons/poi/poi_" .. pinBaseType .. "_owned.dds")
@@ -112,12 +163,16 @@ local function GetCategoryNameFromPinType(pinType)
   end
   local textureString = zo_iconFormat(texture, 20, 20)
 
-  if pinBaseType ~= nil then
-    pinBaseType = string.gsub(pinBaseType, "areaofinterest", "area_of_interest")
-    pinBaseType = string.gsub(pinBaseType, "ayleidruin", "ayleid_ruin")
-    pinBaseType = string.gsub(pinBaseType, "groupboss", "group_boss")
-    pinBaseType = string.gsub(pinBaseType, "groupinstance", "group_instance")
-  end
+  -- improve readability of some one off types
+  pinBaseType = string.gsub(pinBaseType, "areaofinterest", "area_of_interest")
+  pinBaseType = string.gsub(pinBaseType, "ayleidruin", "ayleid_ruin")
+  pinBaseType = string.gsub(pinBaseType, "daedricruin", "daedric_ruin")
+  pinBaseType = string.gsub(pinBaseType, "darkbrotherhood", "darkbrother_hood")
+  pinBaseType = string.gsub(pinBaseType, "dwemergear", "dwemer_gear")
+  pinBaseType = string.gsub(pinBaseType, "dwemerruin", "dwemer_ruin")
+  pinBaseType = string.gsub(pinBaseType, "groupboss", "group_boss")
+  pinBaseType = string.gsub(pinBaseType, "groupinstance", "group_instance")
+  pinBaseType = string.gsub(pinBaseType, "u26_", "")
 
   local prettyName = ""
   for word in string.gmatch(pinBaseType, "[^_]+") do
@@ -219,7 +274,7 @@ local function OnAddOnLoaded(event, name)
   }
 
   local pinTypes = {}
-  for pinType, _isEnabled in pairs(SAVED_DATA.mapFilters) do
+  for pinType, _isEnabled in pairs(DEFAULT_DATA.mapFilters) do
     table.insert(pinTypes, pinType)
   end
   table.sort(pinTypes)

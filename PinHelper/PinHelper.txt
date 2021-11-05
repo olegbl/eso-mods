@@ -1,0 +1,9 @@
+## Title: PinHelper
+## APIVersion: 100032
+## IsLibrary: true
+## Author: olegbl
+## Description: Enables granular control over various map pins.
+## Version: 1.00
+## OptionalDependsOn: LibStub, LibMapPins-1.0
+
+PinHelper.lua

@@ -1,5 +1,5 @@
 local ADDON_NAME = "LibTraitResearch"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 if LibStub then
   LibTraitResearch = LibStub:NewLibrary(ADDON_NAME, ADDON_VERSION)
@@ -10,6 +10,7 @@ end
 local COLOR_LOCAL = ZO_CURRENCY_HIGHLIGHT_TEXT -- ZO_ColorDef:New("FFD900")
 local COLOR_REMOTE = ZO_ERROR_COLOR -- ZO_ColorDef:New("FF8000")
 local COLOR_UNIQUE = GetItemQualityColor(ITEM_QUALITY_MAGIC)
+local COLOR_LOCKED = LOCKED_COLOR
 
 local BAG_LOCAL = 1 -- inventory / worn
 local BAG_REMOTE = 2 -- bank
@@ -52,16 +53,20 @@ function LibTraitResearch:GetItemLinkTraitResearchState(itemLink)
   local canBeResearched = CanItemLinkBeTraitResearched(itemLink)
   local duplicateRemoteItems = 0
   local duplicateLocalItems = 0
+  local isLocked = false
   if itemLink ~= nil then
     if canBeResearched then
       local list = GetItemTraitList(itemLink)
       for index, item in ipairs(list) do
-        if item.itemLink ~= itemLink then
+        if item.itemLink ~= itemLink and not item.isLocked then
           if item.bagType == BAG_REMOTE then
             duplicateRemoteItems = duplicateRemoteItems + 1
           elseif item.bagType == BAG_LOCAL then
             duplicateLocalItems = duplicateLocalItems + 1
           end
+        end
+        if item.itemLink == itemLink and item.isLocked then
+          isLocked = true
         end
       end
     end
@@ -69,6 +74,7 @@ function LibTraitResearch:GetItemLinkTraitResearchState(itemLink)
   local color =
     duplicateRemoteItems > 0 and COLOR_REMOTE or
     duplicateLocalItems > 0 and COLOR_LOCAL or
+    isLocked and COLOR_LOCKED or
     COLOR_UNIQUE
   return canBeResearched, color, duplicateRemoteItems, COLOR_REMOTE, duplicateLocalItems, COLOR_LOCAL
 end
@@ -84,18 +90,34 @@ function LibTraitResearch:Update()
     for slotIndex = 0, bagSize do
       local itemLink = GetItemLink(bagId, slotIndex)
       local list = GetItemTraitList(itemLink)
+      local isLocked = IsItemPlayerLocked(bagId, slotIndex)
       if list ~= nil then
         table.insert(list, {
           bagId = bagId,
           bagType = bagType,
           slotIndex = slotIndex,
-          itemLink = itemLink
+          itemLink = itemLink,
+          isLocked = isLocked
         })
       end
     end
   end
 end
 
+local function OnInventorySlotLocked(event, bagId, slotId)
+  LibTraitResearch:Update()
+end
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_INVENTORY_SLOT_LOCKED, OnInventorySlotLocked)
+
+local function OnInventorySlotUnlocked(event, bagId, slotId)
+  LibTraitResearch:Update()
+end
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_INVENTORY_SLOT_UNLOCKED, OnInventorySlotUnlocked)
+
+local function OnInventoryItemDestroyed(event, itemSoundCategory)
+  LibTraitResearch:Update()
+end
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_INVENTORY_ITEM_DESTROYED, OnInventoryItemDestroyed)
 
 local function OnInventorySingleSlotUpdate(event, bagId, slotId, isNewItem, itemSoundCategory, inventoryUpdateReason, stackCountChange)
   if stackCountChange == 1 then
@@ -124,7 +146,7 @@ end
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_CRAFTING_STATION_INTERACT, OnCraftingStationInteract)
 
 local function OnEndCraftingStationInteract(event, craftSkill)
-  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnInventorySingleSlotUpdate)
+  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnCraftingStationInteract)
 end
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_END_CRAFTING_STATION_INTERACT, OnEndCraftingStationInteract)
 

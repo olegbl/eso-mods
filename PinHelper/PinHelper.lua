@@ -197,10 +197,18 @@ local function GetPinTooltip(pin)
   if IsInGamepadPreferredMode() then
     ZO_MapLocationTooltip_Gamepad:LayoutIconStringLine(
       ZO_MapLocationTooltip_Gamepad.tooltip,
-      nil,
-      pinTag.startDescription,
-      ZO_MapLocationTooltip_Gamepad.tooltip:GetStyle("mapLocationTooltipContentName")
+      pinTag.texture,
+      pinTag.name,
+      ZO_MapLocationTooltip_Gamepad.tooltip:GetStyle("mapLocationTooltipWayshrineHeader")
     )
+    if pinTag.description ~= "" then
+      ZO_MapLocationTooltip_Gamepad:LayoutIconStringLine(
+        ZO_MapLocationTooltip_Gamepad.tooltip,
+        nil,
+        pinTag.description,
+        ZO_MapLocationTooltip_Gamepad.tooltip:GetStyle("mapRecallCost")
+      )
+    end
   else
     InformationTooltip:AddLine(pinTag.name, "ZoFontGameOutline", ZO_HIGHLIGHT_TEXT:UnpackRGB());
     if pinTag.description ~= "" then

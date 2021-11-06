@@ -8,15 +8,9 @@ local ADDON_VERSION = 1.00
 -- TODO: control size and color of pins via LibAddonMenu-2.0
 -- TODO: control compass pins via CustomCompassPins
 -- TODO: unowned group house icon is not rendering correctly in filter panel
+-- TODO: move POI data functions to a library
 
-if LibStub then
-  PinHelper = LibStub:NewLibrary(ADDON_NAME, ADDON_VERSION)
-else
-  PinHelper = {}
-end
-
-local LMP = LibMapPins -- LibStub("LibMapPins-1.0")
--- local CCP = COMPASS_PINS -- LibStub("CustomCompassPins")
+-- local LibCompassPins = COMPASS_PINS
 
 local SAVED_DATA
 
@@ -235,7 +229,7 @@ local function GetPins(targetPinType, callback)
       texture = icon,
       name = objectiveName,
       description = finishedDescription or startDescription,
-      isVisibleOnMap = LMP:IsEnabled(targetPinType),
+      isVisibleOnMap = LibMapPins:IsEnabled(targetPinType),
       isVisibleOnCompass = true,
     }
 
@@ -249,7 +243,7 @@ end
 local function CreateMapPins(pinType)
   GetPins(pinType, function(pinTag)
     if pinTag.isVisibleOnMap then
-      LMP:CreatePin(pinType, pinTag, pinTag.normalizedX, pinTag.normalizedY)
+      LibMapPins:CreatePin(pinType, pinTag, pinTag.normalizedX, pinTag.normalizedY)
     end
   end)
 end
@@ -257,7 +251,7 @@ end
 local function CreateCompassPins(pinType)
  GetPins(pinType, function(pinTag)
    if pinTag.isVisibleOnCompass then
-     -- CCP.pinManager:CreatePin(pinType, pinTag, pinTag.normalizedX, pinTag.normalizedY)
+     -- LibCompassPins.pinManager:CreatePin(pinType, pinTag, pinTag.normalizedX, pinTag.normalizedY)
    end
  end)
 end
@@ -287,12 +281,12 @@ local function OnAddOnLoaded(event, name)
   end
   table.sort(pinTypes)
   for _, pinType in ipairs(pinTypes) do
-    LMP:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, layout, tooltip)
-    LMP:AddPinFilter(pinType, GetCategoryNameFromPinType(pinType), false, SAVED_DATA.mapFilters)
+    LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, layout, tooltip)
+    LibMapPins:AddPinFilter(pinType, GetCategoryNameFromPinType(pinType), false, SAVED_DATA.mapFilters)
   end
 
   -- TODO: POI pins are already being shown by something?
-  -- CCP:AddCustomPin(
+  -- LibCompassPins:AddCustomPin(
   --   pinType,
   --   function() CreateCompassPins(pinType) end,
   --   {
@@ -311,7 +305,7 @@ local function OnAddOnLoaded(event, name)
   --     }
   --   }
   -- )
-  -- CCP:RefreshPins(pinType)
+  -- LibCompassPins:RefreshPins(pinType)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

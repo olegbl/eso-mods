@@ -1,11 +1,7 @@
 local ADDON_NAME = "LibMultiIcon"
 local ADDON_VERSION = 1.01
 
-if LibStub then
-  LibMultiIcon = LibStub:NewLibrary(ADDON_NAME, ADDON_VERSION)
-else
-  LibMultiIcon = {}
-end
+LibMultiIcon = {}
 
 local function SetTexture(self, texture)
   self.activeTexture = texture

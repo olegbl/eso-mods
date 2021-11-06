@@ -1,11 +1,7 @@
 local ADDON_NAME = "LibItemLinkDecoder"
 local ADDON_VERSION = 1.00
 
-if LibStub then
-  LibItemLinkDecoder = LibStub:NewLibrary(ADDON_NAME, ADDON_VERSION)
-else
-  LibItemLinkDecoder = {}
-end
+LibItemLinkDecoder = {}
 
 -- https://en.uesp.net/wiki/Online:Item_Link
 local INDEX_TO_NAME = {

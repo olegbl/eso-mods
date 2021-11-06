@@ -1,11 +1,7 @@
 local ADDON_NAME = "LibCovetousCountess"
 local ADDON_VERSION = 1.00
 
-if LibStub then
-  LibCovetousCountess = LibStub:NewLibrary(ADDON_NAME, ADDON_VERSION)
-else
-  LibCovetousCountess = {}
-end
+LibCovetousCountess = {}
 
 -- TODO: figure out a way to solve potential localization issues
 TAGS = {

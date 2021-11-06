@@ -1,11 +1,7 @@
 local ADDON_NAME = "LibTraitResearch"
 local ADDON_VERSION = 1.01
 
-if LibStub then
-  LibTraitResearch = LibStub:NewLibrary(ADDON_NAME, ADDON_VERSION)
-else
-  LibTraitResearch = {}
-end
+LibTraitResearch = {}
 
 local COLOR_LOCAL = ZO_CURRENCY_HIGHLIGHT_TEXT -- ZO_ColorDef:New("FFD900")
 local COLOR_REMOTE = ZO_ERROR_COLOR -- ZO_ColorDef:New("FF8000")

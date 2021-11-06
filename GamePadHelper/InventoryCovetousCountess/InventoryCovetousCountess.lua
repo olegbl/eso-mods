@@ -1,8 +1,6 @@
 local ADDON_NAME = "GamePadHelper_InventoryCovetousCountess"
 local ADDON_VERSION = 1.00
 
-local LCC = LibStub("LibCovetousCountess")
-
 local COLOR_USEFUL_ACTIVE = ZO_ColorDef:New(1, 1, 0)
 local COLOR_USEFUL_INACTIVE = ZO_ColorDef:New(1, 1, 1)
 
@@ -31,7 +29,7 @@ local function SharedGamepadEntry_OnSetup_After(control, data, ...)
   if itemType ~= ITEMTYPE_TREASURE then return end
 
   local researchIcon = GetPlatformTraitInformationIcon(ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED)
-  local isUsefulForActiveQuest, isUsefulForQuest = LCC:IsItemUseful(itemLink)
+  local isUsefulForActiveQuest, isUsefulForQuest = LibCovetousCountess:IsItemUseful(itemLink)
 
   -- sometimes MultiIcon is not initialized property for some reason
   -- TODO: WTF?

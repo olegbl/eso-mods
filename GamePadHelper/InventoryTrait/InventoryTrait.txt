@@ -3,6 +3,6 @@
 ## Author: olegbl
 ## Description: |c3399FFGamePadHelper|r module that displays indicator icons in inventory denoting if an item's trait can be researched and if there are other items with the same trait already available.
 ## Version: 1.00
-## DependsOn: GamePadHelper LibStub LibMultiIcon LibTraitResearch
+## DependsOn: GamePadHelper LibMultiIcon LibTraitResearch
 
 InventoryTrait.lua

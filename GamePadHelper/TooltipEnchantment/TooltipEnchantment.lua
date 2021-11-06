@@ -1,8 +1,6 @@
 local ADDON_NAME = "GamePadHelper_TooltipEnchantment"
 local ADDON_VERSION = 1.00
 
-local LILD = LibStub("LibItemLinkDecoder")
-
 local COLOR_WHITE = ZO_ColorDef:New(GetInterfaceColor(INTERFACE_COLOR_TYPE_GAMEPAD_TOOLTIP, GENERAL_COLOR_WHITE))
 local COLOR_FAILED = ZO_ColorDef:New(GetInterfaceColor(INTERFACE_COLOR_TYPE_GAMEPAD_TOOLTIP, GAMEPAD_TOOLTIP_COLOR_FAILED))
 
@@ -12,7 +10,7 @@ local function Tooltip_AddEnchant_Before(self, itemLink, enchantDiffMode, equipS
   local hasEnchant, enchantHeader, enchantDescription = GetItemLinkEnchantInfo(itemLink)
 
   if hasEnchant then
-    local decodedItemLink = LILD:Decode(itemLink)
+    local decodedItemLink = LibItemLinkDecoder:Decode(itemLink)
     local quality = decodedItemLink.enchantQuality
     local qualityColor = GetItemQualityColor(decodedItemLink.enchantQuality)
 

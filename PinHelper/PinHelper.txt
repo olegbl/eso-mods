@@ -3,7 +3,7 @@
 ## Author: olegbl
 ## Description: |c3399FFPinHelper|r allows granular control over visibility of Objectives/POI pins.
 ## Version: 1.00
-## DependsOn: LibMapPins-1.0
+## DependsOn: LibPOI LibMapPins-1.0
 ## SavedVariables: PinHelper_SavedVariables
 
 PinHelper.lua

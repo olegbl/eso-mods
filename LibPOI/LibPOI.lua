@@ -1,10 +1,9 @@
 local ADDON_NAME = "LibPOI"
 local ADDON_VERSION = 1.00
 
--- TODO: custom descriptions for Crafting Stations
-
 LibPOI = {}
 
+-- name, description
 local MUNDUS_STONE_DESCRIPTIONS = {
   ["The Apprentice"] = "Increases Spell Power",
   ["The Atronach"] = "Increases Magicka Recovery",
@@ -21,6 +20,7 @@ local MUNDUS_STONE_DESCRIPTIONS = {
   ["The Warrior"] = "Increases Weapon Damage",
 }
 
+-- zoneId, poiIndex, name
 local MUNDUS_STONE_POI = {
   [3] = {[37] = "The Lover", [38] = "The Lady"},
   [19] = {[36] = "The Tower", [37] = "The Mage", [38] = "The Lord"},
@@ -38,6 +38,46 @@ local MUNDUS_STONE_POI = {
   [381] = {[12] = "The Lady", [22] = "The Lover"},
   [382] = {[27] = "The Steed", [28] = "The Apprentice"},
   [383] = {[12] = "The Tower", [13] = "The Mage", [14] = "The Lord"},
+}
+
+-- zoneId, poiIndex, itemId, traitsNeeded
+local CRAFTING_STATION_POI = {
+  [3] = {[56] = {43815, 2}, [60] = {43803, 2}, [61] = {43871, 2}},
+  [19] = {[56] = {43977, 3}, [57] = {43827, 3}, [59] = {43807, 3}},
+  [20] = {[52] = {43847, 4}, [53] = {43819, 4}, [57] = {43995, 4}},
+  [41] = {[54] = {43803, 2}, [56] = {43815, 2}, [59] = {43871, 2}},
+  [57] = {[51] = {43807, 3}, [52] = {43977, 3}, [53] = {43827, 3}},
+  [58] = {[53] = {44013, 5}, [56] = {44019, 5}, [58] = {43831, 5}},
+  [92] = {[49] = {43859, 6}, [55] = {44001, 6}, [57] = {44007, 6}},
+  [101] = {[52] = {44019, 5}, [54] = {44013, 5}, [55] = {43831, 5}},
+  [103] = {[53] = {44001, 6}, [57] = {43859, 6}, [59] = {44007, 6}},
+  [104] = {[54] = {44013, 5}, [55] = {44019, 5}, [59] = {43831, 5}},
+  [108] = {[50] = {43819, 4}, [52] = {43847, 4}, [55] = {43995, 4}},
+  [117] = {[50] = {43847, 4}, [57] = {43995, 4}, [59] = {43819, 4}},
+  [347] = {[47] = {43971, 8}, [56] = {43965, 8}},
+  [381] = {[50] = {43815, 2}, [55] = {43871, 2}, [56] = {43803, 2}},
+  [382] = {[48] = {43859, 6}, [51] = {44007, 6}, [52] = {44001, 6}},
+  [383] = {[49] = {43807, 3}, [52] = {43827, 3}, [55] = {43977, 3}},
+  [584] = {[22] = {60618, 7}, [23] = {60280, 5}, [24] = {60973, 9}},
+  [684] = {[51] = {69949, 3}, [52] = {69606, 6}, [53] = {70642, 9}},
+  [726] = {[17] = {143544, 4}, [18] = {143174, 2}, [19] = {142804, 7}},
+  [816] = {[19] = {72502, 9}, [21] = {71795, 5}, [24] = {72145, 7}},
+  [823] = {[18] = {75397, 5}, [19] = {75747, 7}, [20] = {76120, 9}},
+  [849] = {[44] = {121551, 3}, [45] = {121921, 8}, [46] = {122251, 6}},
+  [888] = {[12] = {58153, 9}, [43] = {54787, 8}},
+  [980] = {[19] = {130460, 2}, [20] = {131168, 6}},
+  [981] = {[3] = {130803, 4}},
+  [1011] = {[33] = {135730, 3}, [34] = {136430, 9}},
+  [1027] = {[1] = {136080, 6}},
+  [1086] = {[26] = {148331, 5}, [27] = {147961, 8}, [28] = {148701, 3}},
+  [1133] = {[11] = {156165, 9}, [12] = {155417, 3}},
+  [1160] = {[48] = {161234, 5}, [49] = {161608, 7}},
+  [1161] = {[22] = {163070, 3}},
+  [1207] = {[4] = {168386, 6}, [17] = {168012, 3}},
+  [1208] = {[11] = {168760, 9}},
+  [1261] = {[50] = {173216, 5}, [51] = {172842, 7}, [52] = {172468, 3}},
+  [1283] = {[1] = {179567, 5}},
+  [1286] = {[19] = {179193, 7}, [20] = {178819, 3}},
 }
 
 local POI_CATEGORIES = {
@@ -427,10 +467,10 @@ local POI_CATEGORIES = {
     id = "unknown",
     categoryName = "Unknown",
     completeIcons = {
-      "/esoui/art/icons/u26_unknown_antiquity_questionmark.dds",
+      "/esoui/art/antiquities/digsite_unknown.dds",
     },
     incompleteIcons = {
-      "/esoui/art/icons/u26_unknown_antiquity_questionmark.dds",
+      "/esoui/art/antiquities/digsite_unknown.dds",
       "/esoui/art/icons/icon_missing.dds",
     }
   },
@@ -460,12 +500,32 @@ for _, poi in pairs(POI_CATEGORIES) do
   end
 end
 
-local function sanitizeIcon(icon)
+local function GetSanitizedIcon(icon)
   -- some POIs have an icon set but are missing the ".dds" extension, we fix it here
   if string.sub(icon, -4) ~= ".dds" then
     icon = icon .. ".dds"
   end
   return icon
+end
+
+local function GetCraftingStationDescription(itemId, traitsNeeded)
+  local itemLink = ("|H1:item:%d:370:50:0:0:0:0:0:0:0:0:0:0:0:0:1:0:0:0:10000:0|h|h"):format(itemId)
+  local hasSet, setName, numBonuses, numEquipped, maxEquipped = GetItemLinkSetInfo(itemLink)
+
+  local description = {}
+  local maxNumRequired = 0
+
+  for bonusIndex = 1, numBonuses do
+    local numRequired, bonusDescription = GetItemLinkSetBonusInfo(itemLink, false, bonusIndex)
+    maxNumRequired = math.max(maxNumRequired, numRequired)
+    bonusDescription = string.gsub(bonusDescription, " %d+ ", ZO_SELECTED_TEXT:Colorize("%1"))
+    table.insert(description, bonusDescription)
+  end
+
+  table.insert(description, 1, maxNumRequired .. " Total Items, " .. traitsNeeded .. " Traits Needed")
+  table.insert(description, 1, ZO_SELECTED_TEXT:Colorize(setName .. " Set"))
+
+  return table.concat(description, "\n")
 end
 
 function LibPOI:GetPOICategories()
@@ -474,7 +534,7 @@ end
 
 function LibPOI:GetPOICategory(zoneIndex, poiIndex)
   local normalizedX, normalizedY, poiType, icon, isShownInCurrentMap, linkedCollectibleIsLocked, isDiscovered, isNearby = GetPOIMapInfo(zoneIndex, poiIndex)
-  local poi = ICON_TO_POI[sanitizeIcon(icon)]
+  local poi = ICON_TO_POI[GetSanitizedIcon(icon)]
 
   -- if we don't have a record of this kind of icon, treat it as the "unknown" category
   if poi == nil then
@@ -487,23 +547,40 @@ end
 
 function LibPOI:IsComplete(zoneIndex, poiIndex)
   local normalizedX, normalizedY, poiType, icon, isShownInCurrentMap, linkedCollectibleIsLocked, isDiscovered, isNearby = GetPOIMapInfo(zoneIndex, poiIndex)
-  return COMPLETE_ICON_TO_POI[sanitizeIcon(icon)] ~= nil
+  return COMPLETE_ICON_TO_POI[GetSanitizedIcon(icon)] ~= nil
 end
 
 function LibPOI:GetDescription(zoneIndex, poiIndex)
   local objectiveName, objectiveLevel, startDescription, finishedDescription = GetPOIInfo(zoneIndex, poiIndex)
   local isComplete = LibPOI:IsComplete(zoneIndex, poiIndex)
 
-  local mundusStone =
-    MUNDUS_STONE_POI[zoneIndex] ~= nil and
-    MUNDUS_STONE_POI[zoneIndex][poiIndex] ~= nil and
-    MUNDUS_STONE_POI[zoneIndex][poiIndex] or
+  local zoneId = GetZoneId(zoneIndex)
+
+  local mundusStonePoi =
+    MUNDUS_STONE_POI[zoneId] ~= nil and
+    MUNDUS_STONE_POI[zoneId][poiIndex] ~= nil and
+    MUNDUS_STONE_POI[zoneId][poiIndex] or
     nil
 
-  local mundusDescription =
-    MUNDUS_STONE_DESCRIPTIONS[mundusStone] or
+  local mundusStoneDescription =
+    MUNDUS_STONE_DESCRIPTIONS[mundusStonePoi] or
     MUNDUS_STONE_DESCRIPTIONS[objectiveName] or
     nil
 
-  return mundusDescription or (isComplete and finishedDescription or startDescription)
+  local craftingStationPoi =
+    CRAFTING_STATION_POI[zoneId] ~= nil and
+    CRAFTING_STATION_POI[zoneId][poiIndex] ~= nil and
+    CRAFTING_STATION_POI[zoneId][poiIndex] or
+    nil
+
+  local craftingStationDescription =
+    craftingStationPoi ~= nil and
+    GetCraftingStationDescription(craftingStationPoi[1], craftingStationPoi[2]) or
+    nil
+
+  return (
+    mundusStoneDescription or
+    craftingStationDescription or
+    (isComplete and finishedDescription or startDescription)
+  )
 end

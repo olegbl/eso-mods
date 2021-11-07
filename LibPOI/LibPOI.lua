@@ -1,7 +1,44 @@
 local ADDON_NAME = "LibPOI"
 local ADDON_VERSION = 1.00
 
+-- TODO: custom descriptions for Crafting Stations
+
 LibPOI = {}
+
+local MUNDUS_STONE_DESCRIPTIONS = {
+  ["The Apprentice"] = "Increases Spell Power",
+  ["The Atronach"] = "Increases Magicka Recovery",
+  ["The Lady"] = "Increases Physical and Spell Resistance",
+  ["The Lord"] = "Increases Maximum Health",
+  ["The Lover"] = "Increases Physical and Spell Penetration",
+  ["The Mage"] = "Increases Maximum Magicka",
+  ["The Ritual"] = "Increases Healing Effectiveness",
+  ["The Serpent"] = "Increases Stamina Recovery",
+  ["The Shadow"] = "Increases Critical Damage and Healing",
+  ["The Steed"] = "Increases Run Speed & Increases Health Recovery",
+  ["The Thief"] = "Increases Critical Strike Rating",
+  ["The Tower"] = "Increases Maximum Stamina",
+  ["The Warrior"] = "Increases Weapon Damage",
+}
+
+local MUNDUS_STONE_POI = {
+  [3] = {[37] = "The Lover", [38] = "The Lady"},
+  [19] = {[36] = "The Tower", [37] = "The Mage", [38] = "The Lord"},
+  [20] = {[28] = "The Atronach", [29] = "The Shadow", [30] = "The Serpent"},
+  [41] = {[32] = "The Lady", [33] = "The Lover"},
+  [57] = {[14] = "The Tower", [15] = "The Mage", [16] = "The Lord"},
+  [58] = {[11] = "The Thief", [12] = "The Ritual", [13] = "The Warrior"},
+  [92] = {[17] = "The Steed", [18] = "The Apprentice"},
+  [101] = {[2] = "The Thief", [3] = "The Warrior", [4] = "The Ritual"},
+  [103] = {[20] = "The Steed", [43] = "The Apprentice"},
+  [104] = {[39] = "The Warrior", [40] = "The Ritual", [41] = "The Thief"},
+  [108] = {[26] = "The Atronach", [27] = "The Serpent", [28] = "The Shadow"},
+  [117] = {[17] = "The Atronach", [18] = "The Shadow", [19] = "The Serpent"},
+  [181] = {[67] = "The Apprentice", [68] = "The Atronach", [69] = "The Lady", [70] = "The Warrior", [71] = "The Mage", [72] = "The Thief", [73] = "The Lover", [74] = "The Serpent", [75] = "The Ritual", [76] = "The Tower", [77] = "The Steed", [78] = "The Shadow"},
+  [381] = {[12] = "The Lady", [22] = "The Lover"},
+  [382] = {[27] = "The Steed", [28] = "The Apprentice"},
+  [383] = {[12] = "The Tower", [13] = "The Mage", [14] = "The Lord"},
+}
 
 local POI_CATEGORIES = {
   areaofinterest = {
@@ -456,5 +493,17 @@ end
 function LibPOI:GetDescription(zoneIndex, poiIndex)
   local objectiveName, objectiveLevel, startDescription, finishedDescription = GetPOIInfo(zoneIndex, poiIndex)
   local isComplete = LibPOI:IsComplete(zoneIndex, poiIndex)
-  return isComplete and finishedDescription or startDescription
+
+  local mundusStone =
+    MUNDUS_STONE_POI[zoneIndex] ~= nil and
+    MUNDUS_STONE_POI[zoneIndex][poiIndex] ~= nil and
+    MUNDUS_STONE_POI[zoneIndex][poiIndex] or
+    nil
+
+  local mundusDescription =
+    MUNDUS_STONE_DESCRIPTIONS[mundusStone] or
+    MUNDUS_STONE_DESCRIPTIONS[objectiveName] or
+    nil
+
+  return mundusDescription or (isComplete and finishedDescription or startDescription)
 end

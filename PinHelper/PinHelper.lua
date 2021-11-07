@@ -4,8 +4,6 @@ local ADDON_VERSION = 1.00
 -- TODO: allow teleporting to wayshrines
 -- TODO: allow teleporting to group instances
 -- TODO: allow teleporting to houses
--- TODO: custom descriptions for Mundus Stones
--- TODO: custom descriptions for Crafting Stations
 -- TODO: control size and color of pins via LibAddonMenu-2.0
 -- TODO: animate active dark anchors
 
@@ -140,7 +138,7 @@ local function GetPins(targetPinType, callback)
       normalizedY = normalizedY,
       texture = icon,
       name = objectiveName,
-      description = finishedDescription or startDescription,
+      description = LibPOI:GetDescription(zoneIndex, poiIndex),
       isVisibleOnMap = LibMapPins:IsEnabled(targetPinType),
     }
 

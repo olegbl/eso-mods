@@ -1,5 +1,5 @@
 ## Title: LibCovetousCountess
-## APIVersion: 100029
+## APIVersion: 100035
 ## IsLibrary: true
 ## AddOnVersion: 1
 ## Author: olegbl

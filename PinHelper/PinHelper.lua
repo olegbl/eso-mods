@@ -1,11 +1,13 @@
 local ADDON_NAME = "PinHelper"
 local ADDON_VERSION = 1.00
 
+-- TODO: allow controlling compass pin visible via LibAddonMenu-2.0
 -- TODO: allow teleporting to wayshrines
 -- TODO: allow teleporting to group instances
 -- TODO: allow teleporting to houses
 -- TODO: control size and color of pins via LibAddonMenu-2.0
 -- TODO: animate active dark anchors
+-- TODO: refresh compass / map pins automatically based on events
 
 local SAVED_DATA
 
@@ -84,8 +86,84 @@ local DEFAULT_DATA = {
     PinHelper_u26_nord_boat_incomplete = true,
     PinHelper_unknown = true,
     PinHelper_wayshrine_complete = false,
+    PinHelper_wayshrine_incomplete = true,
+  },
+  compassFilters = {
+    PinHelper_areaofinterest_complete = false,
+    PinHelper_areaofinterest_incomplete = false,
+    PinHelper_ayleidruin_complete = false,
+    PinHelper_ayleidruin_incomplete = false,
+    PinHelper_battlefield_complete = false,
+    PinHelper_battlefield_incomplete = false,
+    PinHelper_boss_complete = false,
+    PinHelper_boss_incomplete = false,
+    PinHelper_camp_complete = false,
+    PinHelper_camp_incomplete = false,
+    PinHelper_cave_complete = false,
+    PinHelper_cave_incomplete = false,
+    PinHelper_cemetery_complete = false,
+    PinHelper_cemetery_incomplete = false,
+    PinHelper_city_complete = false,
+    PinHelper_city_incomplete = false,
+    PinHelper_crafting_complete = false,
+    PinHelper_crafting_incomplete = false,
+    PinHelper_crypt_complete = false,
+    PinHelper_crypt_incomplete = false,
+    PinHelper_daedricruin_complete = false,
+    PinHelper_daedricruin_incomplete = false,
+    PinHelper_darkbrotherhood_complete = false,
+    PinHelper_darkbrotherhood_incomplete = false,
+    PinHelper_delve_complete = false,
+    PinHelper_delve_incomplete = false,
+    PinHelper_dock_complete = false,
+    PinHelper_dock_incomplete = false,
+    PinHelper_dungeon_complete = false,
+    PinHelper_dungeon_incomplete = false,
+    PinHelper_dwemerruin_complete = false,
+    PinHelper_dwemerruin_incomplete = false,
+    PinHelper_estate_complete = false,
+    PinHelper_estate_incomplete = false,
+    PinHelper_explorable_complete = false,
+    PinHelper_explorable_incomplete = false,
+    PinHelper_farm_complete = false,
+    PinHelper_farm_incomplete = false,
+    PinHelper_gate_complete = false,
+    PinHelper_gate_incomplete = false,
+    PinHelper_grove_complete = false,
+    PinHelper_grove_incomplete = false,
+    PinHelper_house_complete = false,
+    PinHelper_instance_complete = false,
+    PinHelper_instance_incomplete = false,
+    PinHelper_keep_complete = false,
+    PinHelper_keep_incomplete = false,
+    PinHelper_lighthouse_complete = false,
+    PinHelper_lighthouse_incomplete = false,
+    PinHelper_mine_complete = false,
+    PinHelper_mine_incomplete = false,
+    PinHelper_mundus_complete = false,
+    PinHelper_mundus_incomplete = false,
+    PinHelper_portal_complete = false,
+    PinHelper_portal_incomplete = false,
+    PinHelper_raiddungeon_complete = false,
+    PinHelper_raiddungeon_incomplete = false,
+    PinHelper_ruin_complete = false,
+    PinHelper_ruin_incomplete = false,
+    PinHelper_sewer_complete = false,
+    PinHelper_sewer_incomplete = false,
+    PinHelper_solotrial_complete = false,
+    PinHelper_solotrial_incomplete = false,
+    PinHelper_tower_complete = false,
+    PinHelper_tower_incomplete = false,
+    PinHelper_town_complete = false,
+    PinHelper_town_incomplete = false,
+    PinHelper_u26_dwemergear_complete = false,
+    PinHelper_u26_dwemergear_incomplete = false,
+    PinHelper_u26_nord_boat_complete = false,
+    PinHelper_u26_nord_boat_incomplete = false,
+    PinHelper_unknown = false,
+    PinHelper_wayshrine_complete = true,
     PinHelper_wayshrine_incomplete = false,
-  }
+  },
 }
 
 local function GetPinTexture(pin)
@@ -140,6 +218,7 @@ local function GetPins(targetPinType, callback)
       name = objectiveName,
       description = LibPOI:GetDescription(zoneIndex, poiIndex),
       isVisibleOnMap = LibMapPins:IsEnabled(targetPinType),
+      isVisibleOnCompass = SAVED_DATA.compassFilters[pinType] == true,
     }
 
     if pinType == targetPinType then
@@ -156,6 +235,16 @@ local function CreateMapPins(pinType)
   end)
 end
 
+local function CreateCompassPins(pinType)
+  GetPins(pinType, function(pinTag)
+    if pinTag.isVisibleOnCompass then
+      COMPASS_PINS.pinManager:CreatePin(pinType, pinTag, pinTag.normalizedX, pinTag.normalizedY)
+    else
+      COMPASS_PINS.pinManager:RemovePins(pinType)
+    end
+  end)
+end
+
 local function OnAddOnLoaded(event, name)
   if name ~= ADDON_NAME then return end
 
@@ -163,11 +252,32 @@ local function OnAddOnLoaded(event, name)
 
   SAVED_DATA = ZO_SavedVars:NewAccountWide("PinHelper_SavedVariables", 1, nil, DEFAULT_DATA)
 
-  local layout = {
+  local mapPinLayout = {
     level = 50,
     texture = GetPinTexture,
     size = 40,
     isAnimated = true,
+  }
+
+  local compassPinLayout = {
+    level = 30,
+    texture = "/esoui/art/antiquities/digsite_unknown.dds",
+    maxDistance = 0.05,
+    sizeCallback = function(pin, angle, normalizedAngle, normalizedDistance)
+      if zo_abs(normalizedAngle) > 0.25 then
+        pin:SetDimensions(54 - 24 * zo_abs(normalizedAngle), 54 - 24 * zo_abs(normalizedAngle))
+      else
+        pin:SetDimensions(48, 48)
+      end
+    end,
+    additionalLayout = {
+      function(pin, angle, normalizedAngle, normalizedDistance)
+       local icon = pin:GetNamedChild("Background")
+       icon:SetTexture(pin.pinTag.texture)
+      end,
+      function(pin)
+      end,
+    },
   }
 
   local tooltip = {
@@ -192,8 +302,12 @@ local function OnAddOnLoaded(event, name)
       zo_iconFormat(poiCategoryIcon, 20, 20)
       .. poiCategory.categoryName
       .. (isComplete and "" or " (Incomplete)")
-    LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, layout, tooltip)
+
+    LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinLayout, tooltip)
     LibMapPins:AddPinFilter(pinType, poiCategoryName, false, SAVED_DATA.mapFilters)
+
+    COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
+    COMPASS_PINS:RefreshPins(pinType)
   end
 end
 

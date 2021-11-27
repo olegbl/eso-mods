@@ -1,7 +1,6 @@
 local ADDON_NAME = "PinHelper"
-local ADDON_VERSION = 1.01
+local ADDON_VERSION = 1.02
 
--- TODO: allow controlling compass pin visible via LibAddonMenu-2.0
 -- TODO: allow teleporting to wayshrines
 -- https://esoapi.uesp.net/100035/src/ingame/map/worldmap.lua.html#355
 -- TODO: allow teleporting to group instances
@@ -297,6 +296,18 @@ local function OnAddOnLoaded(event, name)
 
   SAVED_DATA = ZO_SavedVars:NewAccountWide("PinHelper_SavedVariables", 1, nil, DEFAULT_DATA)
 
+  local addonMenuAddonPanel = {
+    type = "panel",
+    name = ADDON_NAME,
+    displayName = ZO_ColorDef:New("3399FF"):Colorize(ADDON_NAME),
+    author = "olegbl",
+    version = tostring(ADDON_VERSION),
+    registerForRefresh  = true,
+    registerForDefaults = true,
+  }
+
+  local addonMenuOptionControls = {}
+
   local mapPinStaticLayout = {
     level = 50,
     texture = GetPinTexture,
@@ -352,20 +363,55 @@ local function OnAddOnLoaded(event, name)
     local poiCategoryIcon = isComplete
       and poiCategory.completeIcons[1]
       or poiCategory.incompleteIcons[1]
+    local poiCategoryNameWithoutIcon =
+      poiCategory.categoryName
+      .. (isComplete and "" or " (Incomplete)")
     local poiCategoryName =
       zo_iconFormat(poiCategoryIcon, 20, 20)
-      .. poiCategory.categoryName
-      .. (isComplete and "" or " (Incomplete)")
+      .. poiCategoryNameWithoutIcon
 
     LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinStaticLayout, tooltip)
     LibMapPins:AddPinFilter(pinType, poiCategoryName, false, SAVED_DATA.mapFilters)
 
     COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
     COMPASS_PINS:RefreshPins(pinType)
+
+    table.insert(addonMenuOptionControls, {
+      type = "submenu",
+      icon = poiCategoryIcon,
+      name = poiCategoryNameWithoutIcon,
+      controls = {
+        {
+          type = "checkbox",
+          name = "Show on map",
+          getFunc = function()
+            return SAVED_DATA.mapFilters[pinType]
+          end,
+          setFunc = function()
+            SAVED_DATA.mapFilters[pinType] = not SAVED_DATA.mapFilters[pinType]
+            LibMapPins:SetEnabled(pinType, SAVED_DATA.mapFilters[pinType])
+          end,
+        },
+        {
+          type = "checkbox",
+          name = "Show on compass",
+          getFunc = function()
+            return SAVED_DATA.compassFilters[pinType]
+          end,
+          setFunc = function()
+            SAVED_DATA.compassFilters[pinType] = not SAVED_DATA.compassFilters[pinType]
+            COMPASS_PINS:RefreshPins(pinType)
+          end,
+        },
+      },
+    })
   end
 
   LibMapPins:AddPinType("PinHelper_worldevent_complete", function() CreateMapPins("PinHelper_worldevent_complete") end, nil, mapPinAnimatedLayout, tooltip)
   LibMapPins:AddPinType("PinHelper_worldevent_incomplete", function() CreateMapPins("PinHelper_worldevent_incomplete") end, nil, mapPinAnimatedLayout, tooltip)
+
+  LibAddonMenu2:RegisterAddonPanel("PinHelperPanel", addonMenuAddonPanel)
+  LibAddonMenu2:RegisterOptionControls("PinHelperPanel", addonMenuOptionControls)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

@@ -3,10 +3,10 @@ local ADDON_VERSION = 1.00
 
 -- TODO: allow controlling compass pin visible via LibAddonMenu-2.0
 -- TODO: allow teleporting to wayshrines
+-- https://esoapi.uesp.net/100035/src/ingame/map/worldmap.lua.html#355
 -- TODO: allow teleporting to group instances
 -- TODO: allow teleporting to houses
 -- TODO: control size and color of pins via LibAddonMenu-2.0
--- TODO: animate active dark anchors
 -- TODO: refresh compass / map pins automatically based on events
 
 local SAVED_DATA
@@ -174,6 +174,10 @@ end
 local function GetPinTooltip(pin)
   local pinTag = pin.m_PinTag
 
+  if pinTag.name == "" then
+    return
+  end
+
   if IsInGamepadPreferredMode() then
     ZO_MapLocationTooltip_Gamepad:LayoutIconStringLine(
       ZO_MapLocationTooltip_Gamepad.tooltip,
@@ -207,21 +211,55 @@ local function GetPins(targetPinType, callback)
     local poiCategory = LibPOI:GetPOICategory(zoneIndex, poiIndex)
     local isComplete = LibPOI:IsComplete(zoneIndex, poiIndex)
     local pinType = "PinHelper_" .. poiCategory.id .. (poiCategory.id == "unknown" and "" or (isComplete and "_complete" or "_incomplete"))
+    local worldEventInstanceId = GetPOIWorldEventInstanceId(zoneIndex, poiIndex)
+    local worldEventInstanceContext = GetWorldEventLocationContext(worldEventInstanceId)
 
-    local pinTag = {
-      pinType = pinType,
-      zoneIndex = zoneIndex,
-      poiIndex = poiIndex,
-      normalizedX = normalizedX,
-      normalizedY = normalizedY,
-      texture = icon,
-      name = objectiveName,
-      description = LibPOI:GetDescription(zoneIndex, poiIndex),
-      isVisibleOnMap = LibMapPins:IsEnabled(targetPinType),
-      isVisibleOnCompass = SAVED_DATA.compassFilters[pinType] == true,
-    }
+    if worldEventInstanceContext == WORLD_EVENT_LOCATION_CONTEXT_POINT_OF_INTEREST then
+      if targetPinType == "PinHelper_worldevent_complete" and poiType == MAP_PIN_TYPE_POI_COMPLETE then
+        local pinTag = {
+          pinType = "PinHelper_worldevent_complete",
+          zoneIndex = zoneIndex,
+          poiIndex = poiIndex,
+          normalizedX = normalizedX,
+          normalizedY = normalizedY,
+          texture = "/esoui/art/mappins/worldevent_poi_active_complete.dds",
+          name = "",
+          description = "",
+          isVisibleOnMap = LibMapPins:IsEnabled(pinType),
+          isVisibleOnCompass = false,
+        }
+        callback(pinTag)
+      end
+      if targetPinType == "PinHelper_worldevent_incomplete" and poiType == MAP_PIN_TYPE_POI_SEEN then
+        local pinTag = {
+          pinType = "PinHelper_worldevent_incomplete",
+          zoneIndex = zoneIndex,
+          poiIndex = poiIndex,
+          normalizedX = normalizedX,
+          normalizedY = normalizedY,
+          texture = "/esoui/art/mappins/worldevent_poi_active_incomplete.dds",
+          name = "",
+          description = "",
+          isVisibleOnMap = LibMapPins:IsEnabled(pinType),
+          isVisibleOnCompass = false,
+        }
+        callback(pinTag)
+      end
+    end
 
     if pinType == targetPinType then
+      local pinTag = {
+        pinType = pinType,
+        zoneIndex = zoneIndex,
+        poiIndex = poiIndex,
+        normalizedX = normalizedX,
+        normalizedY = normalizedY,
+        texture = icon,
+        name = objectiveName,
+        description = LibPOI:GetDescription(zoneIndex, poiIndex),
+        isVisibleOnMap = LibMapPins:IsEnabled(targetPinType),
+        isVisibleOnCompass = SAVED_DATA.compassFilters[pinType] == true,
+      }
       callback(pinTag)
     end
   end
@@ -245,6 +283,13 @@ local function CreateCompassPins(pinType)
   end)
 end
 
+local function OnWorldEventActiveLocationChanged(newWorldEventLocationId)
+  LibMapPins:RefreshPins("PinHelper_worldevent_complete")
+  LibMapPins:RefreshPins("PinHelper_worldevent_incomplete")
+end
+
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_WORLD_EVENT_ACTIVE_LOCATION_CHANGED, OnWorldEventActiveLocationChanged)
+
 local function OnAddOnLoaded(event, name)
   if name ~= ADDON_NAME then return end
 
@@ -252,11 +297,20 @@ local function OnAddOnLoaded(event, name)
 
   SAVED_DATA = ZO_SavedVars:NewAccountWide("PinHelper_SavedVariables", 1, nil, DEFAULT_DATA)
 
-  local mapPinLayout = {
+  local mapPinStaticLayout = {
     level = 50,
     texture = GetPinTexture,
     size = 40,
+  }
+
+  local mapPinAnimatedLayout = {
+    level = 49,
+    texture = GetPinTexture,
+    size = 40,
     isAnimated = true,
+    framesWide = 16,
+    framesHigh = 1,
+    framesPerSecond = 12,
   }
 
   local compassPinLayout = {
@@ -303,12 +357,15 @@ local function OnAddOnLoaded(event, name)
       .. poiCategory.categoryName
       .. (isComplete and "" or " (Incomplete)")
 
-    LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinLayout, tooltip)
+    LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinStaticLayout, tooltip)
     LibMapPins:AddPinFilter(pinType, poiCategoryName, false, SAVED_DATA.mapFilters)
 
     COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
     COMPASS_PINS:RefreshPins(pinType)
   end
+
+  LibMapPins:AddPinType("PinHelper_worldevent_complete", function() CreateMapPins("PinHelper_worldevent_complete") end, nil, mapPinAnimatedLayout, tooltip)
+  LibMapPins:AddPinType("PinHelper_worldevent_incomplete", function() CreateMapPins("PinHelper_worldevent_incomplete") end, nil, mapPinAnimatedLayout, tooltip)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

@@ -1,5 +1,5 @@
 local ADDON_NAME = "PinHelper"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 -- TODO: allow controlling compass pin visible via LibAddonMenu-2.0
 -- TODO: allow teleporting to wayshrines

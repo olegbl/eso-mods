@@ -373,7 +373,7 @@ local POI_CATEGORIES = {
   },
   portal = {
     id = "portal",
-    categoryName = "Dark Anchors",
+    categoryName = "Dolmens",
     completeIcons = {
       "/esoui/art/icons/poi/poi_portal_complete.dds",
     },

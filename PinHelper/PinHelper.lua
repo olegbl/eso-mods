@@ -1,10 +1,6 @@
 local ADDON_NAME = "PinHelper"
 local ADDON_VERSION = 1.02
 
--- TODO: allow teleporting to wayshrines
--- https://esoapi.uesp.net/100035/src/ingame/map/worldmap.lua.html#355
--- TODO: allow teleporting to group instances
--- TODO: allow teleporting to houses
 -- TODO: control size and color of pins via LibAddonMenu-2.0
 -- TODO: refresh compass / map pins automatically based on events
 
@@ -73,7 +69,6 @@ local DEFAULT_DATA = {
     PinHelper_ruin_incomplete = true,
     PinHelper_sewer_complete = false,
     PinHelper_sewer_incomplete = true,
-    PinHelper_solotrial_complete = false,
     PinHelper_solotrial_incomplete = true,
     PinHelper_tower_complete = false,
     PinHelper_tower_incomplete = true,
@@ -116,8 +111,7 @@ local DEFAULT_DATA = {
     PinHelper_delve_incomplete = false,
     PinHelper_dock_complete = false,
     PinHelper_dock_incomplete = false,
-    PinHelper_dungeon_complete = false,
-    PinHelper_dungeon_incomplete = false,
+    PinHelper_dungeon_incomplete = true,
     PinHelper_dwemerruin_complete = false,
     PinHelper_dwemerruin_incomplete = false,
     PinHelper_estate_complete = false,
@@ -131,8 +125,7 @@ local DEFAULT_DATA = {
     PinHelper_grove_complete = false,
     PinHelper_grove_incomplete = false,
     PinHelper_house_complete = false,
-    PinHelper_instance_complete = false,
-    PinHelper_instance_incomplete = false,
+    PinHelper_instance_incomplete = true,
     PinHelper_keep_complete = false,
     PinHelper_keep_incomplete = false,
     PinHelper_lighthouse_complete = false,
@@ -143,8 +136,7 @@ local DEFAULT_DATA = {
     PinHelper_mundus_incomplete = false,
     PinHelper_portal_complete = false,
     PinHelper_portal_incomplete = false,
-    PinHelper_raiddungeon_complete = false,
-    PinHelper_raiddungeon_incomplete = false,
+    PinHelper_raiddungeon_incomplete = true,
     PinHelper_ruin_complete = false,
     PinHelper_ruin_incomplete = false,
     PinHelper_sewer_complete = false,
@@ -164,6 +156,15 @@ local DEFAULT_DATA = {
     PinHelper_wayshrine_incomplete = false,
   },
 }
+
+local function GetIsTeleportableLocation(id)
+  return id == "wayshrine"
+   or id == "dungeon"
+   or id == "instance" -- group dungeon
+   or id == "solotrial"
+   or id == "raiddungeon" -- group trial
+   or id == "house"
+end
 
 local function GetPinTexture(pin)
   local pinTag = pin.m_PinTag
@@ -212,6 +213,7 @@ local function GetPins(targetPinType, callback)
     local pinType = "PinHelper_" .. poiCategory.id .. (poiCategory.id == "unknown" and "" or (isComplete and "_complete" or "_incomplete"))
     local worldEventInstanceId = GetPOIWorldEventInstanceId(zoneIndex, poiIndex)
     local worldEventInstanceContext = GetWorldEventLocationContext(worldEventInstanceId)
+    local isTeleportable = GetIsTeleportableLocation(poiCategory.id)
 
     if worldEventInstanceContext == WORLD_EVENT_LOCATION_CONTEXT_POINT_OF_INTEREST then
       if targetPinType == "PinHelper_worldevent_complete" and poiType == MAP_PIN_TYPE_POI_COMPLETE then
@@ -247,6 +249,12 @@ local function GetPins(targetPinType, callback)
     end
 
     if pinType == targetPinType then
+      -- we don't want to show discovered wayshrines / dungeons / trials
+      -- because they will be handled by the game's "Wayshrines" filter
+      -- which has the added capability of allow teleportation to the pin
+      -- (and I'm too lazy to replicate that logic)
+      local isDiscoveredTeleportableLocation = isTeleportable and isDiscovered
+
       local pinTag = {
         pinType = pinType,
         zoneIndex = zoneIndex,
@@ -256,7 +264,7 @@ local function GetPins(targetPinType, callback)
         texture = icon,
         name = objectiveName,
         description = LibPOI:GetDescription(zoneIndex, poiIndex),
-        isVisibleOnMap = LibMapPins:IsEnabled(targetPinType),
+        isVisibleOnMap = LibMapPins:IsEnabled(targetPinType) and not isDiscoveredTeleportableLocation,
         isVisibleOnCompass = SAVED_DATA.compassFilters[pinType] == true,
       }
       callback(pinTag)
@@ -376,48 +384,56 @@ local function OnAddOnLoaded(event, name)
     local poiCategoryIcon = isComplete
       and poiCategory.completeIcons[1]
       or poiCategory.incompleteIcons[1]
+    local isTeleportable = GetIsTeleportableLocation(poiCategory.id)
+    local poiCategoryNameSuffix = isTeleportable
+      and "Undiscovered"
+      or "Incomplete"
     local poiCategoryNameWithoutIcon =
       poiCategory.categoryName
-      .. (isComplete and "" or " (Incomplete)")
+      .. (isComplete and "" or " (" .. poiCategoryNameSuffix .. ")")
     local poiCategoryName =
       zo_iconFormat(poiCategoryIcon, 20, 20)
       .. poiCategoryNameWithoutIcon
 
-    LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinStaticLayout, tooltip)
-    LibMapPins:AddPinFilter(pinType, poiCategoryName, false, SAVED_DATA.mapFilters)
+    -- if the location is both teleportable and complete,
+    -- we will never want to show it, so don't add a category for it
+    if not isTeleportable or not isComplete then
+      LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinStaticLayout, tooltip)
+      LibMapPins:AddPinFilter(pinType, poiCategoryName, false, SAVED_DATA.mapFilters)
 
-    COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
-    COMPASS_PINS:RefreshPins(pinType)
+      COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
+      COMPASS_PINS:RefreshPins(pinType)
 
-    table.insert(addonMenuOptionControls, {
-      type = "submenu",
-      icon = poiCategoryIcon,
-      name = poiCategoryNameWithoutIcon,
-      controls = {
-        {
-          type = "checkbox",
-          name = "Show on map",
-          getFunc = function()
-            return SAVED_DATA.mapFilters[pinType]
-          end,
-          setFunc = function()
-            SAVED_DATA.mapFilters[pinType] = not SAVED_DATA.mapFilters[pinType]
-            LibMapPins:SetEnabled(pinType, SAVED_DATA.mapFilters[pinType])
-          end,
+      table.insert(addonMenuOptionControls, {
+        type = "submenu",
+        icon = poiCategoryIcon,
+        name = poiCategoryNameWithoutIcon,
+        controls = {
+          {
+            type = "checkbox",
+            name = "Show on map",
+            getFunc = function()
+              return SAVED_DATA.mapFilters[pinType]
+            end,
+            setFunc = function()
+              SAVED_DATA.mapFilters[pinType] = not SAVED_DATA.mapFilters[pinType]
+              LibMapPins:SetEnabled(pinType, SAVED_DATA.mapFilters[pinType])
+            end,
+          },
+          {
+            type = "checkbox",
+            name = "Show on compass",
+            getFunc = function()
+              return SAVED_DATA.compassFilters[pinType]
+            end,
+            setFunc = function()
+              SAVED_DATA.compassFilters[pinType] = not SAVED_DATA.compassFilters[pinType]
+              COMPASS_PINS:RefreshPins(pinType)
+            end,
+          },
         },
-        {
-          type = "checkbox",
-          name = "Show on compass",
-          getFunc = function()
-            return SAVED_DATA.compassFilters[pinType]
-          end,
-          setFunc = function()
-            SAVED_DATA.compassFilters[pinType] = not SAVED_DATA.compassFilters[pinType]
-            COMPASS_PINS:RefreshPins(pinType)
-          end,
-        },
-      },
-    })
+      })
+    end
   end
 
   LibMapPins:AddPinType("PinHelper_worldevent_complete", function() CreateMapPins("PinHelper_worldevent_complete") end, nil, mapPinAnimatedLayout, tooltip)

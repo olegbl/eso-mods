@@ -1,5 +1,5 @@
 local ADDON_NAME = "LibPOI"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 LibPOI = {}
 
@@ -317,7 +317,7 @@ local POI_CATEGORIES = {
   },
   instance = {
     id = "instance",
-    categoryName = "Instances",
+    categoryName = "Group Dungeons",
     completeIcons = {
       "/esoui/art/icons/poi/poi_groupinstance_complete.dds",
     },
@@ -383,7 +383,7 @@ local POI_CATEGORIES = {
   },
   raiddungeon = {
     id = "raiddungeon",
-    categoryName = "Raid Dungeons",
+    categoryName = "Group Trials",
     completeIcons = {
       "/esoui/art/icons/poi/poi_raiddungeon_complete.dds",
     },

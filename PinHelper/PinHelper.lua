@@ -111,6 +111,7 @@ local DEFAULT_DATA = {
     PinHelper_delve_incomplete = false,
     PinHelper_dock_complete = false,
     PinHelper_dock_incomplete = false,
+    PinHelper_dungeon_complete = false,
     PinHelper_dungeon_incomplete = true,
     PinHelper_dwemerruin_complete = false,
     PinHelper_dwemerruin_incomplete = false,
@@ -125,6 +126,7 @@ local DEFAULT_DATA = {
     PinHelper_grove_complete = false,
     PinHelper_grove_incomplete = false,
     PinHelper_house_complete = false,
+    PinHelper_instance_complete = false,
     PinHelper_instance_incomplete = true,
     PinHelper_keep_complete = false,
     PinHelper_keep_incomplete = false,
@@ -136,6 +138,7 @@ local DEFAULT_DATA = {
     PinHelper_mundus_incomplete = false,
     PinHelper_portal_complete = false,
     PinHelper_portal_incomplete = false,
+    PinHelper_raiddungeon_complete = false,
     PinHelper_raiddungeon_incomplete = true,
     PinHelper_ruin_complete = false,
     PinHelper_ruin_incomplete = false,
@@ -159,7 +162,6 @@ local DEFAULT_DATA = {
 
 local function GetIsTeleportableLocation(id)
   return id == "wayshrine"
-   or id == "dungeon"
    or id == "instance" -- group dungeon
    or id == "solotrial"
    or id == "raiddungeon" -- group trial

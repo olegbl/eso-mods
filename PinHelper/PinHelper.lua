@@ -350,14 +350,27 @@ local function OnAddOnLoaded(event, name)
     tooltip = ZO_MAP_TOOLTIP_MODE.INFORMATION,
   }
 
+  local poiCategories = LibPOI:GetPOICategories()
   local pinTypes = {}
   for pinType, _isEnabled in pairs(DEFAULT_DATA.mapFilters) do
     table.insert(pinTypes, pinType)
   end
-  table.sort(pinTypes)
+
+  local function GetPOICategoryID(pinType)
+    return string.match(pinType, "^PinHelper_(.+)_i?n?complete$") or "unknown"
+  end
+
+  table.sort(pinTypes, function(a, b)
+    local aName = poiCategories[GetPOICategoryID(a)].categoryName
+    local bName = poiCategories[GetPOICategoryID(b)].categoryName
+    if aName == bName then
+      return a < b -- will sort complete above incomplete since id prefix will match
+    end
+    return aName < bName
+  end)
+
   for _, pinType in ipairs(pinTypes) do
-    local poiCategories = LibPOI:GetPOICategories()
-    local poiCategoryID = string.match(pinType, "^PinHelper_(.+)_i?n?complete$") or "unknown"
+    local poiCategoryID = GetPOICategoryID(pinType)
     local poiCategory = poiCategories[poiCategoryID] or poiCategories.unknown
     local isComplete = string.match(pinType, "^PinHelper_.+_incomplete$") == nil
     local poiCategoryIcon = isComplete

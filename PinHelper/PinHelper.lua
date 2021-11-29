@@ -399,43 +399,51 @@ local function OnAddOnLoaded(event, name)
 
     -- if the location is both teleportable and complete,
     -- we will never want to show it, so don't add a category for it
-    if not isTeleportable or not isComplete then
+    local isTeleportableAndComplete = isTeleportable and isComplete
+    if not isTeleportableAndComplete then
       LibMapPins:AddPinType(pinType, function() CreateMapPins(pinType) end, nil, mapPinStaticLayout, tooltip)
       LibMapPins:AddPinFilter(pinType, poiCategoryName, false, SAVED_DATA.mapFilters)
-
-      COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
-      COMPASS_PINS:RefreshPins(pinType)
-
-      table.insert(addonMenuOptionControls, {
-        type = "submenu",
-        icon = poiCategoryIcon,
-        name = poiCategoryNameWithoutIcon,
-        controls = {
-          {
-            type = "checkbox",
-            name = "Show on map",
-            getFunc = function()
-              return SAVED_DATA.mapFilters[pinType]
-            end,
-            setFunc = function()
-              SAVED_DATA.mapFilters[pinType] = not SAVED_DATA.mapFilters[pinType]
-              LibMapPins:SetEnabled(pinType, SAVED_DATA.mapFilters[pinType])
-            end,
-          },
-          {
-            type = "checkbox",
-            name = "Show on compass",
-            getFunc = function()
-              return SAVED_DATA.compassFilters[pinType]
-            end,
-            setFunc = function()
-              SAVED_DATA.compassFilters[pinType] = not SAVED_DATA.compassFilters[pinType]
-              COMPASS_PINS:RefreshPins(pinType)
-            end,
-          },
-        },
-      })
     end
+
+    COMPASS_PINS:AddCustomPin(pinType, function() CreateCompassPins(pinType) end, compassPinLayout)
+    COMPASS_PINS:RefreshPins(pinType)
+
+    table.insert(addonMenuOptionControls, {
+      type = "submenu",
+      icon = poiCategoryIcon,
+      name = poiCategoryNameWithoutIcon,
+      controls = {
+        {
+          type = "checkbox",
+          name = "Show on map",
+          getFunc = function()
+            if isTeleportableAndComplete then
+              return false
+            end
+            return SAVED_DATA.mapFilters[pinType]
+          end,
+          setFunc = function()
+            SAVED_DATA.mapFilters[pinType] = not SAVED_DATA.mapFilters[pinType]
+            LibMapPins:SetEnabled(pinType, SAVED_DATA.mapFilters[pinType])
+          end,
+          disabled = isTeleportableAndComplete,
+          tooltip = isTeleportableAndComplete
+            and "Use the Wayshrines base game map filter instead"
+            or ""
+        },
+        {
+          type = "checkbox",
+          name = "Show on compass",
+          getFunc = function()
+            return SAVED_DATA.compassFilters[pinType]
+          end,
+          setFunc = function()
+            SAVED_DATA.compassFilters[pinType] = not SAVED_DATA.compassFilters[pinType]
+            COMPASS_PINS:RefreshPins(pinType)
+          end,
+        },
+      },
+    })
   end
 
   LibMapPins:AddPinType("PinHelper_worldevent_complete", function() CreateMapPins("PinHelper_worldevent_complete") end, nil, mapPinAnimatedLayout, tooltip)

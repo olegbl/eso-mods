@@ -1,8 +1,7 @@
 local ADDON_NAME = "PinHelper"
-local ADDON_VERSION = 1.02
+local ADDON_VERSION = 1.03
 
--- TODO: control size and color of pins via LibAddonMenu-2.0
--- TODO: refresh compass / map pins automatically based on events
+-- TODO: allow adjusting size and color of pins via LibAddonMenu2
 
 local SAVED_DATA
 
@@ -298,6 +297,16 @@ local function OnWorldEventActiveLocationChanged(newWorldEventLocationId)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_WORLD_EVENT_ACTIVE_LOCATION_CHANGED, OnWorldEventActiveLocationChanged)
+
+local function OnPOIUpdated()
+  for pinType, _isEnabled in pairs(DEFAULT_DATA.mapFilters) do
+    LibMapPins:RefreshPins(pinType)
+    COMPASS_PINS:RefreshPins(pinType)
+  end
+end
+
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_UPDATED, OnPOIUpdated)
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_DISCOVERED, OnPOIUpdated)
 
 local function OnAddOnLoaded(event, name)
   if name ~= ADDON_NAME then return end

@@ -1,5 +1,5 @@
 local ADDON_NAME = "PinHelper"
-local ADDON_VERSION = 1.03
+local ADDON_VERSION = 1.04
 
 -- TODO: allow adjusting size and color of pins via LibAddonMenu2
 
@@ -159,6 +159,15 @@ local DEFAULT_DATA = {
   },
 }
 
+local function GetPinType(poiCategory, isComplete)
+  return "PinHelper_"
+    .. poiCategory.id
+    .. (poiCategory.id == "unknown"
+      and ""
+      or (isComplete and "_complete" or "_incomplete")
+    )
+end
+
 local function GetIsTeleportableLocation(id)
   return id == "wayshrine"
    or id == "instance" -- group dungeon
@@ -211,7 +220,7 @@ local function GetPins(targetPinType, callback)
     local normalizedX, normalizedY, poiType, icon, isShownInCurrentMap, linkedCollectibleIsLocked, isDiscovered, isNearby = GetPOIMapInfo(zoneIndex, poiIndex)
     local poiCategory = LibPOI:GetPOICategory(zoneIndex, poiIndex)
     local isComplete = LibPOI:IsComplete(zoneIndex, poiIndex)
-    local pinType = "PinHelper_" .. poiCategory.id .. (poiCategory.id == "unknown" and "" or (isComplete and "_complete" or "_incomplete"))
+    local pinType = GetPinType(poiCategory, isComplete)
     local worldEventInstanceId = GetPOIWorldEventInstanceId(zoneIndex, poiIndex)
     local worldEventInstanceContext = GetWorldEventLocationContext(worldEventInstanceId)
     local isTeleportable = GetIsTeleportableLocation(poiCategory.id)
@@ -298,11 +307,12 @@ end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_WORLD_EVENT_ACTIVE_LOCATION_CHANGED, OnWorldEventActiveLocationChanged)
 
-local function OnPOIUpdated()
-  for pinType, _isEnabled in pairs(DEFAULT_DATA.mapFilters) do
-    LibMapPins:RefreshPins(pinType)
-    COMPASS_PINS:RefreshPins(pinType)
-  end
+local function OnPOIUpdated(eventCode, zoneIndex, poiIndex)
+  local poiCategory = LibPOI:GetPOICategory(zoneIndex, poiIndex)
+  local isComplete = LibPOI:IsComplete(zoneIndex, poiIndex)
+  local pinType = GetPinType(poiCategory, isComplete)
+  LibMapPins:RefreshPins(pinType)
+  COMPASS_PINS:RefreshPins(pinType)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_UPDATED, OnPOIUpdated)

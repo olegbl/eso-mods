@@ -2,6 +2,8 @@ local ADDON_NAME = "PinHelper"
 local ADDON_VERSION = 1.04
 
 -- TODO: allow adjusting size and color of pins via LibAddonMenu2
+-- TODO: automatically refresh pins when Mundus Stone is found
+-- TODO: automatically refresh pins when Crafting Station is found
 
 local SAVED_DATA
 
@@ -306,6 +308,23 @@ local function OnWorldEventActiveLocationChanged(newWorldEventLocationId)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_WORLD_EVENT_ACTIVE_LOCATION_CHANGED, OnWorldEventActiveLocationChanged)
+
+local function OnAchievementUpdated(eventCode, id)
+  -- killing world bosses does not trigger EVENT_POI_UPDATED for some reason
+  -- so we detect it via the achivement update event instead
+  LibMapPins:RefreshPins("PinHelper_groupboss_complete")
+  COMPASS_PINS:RefreshPins("PinHelper_groupboss_complete")
+  LibMapPins:RefreshPins("PinHelper_groupboss_incomplete")
+  COMPASS_PINS:RefreshPins("PinHelper_groupboss_incomplete")
+end
+
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ACHIEVEMENT_UPDATED, OnAchievementUpdated)
+
+local function OnAchievementAwarded(eventCode, name, points, id, link)
+  OnAchievementUpdated(eventCode, id)
+end
+
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ACHIEVEMENT_AWARDED, OnAchievementAwarded)
 
 local function OnPOIUpdated(eventCode, zoneIndex, poiIndex)
   local poiCategory = LibPOI:GetPOICategory(zoneIndex, poiIndex)

@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_Overview"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 local CRAFTING = {
   [CRAFTING_TYPE_BLACKSMITHING] = {questId = 5377},
@@ -57,13 +57,20 @@ local function LayoutTooltip(self)
 
   -- daily / recurring tasks
   local tasksSection = self:AcquireSection(self:GetStyle("bodySection"))
-  tasksSection:AddLine("Tasks", self:GetStyle("title"))
+  local isTasksLabelAdded = false
+  local function AddTask(text, style)
+    if not isTasksLabelAdded then
+      tasksSection:AddLine("Tasks", self:GetStyle("title"))
+      isTasksLabelAdded = true
+    end
+    tasksSection:AddLine(text, style)
+  end
 
   -- horse training reminder
   local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
   if horseTrainingTimeRemaining == 0 then
     local text = string.format("Horse Training Available")
-    tasksSection:AddLine(text, self:GetStyle("bodyDescription"))
+    AddTask(text, self:GetStyle("bodyDescription"))
   end
 
   -- crafting research reminder
@@ -74,7 +81,7 @@ local function LayoutTooltip(self)
       local craftText = GetCraftingSkillName(craftingType)
       local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
       local text = string.format("|cFFFFFF%s|r %s %s Available", count, craftText, researchText)
-      tasksSection:AddLine(text, self:GetStyle("bodyDescription"))
+      AddTask(text, self:GetStyle("bodyDescription"))
     end
   end
 

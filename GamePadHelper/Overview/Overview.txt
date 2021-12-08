@@ -2,7 +2,7 @@
 ## APIVersion: 100035
 ## Author: olegbl
 ## Description: |c3399FFGamePadHelper|r module that shows an overview tooltip while on the main menu.
-## Version: 1.00
+## Version: 1.01
 ## DependsOn: GamePadHelper
 
 Overview.lua

@@ -1,5 +1,5 @@
 ## Title: LibPOI
-## APIVersion: 100035
+## APIVersion: 101032
 ## IsLibrary: true
 ## AddOnVersion: 1
 ## Author: olegbl

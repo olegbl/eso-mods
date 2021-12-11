@@ -1,5 +1,5 @@
 ## Title: |c3399FFPinHelper|r
-## APIVersion: 100035
+## APIVersion: 101032
 ## Author: olegbl
 ## Description: |c3399FFPinHelper|r allows granular control over visibility of Objectives/POI pins.
 ## Version: 1.04

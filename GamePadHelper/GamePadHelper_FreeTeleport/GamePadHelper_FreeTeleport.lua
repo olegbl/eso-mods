@@ -29,7 +29,7 @@ local KEYBOARD_KEYBIND_STRIP_DESCRIPTOR = nil
 local GAMEPAD_KEYBIND_STRIP_DESCRIPTOR = nil
 local function PopulateKeybindStripDescriptor()
   local keybind = {
-    name = "BeamMeUp",
+    name = "Teleport",
 
     -- this keybind is really finicky since it does not show up in the UI
     -- if it duplicates any base game shortcut (even if the base game shortcut

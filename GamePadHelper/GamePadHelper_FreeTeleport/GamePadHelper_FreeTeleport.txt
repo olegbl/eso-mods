@@ -1,0 +1,8 @@
+## Title: |c3399FFGamePadHelper|r FreeTeleport
+## APIVersion: 101032
+## Author: olegbl
+## Description: |c3399FFGamePadHelper|r module that allows fast traveling to a friend or guildmate in a zone directly from the map interface (i.e. gamepad-friendly BeamMeUp).
+## Version: 1.00
+## DependsOn: GamePadHelper BeamMeUp
+
+GamePadHelper_FreeTeleport.lua

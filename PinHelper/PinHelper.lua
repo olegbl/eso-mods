@@ -307,8 +307,6 @@ local function OnWorldEventActiveLocationChanged(newWorldEventLocationId)
   LibMapPins:RefreshPins("PinHelper_worldevent_incomplete")
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_WORLD_EVENT_ACTIVE_LOCATION_CHANGED, OnWorldEventActiveLocationChanged)
-
 local function OnAchievementUpdated(eventCode, id)
   -- killing world bosses does not trigger EVENT_POI_UPDATED for some reason
   -- so we detect it via the achivement update event instead
@@ -318,13 +316,9 @@ local function OnAchievementUpdated(eventCode, id)
   COMPASS_PINS:RefreshPins("PinHelper_groupboss_incomplete")
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ACHIEVEMENT_UPDATED, OnAchievementUpdated)
-
 local function OnAchievementAwarded(eventCode, name, points, id, link)
   OnAchievementUpdated(eventCode, id)
 end
-
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ACHIEVEMENT_AWARDED, OnAchievementAwarded)
 
 local function OnPOIUpdated(eventCode, zoneIndex, poiIndex)
   local poiCategory = LibPOI:GetPOICategory(zoneIndex, poiIndex)
@@ -334,8 +328,21 @@ local function OnPOIUpdated(eventCode, zoneIndex, poiIndex)
   COMPASS_PINS:RefreshPins(pinType)
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_UPDATED, OnPOIUpdated)
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_DISCOVERED, OnPOIUpdated)
+local function OnRefreshAllPins()
+  for pinType, _isEnabled in pairs(DEFAULT_DATA.mapFilters) do
+    LibMapPins:RefreshPins(pinType)
+    COMPASS_PINS:RefreshPins(pinType)
+  end
+end
+
+local function OnWorldMapSceneStateChange(oldState, newState)
+  -- refresh all pins when map is shown
+  -- this can be removed once all pins self-update from appropriate events (see TODOs above)
+  -- this does not fix the compass pins not updating until the map is opened (for some categories)
+  if newState == SCENE_SHOWING then
+    OnRefreshAllPins()
+  end
+end
 
 local function OnAddOnLoaded(event, name)
   if name ~= ADDON_NAME then return end
@@ -489,6 +496,14 @@ local function OnAddOnLoaded(event, name)
 
   LibAddonMenu2:RegisterAddonPanel("PinHelperPanel", addonMenuAddonPanel)
   LibAddonMenu2:RegisterOptionControls("PinHelperPanel", addonMenuOptionControls)
+
+  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_WORLD_EVENT_ACTIVE_LOCATION_CHANGED, OnWorldEventActiveLocationChanged)
+  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ACHIEVEMENT_UPDATED, OnAchievementUpdated)
+  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ACHIEVEMENT_AWARDED, OnAchievementAwarded)
+  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_UPDATED, OnPOIUpdated)
+  EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_POI_DISCOVERED, OnPOIUpdated)
+  WORLD_MAP_SCENE:RegisterCallback("StateChange", OnWorldMapSceneStateChange)
+  GAMEPAD_WORLD_MAP_SCENE:RegisterCallback("StateChange", OnWorldMapSceneStateChange)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

@@ -1,5 +1,5 @@
 local ADDON_NAME = "PinHelper"
-local ADDON_VERSION = 1.04
+local ADDON_VERSION = 1.05
 
 -- TODO: allow adjusting size and color of pins via LibAddonMenu2
 -- TODO: automatically refresh pins when Mundus Stone is found

@@ -2,7 +2,7 @@
 ## APIVersion: 101032
 ## Author: olegbl
 ## Description: |c3399FFPinHelper|r allows granular control over visibility of Objectives/POI pins.
-## Version: 1.04
+## Version: 1.05
 ## DependsOn: LibPOI LibMapPins-1.0 LibAddonMenu-2.0 CustomCompassPins
 ## SavedVariables: PinHelper_SavedVariables
 

@@ -437,9 +437,10 @@ local function OnAddOnLoaded(event, name)
       or "Incomplete"
     local poiCategoryNameWithoutIcon =
       poiCategory.categoryName
-      .. (isComplete and "" or " (" .. poiCategoryNameSuffix .. ")")
+      .. ZO_DISABLED_TEXT:Colorize(isComplete and "" or " (" .. poiCategoryNameSuffix .. ")")
     local poiCategoryName =
-      zo_iconFormat(poiCategoryIcon, 20, 20)
+      zo_iconFormat(poiCategoryIcon, 24, 24)
+      .. " "
       .. poiCategoryNameWithoutIcon
 
     -- if the location is both teleportable and complete,

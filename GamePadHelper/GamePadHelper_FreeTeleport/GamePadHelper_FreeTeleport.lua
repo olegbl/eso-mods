@@ -80,6 +80,10 @@ local function PopulateKeybindStripDescriptor()
 end
 
 local function OnWorldMapSceneShow()
+  -- make sure to not add the strip twice by accident
+  KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
+  KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
+
   if IsInGamepadPreferredMode() then
     KEYBIND_STRIP:AddKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
   else
@@ -88,11 +92,9 @@ local function OnWorldMapSceneShow()
 end
 
 local function OnWorldMapSceneHide()
-  if IsInGamepadPreferredMode() then
-    KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
-  else
-    KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
-  end
+  -- hide both strips in case gamepad mode was toggled which on the world map
+  KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
+  KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
 end
 
 local function OnWorldMapSceneStateChange(oldState, newState)

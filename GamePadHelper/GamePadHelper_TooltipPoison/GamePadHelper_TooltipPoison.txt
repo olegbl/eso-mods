@@ -1,0 +1,8 @@
+## Title: |c3399FFGamePadHelper|r Tooltip Poison
+## APIVersion: 101032
+## Author: olegbl
+## Description: |c3399FFGamePadHelper|r module that improves the display of poison information in equipment tooltips.
+## Version: 1.00
+## DependsOn: GamePadHelper
+
+GamePadHelper_TooltipPoison.lua

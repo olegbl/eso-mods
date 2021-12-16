@@ -1,8 +1,0 @@
-## Title: |c3399FFGamePadHelper|r Tooltip Enchantment
-## APIVersion: 101032
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that improves the display of enchantment information in equipment tooltips.
-## Version: 1.00
-## DependsOn: GamePadHelper LibItemLinkDecoder
-
-TooltipEnchantment.lua

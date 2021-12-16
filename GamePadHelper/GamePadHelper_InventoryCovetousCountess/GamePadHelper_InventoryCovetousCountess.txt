@@ -1,0 +1,8 @@
+## Title: |c3399FFGamePadHelper|r Inventory Covetous Countess
+## APIVersion: 101032
+## Author: olegbl
+## Description: |c3399FFGamePadHelper|r module that displays indicator icons in inventory denoting if a treasure item is needed for the Covetous Countess quest.
+## Version: 1.00
+## DependsOn: GamePadHelper LibMultiIcon LibCovetousCountess
+
+GamePadHelper_InventoryCovetousCountess.lua

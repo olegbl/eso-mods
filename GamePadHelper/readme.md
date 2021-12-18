@@ -46,9 +46,9 @@ This also works with Keyboard + Mouse but is mostly useful for GamePad which doe
 
 * [BeamMeUp](https://www.esoui.com/downloads/info2143-BeamMeUp-TeleporterFastTravel.html)
 
-## Tooltip Enhancement
+## Tooltip Enchantment
 
-Reformats the enhancement information in item tooltips.
+Reformats the enchantment information in item tooltips.
 
 ### Dependencies
 

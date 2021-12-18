@@ -4,7 +4,7 @@ local ADDON_VERSION = 1.00
 LibCovetousCountess = {}
 
 -- TODO: figure out a way to solve potential localization issues
-TAGS = {
+local TAGS = {
   -- levels 1-15, 50
   ["Games"] = 1,
   ["Dolls"] = 1,

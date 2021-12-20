@@ -102,12 +102,20 @@ local function LayoutTooltip(self)
   local questStrings = {}
   local fakeQuestJournal = {questStrings = questStrings}
   
-  questSection:AddLine("Tasks", self:GetStyle("bodyHeader"))
+  local isQuestTasksLabelAdded = false
+  local function AddQuestTask(text, style)
+    if not isQuestTasksLabelAdded then
+      questSection:AddLine("Tasks", self:GetStyle("bodyHeader"))
+      isQuestTasksLabelAdded = true
+    end
+    questSection:AddLine(text, style)
+  end
+  
   ZO_ClearNumericallyIndexedTable(questStrings)
   QUEST_JOURNAL_MANAGER:BuildTextForTasks(activeStepOverrideText, questIndex, questStrings)
   for key, value in ipairs(questStrings) do
     if not value.isComplete then
-      questSection:AddLine(value.name, self:GetStyle("bodyDescription"))
+      AddQuestTask(value.name, self:GetStyle("bodyDescription"))
     end
   end
 

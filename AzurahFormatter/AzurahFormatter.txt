@@ -1,0 +1,8 @@
+## Title: |c3399FFAzurah Formatter|r
+## APIVersion: 101032
+## Author: olegbl
+## Description: |c3399FFAzurah Formatter|r allows modifying's Azurah's overlay text formatting.
+## Version: 1.00
+## DependsOn: Azurah
+
+AzurahFormatter.lua

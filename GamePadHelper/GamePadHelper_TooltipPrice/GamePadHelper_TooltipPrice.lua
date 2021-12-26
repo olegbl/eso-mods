@@ -4,7 +4,7 @@ local ADDON_VERSION = 1.00
 -- TODO: use LibPrice
 
 local COLOR_GAME = ZO_ColorDef:New("FFFFFF")
-local COLOR_TCC = ZO_ColorDef:New("EECA2A")
+local COLOR_TTC = ZO_ColorDef:New("EECA2A")
 
 local COLOR_TITLE = ZO_ColorDef:New("FFFFFF")
 local COLOR_DETAILS = ZO_ColorDef:New("B2B2B2")
@@ -26,7 +26,7 @@ local function getPriceSummary(gameValue, gameMaxValue, ttcValue, suffix)
     "%s %s %s %s",
     PRICE_ICON,
     COLOR_GAME:Colorize(gameValueText),
-    COLOR_TCC:Colorize(ttcValueText),
+    COLOR_TTC:Colorize(ttcValueText),
     suffix or ""
   ))
 end

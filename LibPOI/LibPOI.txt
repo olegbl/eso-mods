@@ -4,6 +4,6 @@
 ## AddOnVersion: 1
 ## Author: olegbl
 ## Description: APIs for interacting with points of interest.
-## Version: 1.01
+## Version: 1.02
 
 LibPOI.lua

@@ -1,5 +1,5 @@
 local ADDON_NAME = "LibPOI"
-local ADDON_VERSION = 1.01
+local ADDON_VERSION = 1.02
 
 LibPOI = {}
 

@@ -3,6 +3,11 @@ local ADDON_VERSION = 1.01
 
 LibPOI = {}
 
+-- TODO: parse Mundus Stone names from known zoneId, poiIndex to detect Mundus Stones
+--       via their name on all localizations instead of hardcoding all zoneId, poiIndex combinations
+
+-- TODO: localization boilerplate to allow potentially adding other translations for Mundus Stone descriptions
+
 -- name, description
 local MUNDUS_STONE_DESCRIPTIONS = {
   ["The Apprentice"] = "Increases Spell Power",
@@ -38,6 +43,13 @@ local MUNDUS_STONE_POI = {
   [381] = {[12] = "The Lady", [22] = "The Lover"},
   [382] = {[27] = "The Steed", [28] = "The Apprentice"},
   [383] = {[12] = "The Tower", [13] = "The Mage", [14] = "The Lord"},
+}
+
+-- zoneId, poiIndex
+local HARBORAGE_POI = {
+  [3] = {[46] = true}, -- Stonefalls
+  [41] = {[46] = true}, -- Glenumbra
+  [381] = {[42] = true}, -- Auridon
 }
 
 -- zoneId, poiIndex, itemId, traitsNeeded
@@ -305,6 +317,16 @@ local POI_CATEGORIES = {
       "/esoui/art/icons/poi/poi_grove_incomplete.dds",
     }
   },
+  harborage = {
+    id = "harborage",
+    categoryName = "Harborage",
+    completeIcons = {
+      "/esoui/art/icons/poi/poi_cave_complete.dds",
+    },
+    incompleteIcons = {
+      "/esoui/art/icons/poi/poi_cave_incomplete.dds",
+    }
+  },
   house = {
     id = "house",
     categoryName = "Houses",
@@ -490,13 +512,17 @@ local ICON_TO_POI = {}
 local COMPLETE_ICON_TO_POI = {}
 local INCOMPLETE_ICON_TO_POI = {}
 for _, poi in pairs(POI_CATEGORIES) do
-  for _, icon in ipairs(poi.completeIcons) do
-    ICON_TO_POI[icon] = poi
-    COMPLETE_ICON_TO_POI[icon] = poi
-  end
-  for _, icon in ipairs(poi.incompleteIcons) do
-    ICON_TO_POI[icon] = poi
-    INCOMPLETE_ICON_TO_POI[icon] = poi
+  -- for the harborage, it uses the same icon as caves,
+  -- so we'll map it using ids instead of icons
+  if poi.id ~= "harborage" then
+    for _, icon in ipairs(poi.completeIcons) do
+      ICON_TO_POI[icon] = poi
+      COMPLETE_ICON_TO_POI[icon] = poi
+    end
+    for _, icon in ipairs(poi.incompleteIcons) do
+      ICON_TO_POI[icon] = poi
+      INCOMPLETE_ICON_TO_POI[icon] = poi
+    end
   end
 end
 
@@ -533,6 +559,12 @@ function LibPOI:GetPOICategories()
 end
 
 function LibPOI:GetPOICategory(zoneIndex, poiIndex)
+  local zoneId = GetZoneId(zoneIndex)
+
+  if HARBORAGE_POI[zoneId] ~= nil and HARBORAGE_POI[zoneId][poiIndex] ~= nil then
+    return POI_CATEGORIES.harborage
+  end
+
   local normalizedX, normalizedY, poiType, icon, isShownInCurrentMap, linkedCollectibleIsLocked, isDiscovered, isNearby = GetPOIMapInfo(zoneIndex, poiIndex)
   local poi = ICON_TO_POI[GetSanitizedIcon(icon)]
 

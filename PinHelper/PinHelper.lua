@@ -51,6 +51,8 @@ local DEFAULT_DATA = {
     PinHelper_gate_incomplete = true,
     PinHelper_grove_complete = false,
     PinHelper_grove_incomplete = true,
+    PinHelper_harborage_complete = false,
+    PinHelper_harborage_incomplete = false,
     PinHelper_house_complete = false,
     PinHelper_instance_complete = false,
     PinHelper_instance_incomplete = false,
@@ -126,6 +128,8 @@ local DEFAULT_DATA = {
     PinHelper_gate_incomplete = false,
     PinHelper_grove_complete = false,
     PinHelper_grove_incomplete = false,
+    PinHelper_harborage_complete = false,
+    PinHelper_harborage_incomplete = false,
     PinHelper_house_complete = false,
     PinHelper_instance_complete = false,
     PinHelper_instance_incomplete = true,
@@ -176,6 +180,7 @@ local function GetIsTeleportableLocation(id)
    or id == "solotrial"
    or id == "raiddungeon" -- group trial
    or id == "house"
+   or id == "harborage"
 end
 
 local function GetPinTexture(pin)

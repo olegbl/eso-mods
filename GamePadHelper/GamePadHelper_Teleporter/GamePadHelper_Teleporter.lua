@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_Teleporter"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 -- https://github.com/esoui/esoui/blob/e966309767c2158e1ad22c326f6562bae365efa5/esoui/ingame/map/worldmap.lua#L210
 local function GetNormalizedMousePositionToMap()

@@ -55,7 +55,7 @@ local function PopulateKeybindStripDescriptor()
         -- use BeamMeUp to teleport
         -- using Teleporter.sc_porting(zoneId) would be even cleaner
         -- but there's no way to know if it worked or not
-        local resultTable = Teleporter.createTable(6, "", zoneId, true, 0)
+        local resultTable = Teleporter.createTable({index=6, fZoneId=zoneId, dontDisplay=true})
         local entry = resultTable[1]
 
         if entry.displayName ~= nil and entry.displayName ~= "" then

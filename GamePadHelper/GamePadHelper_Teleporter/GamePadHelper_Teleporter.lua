@@ -53,13 +53,13 @@ local function PopulateKeybindStripDescriptor()
 
       if zoneId ~= nil then
         -- use BeamMeUp to teleport
-        -- using Teleporter.sc_porting(zoneId) would be even cleaner
+        -- using BMU.sc_porting(zoneId) would be even cleaner
         -- but there's no way to know if it worked or not
-        local resultTable = Teleporter.createTable({index=6, fZoneId=zoneId, dontDisplay=true})
+        local resultTable = BMU.createTable({index=6, fZoneId=zoneId, dontDisplay=true})
         local entry = resultTable[1]
 
         if entry.displayName ~= nil and entry.displayName ~= "" then
-          Teleporter.PortalToPlayer(entry.displayName, entry.sourceIndexLeading, entry.zoneName, entry.zoneId, entry.category, true, true, true)
+          BMU.PortalToPlayer(entry.displayName, entry.sourceIndexLeading, entry.zoneName, entry.zoneId, entry.category, true, true, true)
           SCENE_MANAGER:HideCurrentScene()
         else
           ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No players found to port to")

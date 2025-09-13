@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_TooltipPoison"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 local function Tooltip_AddPoisonInfo_Before(self, itemLink, equipSlot)
   local hasPoison, poisonCount, poisonHeader, poisonItemLink = GetItemPairedPoisonInfo(equipSlot)

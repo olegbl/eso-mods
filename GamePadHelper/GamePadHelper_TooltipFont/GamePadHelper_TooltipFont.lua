@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_TooltipFont"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 local tooltips = {
   GAMEPAD_LEFT_DIALOG_TOOLTIP,

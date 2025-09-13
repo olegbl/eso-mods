@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_TooltipTrait"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 local RESEARCH_ICON = zo_iconFormatInheritColor(GetPlatformTraitInformationIcon(ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED), 32, 32)
 local BAG_ICON = zo_iconFormatInheritColor("esoui/art/tooltips/icon_bag.dds", 20, 20)

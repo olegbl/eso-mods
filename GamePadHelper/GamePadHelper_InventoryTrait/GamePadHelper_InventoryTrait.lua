@@ -1,15 +1,28 @@
 local ADDON_NAME = "GamePadHelper_InventoryTrait"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 -- TODO: when inventory is updated, rows don't necessarily re-render
 -- so while local state is correct, the rendered state can be stale
 -- selecting / unselecting item refreshes whole list - should mimic
 
+local function IsInCraftBagTab()
+  if GAMEPAD_INVENTORY and GAMEPAD_INVENTORY.header then
+    local tabBar = GAMEPAD_INVENTORY.header.tabBar
+    if tabBar then
+      local selectedData = tabBar:GetSelectedData()
+      if selectedData and selectedData.text == GetString(SI_GAMEPAD_INVENTORY_CRAFT_BAG_HEADER) then
+        return true
+      end
+    end
+  end
+  return false
+end
+
 local function GetItemLinkFromData(data)
   if type(data) ~= "table" then
     return nil
   end
-  
+
   local itemLink
   if data.bagId ~= nil and data.slotIndex ~= nil then
     itemLink = GetItemLink(data.bagId, data.slotIndex)
@@ -20,6 +33,11 @@ local function GetItemLinkFromData(data)
 end
 
 local function ZO_SharedGamepadEntry_OnSetup_Before(self, data, ...)
+  -- Always check if we're in craft bag tab - if so, don't do anything
+  if IsInCraftBagTab() then
+    return
+  end
+
   if type(data) ~= "table" then return end
 
   if data.ignoreTraitInformation then
@@ -28,6 +46,11 @@ local function ZO_SharedGamepadEntry_OnSetup_Before(self, data, ...)
 end
 
 local function ZO_SharedGamepadEntry_OnSetup_After(self, data, ...)
+  -- Check if we're in craft bag tab at the very beginning - if so, don't do anything
+  if IsInCraftBagTab() then
+    return
+  end
+
   if type(data) ~= "table" then return end
 
   local itemLink = GetItemLinkFromData(data)
@@ -83,6 +106,11 @@ end
 -- version of the function can exist in some already initialized scroll lists
 -- so we fix those references here
 local function ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before(self, dataIndex)
+  -- Check if we're in craft bag tab - if so, don't do anything
+  if IsInCraftBagTab() then
+    return
+  end
+
   local templateName = self.templateList[dataIndex]
   if not templateName then return end
 
@@ -99,6 +127,10 @@ local function ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before(self,
   dataType.setupFunction = ZO_SharedGamepadEntry_OnSetup
 end
 
-ZO_PreHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_Before)
-ZO_PostHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_After)
-ZO_PreHook(ZO_ParametricScrollList, "GetSetupFunctionForDataIndex", ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before)
+-- Only register hooks if we're not in craft bag tab
+if not IsInCraftBagTab() then
+  ZO_PreHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_Before)
+  ZO_PostHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_After)
+  ZO_PreHook(ZO_ParametricScrollList, "GetSetupFunctionForDataIndex", ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before)
+end
+

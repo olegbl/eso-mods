@@ -49,42 +49,33 @@ local function GetItemTraitList(itemLink)
 end
 
 function LibTraitResearch:GetItemLinkTraitResearchState(itemLink)
-   if not itemLink or itemLink == "" then
-       return false, COLOR_UNIQUE, 0, COLOR_REMOTE, 0, COLOR_LOCAL
-   end
-
-   local success, canBeResearched = pcall(CanItemLinkBeTraitResearched, itemLink)
-   if not success then
-       d("[" .. ADDON_NAME .. "] Error checking if item can be researched: " .. tostring(canBeResearched))
-       return false, COLOR_UNIQUE, 0, COLOR_REMOTE, 0, COLOR_LOCAL
-   end
-
-   local duplicateRemoteItems = 0
-   local duplicateLocalItems = 0
-   local isLocked = false
-   if canBeResearched then
-       local list = GetItemTraitList(itemLink)
-       if list then
-           for index, item in ipairs(list) do
-               if item and item.itemLink ~= itemLink and not item.isLocked then
-                   if item.bagType == BAG_REMOTE then
-                       duplicateRemoteItems = duplicateRemoteItems + 1
-                   elseif item.bagType == BAG_LOCAL then
-                       duplicateLocalItems = duplicateLocalItems + 1
-                   end
-               end
-               if item and item.itemLink == itemLink and item.isLocked then
-                   isLocked = true
-               end
-           end
-       end
-   end
-   local color =
-       duplicateRemoteItems > 0 and COLOR_REMOTE or
-       duplicateLocalItems > 0 and COLOR_LOCAL or
-       isLocked and COLOR_LOCKED or
-       COLOR_UNIQUE
-   return canBeResearched, color, duplicateRemoteItems, COLOR_REMOTE, duplicateLocalItems, COLOR_LOCAL
+  local canBeResearched = CanItemLinkBeTraitResearched(itemLink)
+  local duplicateRemoteItems = 0
+  local duplicateLocalItems = 0
+  local isLocked = false
+  if itemLink ~= nil then
+    if canBeResearched then
+      local list = GetItemTraitList(itemLink)
+      for index, item in ipairs(list) do
+        if item.itemLink ~= itemLink and not item.isLocked then
+          if item.bagType == BAG_REMOTE then
+            duplicateRemoteItems = duplicateRemoteItems + 1
+          elseif item.bagType == BAG_LOCAL then
+            duplicateLocalItems = duplicateLocalItems + 1
+          end
+        end
+        if item.itemLink == itemLink and item.isLocked then
+          isLocked = true
+        end
+      end
+    end
+  end
+  local color =
+    duplicateRemoteItems > 0 and COLOR_REMOTE or
+    duplicateLocalItems > 0 and COLOR_LOCAL or
+    isLocked and COLOR_LOCKED or
+    COLOR_UNIQUE
+  return canBeResearched, color, duplicateRemoteItems, COLOR_REMOTE, duplicateLocalItems, COLOR_LOCAL
 end
 
 function LibTraitResearch:Update()

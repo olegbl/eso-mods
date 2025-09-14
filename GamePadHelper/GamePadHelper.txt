@@ -1,6 +1,6 @@
 ## Title: |c3399FFGamePadHelper|r
 ## APIVersion: 101047
-## Version: 1.02
+## Version: 1.03
 ## Author: olegbl
 ## Description: |c3399FFGamePadHelper|r is a collection of miscellaneous mods that improve and enhance the UI for gamepads.
 

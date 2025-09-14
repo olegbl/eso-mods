@@ -1,6 +1,9 @@
 local ADDON_NAME = "LibMultiIcon"
 local ADDON_VERSION = 1.01
 
+-- Ensure ESO API compatibility
+if GetAPIVersion() < 101047 then return end
+
 LibMultiIcon = {}
 
 local function SetTexture(self, texture)

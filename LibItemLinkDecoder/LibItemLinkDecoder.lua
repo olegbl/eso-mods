@@ -1,6 +1,9 @@
 local ADDON_NAME = "LibItemLinkDecoder"
 local ADDON_VERSION = 1.00
 
+-- Ensure ESO API compatibility
+if GetAPIVersion() < 101047 then return end
+
 LibItemLinkDecoder = {}
 
 -- https://en.uesp.net/wiki/Online:Item_Link

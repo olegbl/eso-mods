@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_Overview"
-local ADDON_VERSION = 1.01
+local ADDON_VERSION = 1.02
 
 local CRAFTING = {
   [CRAFTING_TYPE_BLACKSMITHING] = {questId = 5377},
@@ -31,7 +31,7 @@ end
 local function GetResearchInfo(craftingType)
   local maximum = GetMaxSimultaneousSmithingResearch(craftingType)
   local current = 0
-  local available = false
+  local hasUnknownTraits = false
   for researchLineIndex = 1, GetNumSmithingResearchLines(craftingType) do
     local name, icon, numTraits, timeRequiredForNextResearchSecs = GetSmithingResearchLineInfo(craftingType, researchLineIndex)
     if numTraits > 0 then
@@ -40,11 +40,18 @@ local function GetResearchInfo(craftingType)
             current = current + 1
         end
         if not areAllTraitsKnown then
-          available = true
+          hasUnknownTraits = true
         end
     end
   end
-  return current, available and maximum or 0
+
+  -- Only return available slots if player has both available slots AND unknown traits
+  local availableSlots = maximum - current
+  if availableSlots > 0 and hasUnknownTraits then
+    return current, availableSlots
+  else
+    return current, 0
+  end
 end
 
 local function LayoutTooltip(self)
@@ -68,7 +75,8 @@ local function LayoutTooltip(self)
 
   -- horse training reminder
   local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
-  if horseTrainingTimeRemaining == 0 then
+  local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
+  if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
     local text = string.format("Horse Training Available")
     AddTask(text, self:GetStyle("bodyDescription"))
   end

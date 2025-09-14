@@ -1,9 +1,9 @@
 ## Title: LibTraitResearch
-## APIVersion: 101032
-## IsLibrary: true
-## AddOnVersion: 1
+## APIVersion: 101047
+## Version: 1.02
 ## Author: olegbl
 ## Description: APIs for identifying uniqueness of item link's researchable trait.
-## Version: 1.00
+## IsLibrary: true
+## AddOnVersion: 1
 
 LibTraitResearch.lua

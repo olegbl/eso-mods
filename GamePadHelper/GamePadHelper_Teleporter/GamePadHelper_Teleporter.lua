@@ -1,5 +1,11 @@
 local ADDON_NAME = "GamePadHelper_Teleporter"
-local ADDON_VERSION = 1.02
+local ADDON_VERSION = 1.03
+
+-- Ensure ESO API compatibility
+if GetAPIVersion() < 101047 then
+    d("[" .. ADDON_NAME .. "] ESO API version too old. Requires API 101047 or higher.")
+    return
+end
 
 -- https://github.com/esoui/esoui/blob/e966309767c2158e1ad22c326f6562bae365efa5/esoui/ingame/map/worldmap.lua#L210
 local function GetNormalizedMousePositionToMap()
@@ -45,27 +51,48 @@ local function PopulateKeybindStripDescriptor()
     end,
 
     callback = function()
-      if not GetIsTeleportKeybindEnabled() then return end
+       if not GetIsTeleportKeybindEnabled() then return end
 
-      local normalizedMouseX, normalizedMouseY = GetNormalizedMousePositionToMap()
-      local locationName, textureFile, textureWidthNormalized, textureHeightNormalized, textureXOffsetNormalized, textureYOffsetNormalized = GetMapMouseoverInfo(normalizedMouseX, normalizedMouseY)
-      local zoneId = MAP_NAME_TO_ZONE_ID[locationName]
+       -- Check if BeamMeUp is available
+       if not BMU or not BMU.createTable or not BMU.PortalToPlayer then
+           ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "BeamMeUp addon not found or incompatible")
+           return
+       end
 
-      if zoneId ~= nil then
-        -- use BeamMeUp to teleport
-        -- using BMU.sc_porting(zoneId) would be even cleaner
-        -- but there's no way to know if it worked or not
-        local resultTable = BMU.createTable({index=6, fZoneId=zoneId, dontDisplay=true})
-        local entry = resultTable[1]
+       local normalizedMouseX, normalizedMouseY = GetNormalizedMousePositionToMap()
+       local success, locationName, textureFile, textureWidthNormalized, textureHeightNormalized, textureXOffsetNormalized, textureYOffsetNormalized = pcall(GetMapMouseoverInfo, normalizedMouseX, normalizedMouseY)
+       if not success then
+           d("[" .. ADDON_NAME .. "] Error getting map mouseover info: " .. tostring(locationName))
+           return
+       end
 
-        if entry.displayName ~= nil and entry.displayName ~= "" then
-          BMU.PortalToPlayer(entry.displayName, entry.sourceIndexLeading, entry.zoneName, entry.zoneId, entry.category, true, true, true)
-          SCENE_MANAGER:HideCurrentScene()
-        else
-          ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No players found to port to")
-        end
-      end
-    end,
+       local zoneId = MAP_NAME_TO_ZONE_ID[locationName]
+
+       if zoneId ~= nil then
+         -- use BeamMeUp to teleport
+         -- using BMU.sc_porting(zoneId) would be even cleaner
+         -- but there's no way to know if it worked or not
+         local success2, resultTable = pcall(BMU.createTable, {index=6, fZoneId=zoneId, dontDisplay=true})
+         if not success2 then
+             d("[" .. ADDON_NAME .. "] Error creating BeamMeUp table: " .. tostring(resultTable))
+             ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "Error accessing BeamMeUp teleport data")
+             return
+         end
+
+         local entry = resultTable and resultTable[1]
+
+         if entry and entry.displayName ~= nil and entry.displayName ~= "" then
+           local success3 = pcall(BMU.PortalToPlayer, entry.displayName, entry.sourceIndexLeading, entry.zoneName, entry.zoneId, entry.category, true, true, true)
+           if success3 then
+               SCENE_MANAGER:HideCurrentScene()
+           else
+               ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "Teleport failed")
+           end
+         else
+           ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No players found to port to")
+         end
+       end
+     end,
   }
 
   KEYBOARD_KEYBIND_STRIP_DESCRIPTOR = {

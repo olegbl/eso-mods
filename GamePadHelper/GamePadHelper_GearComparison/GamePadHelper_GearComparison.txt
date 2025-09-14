@@ -1,8 +1,8 @@
 ## Title: |c3399FFGamePadHelper|r Gear Comparison
-## APIVersion: 101032
+## APIVersion: 101047
 ## Author: olegbl
 ## Description: |c3399FFGamePadHelper|r module that adds comparison tooltips showing the currently equipped item when a different item is selected in the inventory menu.
-## Version: 1.00
+## Version: 1.01
 ## DependsOn: GamePadHelper
 
 GamePadHelper_GearComparison.lua

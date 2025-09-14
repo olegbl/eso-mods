@@ -109,9 +109,7 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
 
   local gameProductPrice = 0
   local ttcProductPriceInfo = {}
-  local ttcProductPrice = (ttcProductPriceInfo.SuggestedPrice or 0) > 0
-    and ttcProductPriceInfo.SuggestedPrice
-    or (ttcProductPriceInfo.Avg or 0)
+  local ttcProductPrice = 0
 
   -- show product pricing for recipes
   local itemType, specializedItemType = GetItemLinkItemType(itemLink)
@@ -120,6 +118,9 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
     if productItemLink then
       gameProductPrice = GetItemLinkValue(productItemLink, false)
       ttcProductPriceInfo = SafeGetPriceInfo(productItemLink)
+      ttcProductPrice = (ttcProductPriceInfo.SuggestedPrice or 0) > 0
+        and ttcProductPriceInfo.SuggestedPrice
+        or (ttcProductPriceInfo.Avg or 0)
     end
   end
 

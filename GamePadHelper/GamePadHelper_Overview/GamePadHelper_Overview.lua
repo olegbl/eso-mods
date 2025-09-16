@@ -20,7 +20,7 @@ local function GetResearhLineInfo(craftingType, researchLineIndex, numTraits)
             areAllTraitsKnown = false
 
             local durationSecs = GetSmithingResearchLineTraitTimes(craftingType, researchLineIndex, traitIndex)
-            if durationSecs then
+            if durationSecs and durationSecs > 0 then
                 return traitIndex, areAllTraitsKnown
             end
         end
@@ -84,7 +84,7 @@ local function LayoutTooltip(self)
   -- crafting research reminder
   for craftingType, craft in ipairs(CRAFTING) do
     local current, max = GetResearchInfo(craftingType)
-    local count = max - current
+    local count = max
     if count > 0 then
       local craftText = GetCraftingSkillName(craftingType)
       local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)

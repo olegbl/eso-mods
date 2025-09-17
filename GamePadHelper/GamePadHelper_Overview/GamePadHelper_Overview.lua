@@ -1,6 +1,20 @@
 local ADDON_NAME = "GamePadHelper_Overview"
-local ADDON_VERSION = 1.02
+local ADDON_VERSION = 1.03
 
+-- GamePadHelper_Overview Addon
+-- Manages tooltips in the main menu, switching positions when chat slider is active.
+
+local GamePadHelper_Overview = {}
+
+-- =============================================================================
+-- CONFIGURATION
+-- =============================================================================
+
+-- Constants for tooltip text content
+local LEFT_TOOLTIP_TEXT = "Left Tooltip: Welcome to the Main Menu!"
+local RIGHT_TOOLTIP_TEXT = "Right Tooltip: Use this menu to navigate."
+
+-- Data from GamePadHelper_Overview
 local CRAFTING = {
   [CRAFTING_TYPE_BLACKSMITHING] = {questId = 5377},
   [CRAFTING_TYPE_CLOTHIER] = {questId = 5374},
@@ -54,124 +68,239 @@ local function GetResearchInfo(craftingType)
   end
 end
 
-local function LayoutTooltip(self)
-  -- https://github.com/esoui/esoui/blob/master/esoui/common/tooltip/tooltipstyles.lua
 
-  -- title
-  --local topSection = self:AcquireSection(self:GetStyle("topSection"))
-  --topSection:AddLine("Overview", self:GetStyle("title"))
-  --self:AddSectionEvenIfEmpty(topSection)
+-- =============================================================================
+-- STATE MANAGEMENT
+-- =============================================================================
 
-  -- daily / recurring tasks
-  local tasksSection = self:AcquireSection(self:GetStyle("bodySection"))
-  local isTasksLabelAdded = false
-  local function AddTask(text, style)
-    if not isTasksLabelAdded then
-      tasksSection:AddLine("Tasks", self:GetStyle("title"))
-      isTasksLabelAdded = true
+-- State variables
+local isChatActive = false
+
+-- =============================================================================
+-- TOOLTIP MANAGEMENT FUNCTIONS
+-- =============================================================================
+
+-- Core tooltip functions for showing and hiding tooltips
+local function ShowTooltips()
+    local questIndex = QUEST_JOURNAL_MANAGER:GetFocusedQuestIndex()
+    local questName, backgroundText, activeStepText, activeStepType, activeStepOverrideText = GetJournalQuestInfo(questIndex)
+    local questDescription = string.format("|cDAA520%s|r\n\n%s\n\n%s", questName, backgroundText, activeStepText)
+
+    -- Add quest tasks
+    local questStrings = {}
+    local fakeQuestJournal = {questStrings = questStrings}
+    ZO_ClearNumericallyIndexedTable(questStrings)
+    QUEST_JOURNAL_MANAGER:BuildTextForTasks(activeStepOverrideText, questIndex, questStrings)
+    local taskText = ""
+    for key, value in ipairs(questStrings) do
+        if not value.isComplete then
+            taskText = taskText .. "\n|cCC4C4C• " .. value.name .. "|r"
+        end
     end
-    tasksSection:AddLine(text, style)
-  end
-
-  -- horse training reminder
-  local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
-  local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
-  if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
-    local text = string.format("Horse Training Available")
-    AddTask(text, self:GetStyle("bodyDescription"))
-  end
-
-  -- crafting research reminder
-  for craftingType, craft in ipairs(CRAFTING) do
-    local current, max = GetResearchInfo(craftingType)
-    local count = max
-    if count > 0 then
-      local craftText = GetCraftingSkillName(craftingType)
-      local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
-      local text = string.format("|cFFFFFF%s|r %s %s Available", count, craftText, researchText)
-      AddTask(text, self:GetStyle("bodyDescription"))
+    if taskText ~= "" then
+        questDescription = questDescription .. "\n\n|cF2B233Tasks:|r" .. taskText
     end
-  end
 
-  -- crafting writ reminder
-  -- TODO: doesn't seem to be possible to distinguish unaccepted vs completed?
-
-  self:AddSection(tasksSection)
-
-  -- quest
-  local questSection = self:AcquireSection(self:GetStyle("bodySection"))
-  questSection:AddLine("Quest", self:GetStyle("title"))
-  local questIndex = QUEST_JOURNAL_MANAGER:GetFocusedQuestIndex()
-  local questName, backgroundText, activeStepText, activeStepType, activeStepOverrideText = GetJournalQuestInfo(questIndex)
-  questSection:AddLine(questName, self:GetStyle("bodyHeader"))
-  questSection:AddLine(backgroundText, self:GetStyle("bodyDescription"))
-  questSection:AddLine(activeStepText, self:GetStyle("bodyDescription"))
-
-  local questStrings = {}
-  local fakeQuestJournal = {questStrings = questStrings}
-  
-  local isQuestTasksLabelAdded = false
-  local function AddQuestTask(text, style)
-    if not isQuestTasksLabelAdded then
-      questSection:AddLine("Tasks", self:GetStyle("bodyHeader"))
-      isQuestTasksLabelAdded = true
+    -- Add optional steps
+    ZO_ClearNumericallyIndexedTable(questStrings)
+    ZO_QuestJournal_Shared.BuildTextForStepVisibility(fakeQuestJournal, questIndex, QUEST_STEP_VISIBILITY_OPTIONAL)
+    if #questStrings > 0 then
+        questDescription = questDescription .. "\n\n|cF2B233Optional:|r"
+        for index = 1, #questStrings do
+            questDescription = questDescription .. "\n|cAAAAAA• " .. questStrings[index] .. "|r"
+        end
     end
-    questSection:AddLine(text, style)
-  end
-  
-  ZO_ClearNumericallyIndexedTable(questStrings)
-  QUEST_JOURNAL_MANAGER:BuildTextForTasks(activeStepOverrideText, questIndex, questStrings)
-  for key, value in ipairs(questStrings) do
-    if not value.isComplete then
-      AddQuestTask(value.name, self:GetStyle("bodyDescription"))
+
+    -- Add hints
+    ZO_ClearNumericallyIndexedTable(questStrings)
+    ZO_QuestJournal_Shared.BuildTextForStepVisibility(fakeQuestJournal, questIndex, QUEST_STEP_VISIBILITY_HINT)
+    if #questStrings > 0 then
+        questDescription = questDescription .. "\n\n|cF2B233Hints:|r"
+        for index = 1, #questStrings do
+            questDescription = questDescription .. "\n|cAAAAAA• " .. questStrings[index] .. "|r"
+        end
     end
-  end
 
+    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_LEFT_TOOLTIP, "|c57A64EQuest|r", questDescription)
 
-  ZO_ClearNumericallyIndexedTable(questStrings)
-  ZO_QuestJournal_Shared.BuildTextForStepVisibility(fakeQuestJournal, questIndex, QUEST_STEP_VISIBILITY_OPTIONAL)
-  if #questStrings > 0 then
-    questSection:AddLine("Optional", self:GetStyle("bodyHeader"))
-  end
-  for index = 1, #questStrings do
-    questSection:AddLine(questStrings[index], self:GetStyle("bodyDescription"))
-  end
+    local tasksDescription = ""
+    -- horse training reminder
+    local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
+    local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
+    if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
+        tasksDescription = tasksDescription .. "|cF2B233Horse Training:|r Available\n\n"
+    end
 
-  ZO_ClearNumericallyIndexedTable(questStrings)
-  ZO_QuestJournal_Shared.BuildTextForStepVisibility(fakeQuestJournal, questIndex, QUEST_STEP_VISIBILITY_HINT)
-  if #questStrings > 0 then
-    questSection:AddLine("Hints", self:GetStyle("bodyHeader"))
-  end
-  for index = 1, #questStrings do
-    questSection:AddLine(questStrings[index], self:GetStyle("bodyDescription"))
-  end
+    -- crafting research reminder
+    local hasCrafting = false
+    for craftingType, craft in ipairs(CRAFTING) do
+        local current, max = GetResearchInfo(craftingType)
+        local count = max
+        if count > 0 then
+            if not hasCrafting then
+                tasksDescription = tasksDescription .. "|cF2B233Crafting Research:|r\n"
+                hasCrafting = true
+            end
+            local craftText = GetCraftingSkillName(craftingType)
+            local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
+            local text = string.format("|cDAA520%s|r %s %s Available", count, craftText, researchText)
+            tasksDescription = tasksDescription .. text .. "\n"
+        end
+    end
+    if hasCrafting then
+        tasksDescription = tasksDescription .. "\n"
+    end
 
-  self:AddSection(questSection)
+    if tasksDescription == "" then
+        tasksDescription = "Access daily tasks, achievements, and other activities."
+    end
+
+    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_RIGHT_TOOLTIP, "|cCC4C4CTasks|r", tasksDescription)
 end
 
-local function MainMenuManager_Gamepad_OnSelectionChanged_After(self, list, selectedData, oldSelectedData)
-  if not self:IsShowing() then return end
-  if list ~= self.mainList then return end
-
-  -- TODO: use zo_tooltip_gamepad.lua's LayoutFunction instead
-  --       of manually messing with SCENE_MANAGER
-  
-  local fragmentGroup = {
-    GAMEPAD_TOOLTIPS:GetTooltipFragment(GAMEPAD_LEFT_TOOLTIP),
-    GAMEPAD_NAV_QUADRANT_2_BACKGROUND_FRAGMENT 
-  }
-
-  local showFragmentGroupNew = selectedData and not selectedData.data.fragmentGroupCallback
-  local showFragmentGroupOld = oldSelectedData and not oldSelectedData.data.fragmentGroupCallback
-
-  if showFragmentGroupNew and not showFragmentGroupOld then
-    GAMEPAD_TOOLTIPS:Reset(GAMEPAD_LEFT_TOOLTIP)
-    LayoutTooltip(GAMEPAD_TOOLTIPS:GetTooltip(GAMEPAD_LEFT_TOOLTIP))
-    SCENE_MANAGER:AddFragmentGroup(fragmentGroup)
-  elseif not showFragmentGroupNew and showFragmentGroupOld then
-    GAMEPAD_TOOLTIPS:Reset(GAMEPAD_LEFT_TOOLTIP)
-    SCENE_MANAGER:RemoveFragmentGroup(fragmentGroup)
-  end
+local function HideTooltips()
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_LEFT_TOOLTIP)
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
 end
 
-ZO_PostHook(SYSTEMS:GetGamepadObject("mainMenu"), "OnSelectionChanged", MainMenuManager_Gamepad_OnSelectionChanged_After)
+-- Functions to switch tooltip content between positions
+local function SwitchTooltipToQuad3()
+    if isChatActive then
+        return
+    end
+    isChatActive = true
+    local tasksDescription = ""
+    -- horse training reminder
+    local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
+    local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
+    if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
+        tasksDescription = tasksDescription .. "|cF2B233Horse Training:|r Available\n\n"
+    end
+
+    -- crafting research reminder
+    local hasCrafting = false
+    for craftingType, craft in ipairs(CRAFTING) do
+        local current, max = GetResearchInfo(craftingType)
+        local count = max
+        if count > 0 then
+            if not hasCrafting then
+                tasksDescription = tasksDescription .. "|cF2B233Crafting Research:|r\n"
+                hasCrafting = true
+            end
+            local craftText = GetCraftingSkillName(craftingType)
+            local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
+            local text = string.format("|cDAA520%s|r %s %s Available", count, craftText, researchText)
+            tasksDescription = tasksDescription .. text .. "\n"
+        end
+    end
+    if hasCrafting then
+        tasksDescription = tasksDescription .. "\n"
+    end
+
+    if tasksDescription == "" then
+        tasksDescription = "Access daily tasks, achievements, and other activities."
+    end
+
+    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_QUAD3_TOOLTIP, "|cCC4C4CTasks|r", tasksDescription)
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
+end
+
+local function SwitchTooltipToRight()
+    if not isChatActive then
+        return
+    end
+    isChatActive = false
+    local tasksDescription = ""
+    -- horse training reminder
+    local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
+    local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
+    if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
+        tasksDescription = tasksDescription .. "|cF2B233Horse Training:|r Available\n\n"
+    end
+
+    -- crafting research reminder
+    local hasCrafting = false
+    for craftingType, craft in ipairs(CRAFTING) do
+        local current, max = GetResearchInfo(craftingType)
+        local count = max
+        if count > 0 then
+            if not hasCrafting then
+                tasksDescription = tasksDescription .. "|cF2B233Crafting Research:|r\n"
+                hasCrafting = true
+            end
+            local craftText = GetCraftingSkillName(craftingType)
+            local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
+            local text = string.format("|cDAA520%s|r %s %s Available", count, craftText, researchText)
+            tasksDescription = tasksDescription .. text .. "\n"
+        end
+    end
+    if hasCrafting then
+        tasksDescription = tasksDescription .. "\n"
+    end
+
+    if tasksDescription == "" then
+        tasksDescription = "Access daily tasks, achievements, and other activities."
+    end
+
+    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_RIGHT_TOOLTIP, "|cCC4C4CTasks|r", tasksDescription)
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD3_TOOLTIP)
+end
+
+-- =============================================================================
+-- EVENT HANDLERS
+-- =============================================================================
+
+-- Handlers for main menu scene events
+local function OnMainMenuShowing()
+    ShowTooltips()
+end
+
+local function OnMainMenuHiding()
+    HideTooltips()
+end
+
+-- Handlers for chat slider events
+local function OnChatSliderOpened()
+    if SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+        SwitchTooltipToQuad3()
+    end
+end
+
+local function OnChatSliderClosed()
+    if SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+        SwitchTooltipToRight()
+    end
+end
+
+-- =============================================================================
+-- ADDON INITIALIZATION
+-- =============================================================================
+
+-- Initialize the addon by registering callbacks
+function GamePadHelper_Overview:Initialize()
+    SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, oldState, newState)
+        if scene:GetName() == "mainMenuGamepad" then
+            if newState == SCENE_SHOWING then
+                OnMainMenuShowing()
+            elseif newState == SCENE_HIDING then
+                OnMainMenuHiding()
+            end
+        end
+    end)
+
+    if GAMEPAD_CHAT_SYSTEM then
+        CALLBACK_MANAGER:RegisterCallback("GamepadChatSystemActiveOnScreen", function()
+            OnChatSliderOpened()
+        end, "GamePadHelper_Overview")
+
+        local originalMinimize = GAMEPAD_CHAT_SYSTEM.Minimize
+        GAMEPAD_CHAT_SYSTEM.Minimize = function(self, ...)
+            local result = originalMinimize(self, ...)
+            OnChatSliderClosed()
+            return result
+        end
+    end
+end
+
+-- Start the addon
+GamePadHelper_Overview:Initialize()

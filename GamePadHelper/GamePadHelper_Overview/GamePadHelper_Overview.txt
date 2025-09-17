@@ -1,8 +1,9 @@
 ## Title: |c3399FFGamePadHelper|r Overview
 ## APIVersion: 101047
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that shows an overview tooltip while on the main menu.
-## Version: 1.02
+## Author: olegbl, quelron
+## Description: |c3399FFGamePadHelper|r module that shows dynamic tooltips in the main menu - left one shows detailed quest information, right one shows tasks like horse training and crafting research. The right tooltip moves to the center when chat is active.
+## Version: 1.03
+## IsLibrary: false
 ## DependsOn: GamePadHelper
 
 GamePadHelper_Overview.lua

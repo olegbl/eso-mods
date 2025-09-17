@@ -6,6 +6,10 @@ local ADDON_VERSION = 1.03
 
 local GamePadHelper_Overview = {}
 
+-- Global flag for chat faded state
+local isChatFaded = false
+
+
 -- =============================================================================
 -- CONFIGURATION
 -- =============================================================================
@@ -70,18 +74,15 @@ end
 
 
 -- =============================================================================
--- STATE MANAGEMENT
--- =============================================================================
-
--- State variables
-local isChatActive = false
-
--- =============================================================================
 -- TOOLTIP MANAGEMENT FUNCTIONS
 -- =============================================================================
 
 -- Core tooltip functions for showing and hiding tooltips
 local function ShowTooltips()
+    -- Clear both possible right tooltip positions
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD3_TOOLTIP)
+
     local questIndex = QUEST_JOURNAL_MANAGER:GetFocusedQuestIndex()
     local questName, backgroundText, activeStepText, activeStepType, activeStepOverrideText = GetJournalQuestInfo(questIndex)
     local questDescription = string.format("|cDAA520%s|r\n\n%s\n\n%s", questName, backgroundText, activeStepText)
@@ -123,6 +124,9 @@ local function ShowTooltips()
 
     GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_LEFT_TOOLTIP, "|c57A64EQuest|r", questDescription)
 
+    -- Determine tooltip position based on chat faded state
+    local rightTooltip = isChatFaded and GAMEPAD_RIGHT_TOOLTIP or GAMEPAD_QUAD3_TOOLTIP
+
     local tasksDescription = ""
     -- horse training reminder
     local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
@@ -155,7 +159,7 @@ local function ShowTooltips()
         tasksDescription = "Access daily tasks, achievements, and other activities."
     end
 
-    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_RIGHT_TOOLTIP, "|cCC4C4CTasks|r", tasksDescription)
+    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(rightTooltip, "|cCC4C4CTasks|r", tasksDescription)
 end
 
 local function HideTooltips()
@@ -163,114 +167,7 @@ local function HideTooltips()
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
 end
 
--- Functions to switch tooltip content between positions
-local function SwitchTooltipToQuad3()
-    if isChatActive then
-        return
-    end
-    isChatActive = true
-    local tasksDescription = ""
-    -- horse training reminder
-    local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
-    local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
-    if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
-        tasksDescription = tasksDescription .. "|cF2B233Horse Training:|r Available\n\n"
-    end
 
-    -- crafting research reminder
-    local hasCrafting = false
-    for craftingType, craft in ipairs(CRAFTING) do
-        local current, max = GetResearchInfo(craftingType)
-        local count = max
-        if count > 0 then
-            if not hasCrafting then
-                tasksDescription = tasksDescription .. "|cF2B233Crafting Research:|r\n"
-                hasCrafting = true
-            end
-            local craftText = GetCraftingSkillName(craftingType)
-            local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
-            local text = string.format("|cDAA520%s|r %s %s Available", count, craftText, researchText)
-            tasksDescription = tasksDescription .. text .. "\n"
-        end
-    end
-    if hasCrafting then
-        tasksDescription = tasksDescription .. "\n"
-    end
-
-    if tasksDescription == "" then
-        tasksDescription = "Access daily tasks, achievements, and other activities."
-    end
-
-    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_QUAD3_TOOLTIP, "|cCC4C4CTasks|r", tasksDescription)
-    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
-end
-
-local function SwitchTooltipToRight()
-    if not isChatActive then
-        return
-    end
-    isChatActive = false
-    local tasksDescription = ""
-    -- horse training reminder
-    local horseTrainingTimeRemaining = GetTimeUntilCanBeTrained()
-    local speedBonus, maxSpeedBonus, staminaBonus, maxStaminaBonus, inventoryBonus, maxInventoryBonus = STABLE_MANAGER:GetStats()
-    if horseTrainingTimeRemaining == 0 and ((speedBonus < maxSpeedBonus) or (staminaBonus < maxStaminaBonus) or (inventoryBonus < maxInventoryBonus)) then
-        tasksDescription = tasksDescription .. "|cF2B233Horse Training:|r Available\n\n"
-    end
-
-    -- crafting research reminder
-    local hasCrafting = false
-    for craftingType, craft in ipairs(CRAFTING) do
-        local current, max = GetResearchInfo(craftingType)
-        local count = max
-        if count > 0 then
-            if not hasCrafting then
-                tasksDescription = tasksDescription .. "|cF2B233Crafting Research:|r\n"
-                hasCrafting = true
-            end
-            local craftText = GetCraftingSkillName(craftingType)
-            local researchText = zo_strformat("<<1[Research/Research/Researches]>>", count)
-            local text = string.format("|cDAA520%s|r %s %s Available", count, craftText, researchText)
-            tasksDescription = tasksDescription .. text .. "\n"
-        end
-    end
-    if hasCrafting then
-        tasksDescription = tasksDescription .. "\n"
-    end
-
-    if tasksDescription == "" then
-        tasksDescription = "Access daily tasks, achievements, and other activities."
-    end
-
-    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(GAMEPAD_RIGHT_TOOLTIP, "|cCC4C4CTasks|r", tasksDescription)
-    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD3_TOOLTIP)
-end
-
--- =============================================================================
--- EVENT HANDLERS
--- =============================================================================
-
--- Handlers for main menu scene events
-local function OnMainMenuShowing()
-    ShowTooltips()
-end
-
-local function OnMainMenuHiding()
-    HideTooltips()
-end
-
--- Handlers for chat slider events
-local function OnChatSliderOpened()
-    if SCENE_MANAGER:IsShowing("mainMenuGamepad") then
-        SwitchTooltipToQuad3()
-    end
-end
-
-local function OnChatSliderClosed()
-    if SCENE_MANAGER:IsShowing("mainMenuGamepad") then
-        SwitchTooltipToRight()
-    end
-end
 
 -- =============================================================================
 -- ADDON INITIALIZATION
@@ -278,25 +175,41 @@ end
 
 -- Initialize the addon by registering callbacks
 function GamePadHelper_Overview:Initialize()
+    -- Set initial chat faded state
+    if GAMEPAD_CHAT_SYSTEM and GAMEPAD_CHAT_SYSTEM:IsMinimized() then
+        isChatFaded = true
+    else
+        isChatFaded = false
+    end
+
     SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, oldState, newState)
         if scene:GetName() == "mainMenuGamepad" then
             if newState == SCENE_SHOWING then
-                OnMainMenuShowing()
+                ShowTooltips()
             elseif newState == SCENE_HIDING then
-                OnMainMenuHiding()
+                HideTooltips()
             end
         end
     end)
 
     if GAMEPAD_CHAT_SYSTEM then
-        CALLBACK_MANAGER:RegisterCallback("GamepadChatSystemActiveOnScreen", function()
-            OnChatSliderOpened()
-        end, "GamePadHelper_Overview")
-
         local originalMinimize = GAMEPAD_CHAT_SYSTEM.Minimize
         GAMEPAD_CHAT_SYSTEM.Minimize = function(self, ...)
+            isChatFaded = true
             local result = originalMinimize(self, ...)
-            OnChatSliderClosed()
+            if SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+                ShowTooltips()
+            end
+            return result
+        end
+
+        local originalMaximize = GAMEPAD_CHAT_SYSTEM.Maximize
+        GAMEPAD_CHAT_SYSTEM.Maximize = function(self, ...)
+            isChatFaded = false
+            local result = originalMaximize(self, ...)
+            if SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+                ShowTooltips()
+            end
             return result
         end
     end

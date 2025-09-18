@@ -1,5 +1,5 @@
 local ADDON_NAME = "LibCovetousCountess"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then return end
@@ -62,6 +62,7 @@ function LibCovetousCountess:IsItemUseful(itemLink)
   end
   
   local numItemTags = GetItemLinkNumItemTags(itemLink)
+  local isUsefulForAnyQuest = false
   if numItemTags > 0 then 
     for itemTagIndex = 1, numItemTags do
       local itemTagDescription = GetItemLinkItemTagInfo(itemLink, itemTagIndex)
@@ -69,12 +70,12 @@ function LibCovetousCountess:IsItemUseful(itemLink)
       if TAGS[itemTagString] == currentQuestType then
         return true, true -- used in active quest
       elseif TAGS[itemTagString] ~= nil then
-        return false, true -- used in other quest
+        isUsefulForAnyQuest = true -- used in other quest
       end
     end
   end
 
-  return false, false  -- not used in any quest
+  return false, isUsefulForAnyQuest  -- not used in any quest
 end
 
 local function OnQuestAdded(eventCode, journalIndex, questName, objectiveName)
@@ -98,3 +99,5 @@ EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_QUEST_ADDED, OnQuestAdded)
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_QUEST_COMPLETE, OnQuestComplete)
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_QUEST_REMOVED, OnQuestRemoved)
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+
+

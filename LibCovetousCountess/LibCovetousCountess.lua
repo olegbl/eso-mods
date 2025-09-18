@@ -1,5 +1,5 @@
 local ADDON_NAME = "LibCovetousCountess"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.01
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then return end
@@ -99,4 +99,5 @@ EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_QUEST_ADDED, OnQuestAdded)
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_QUEST_COMPLETE, OnQuestComplete)
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_QUEST_REMOVED, OnQuestRemoved)
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+
 

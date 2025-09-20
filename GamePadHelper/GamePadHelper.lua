@@ -13,6 +13,7 @@ local defaults = {
     fishingAlternativeBaits = true,
     autoRepairEnabled = true,
     autoChargeEnabled = true,
+    antiquariansEyeEnabled = true,
 }
 
 -- Saved variables
@@ -38,6 +39,7 @@ local function OnAddonLoaded(event, addonName)
             d("  /gph bait - Toggle alternative baits (current: " .. (savedVars.fishingAlternativeBaits and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
             d("  /gph repair - Toggle auto repair (current: " .. (savedVars.autoRepairEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
             d("  /gph charge - Toggle auto charge (current: " .. (savedVars.autoChargeEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
+            d("  /gph eye - Toggle auto Antiquarian's Eye (current: " .. (savedVars.antiquariansEyeEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
             return
         end
 
@@ -55,6 +57,9 @@ local function OnAddonLoaded(event, addonName)
         elseif command == "charge" then
             savedVars.autoChargeEnabled = not savedVars.autoChargeEnabled
             d("|c3399FF[GamePadHelper]|r Auto charge " .. (savedVars.autoChargeEnabled and "|c00FF00ENABLED|r" or "|cFF0000DISABLED|r"))
+        elseif command == "eye" then
+            savedVars.antiquariansEyeEnabled = not savedVars.antiquariansEyeEnabled
+            d("|c3399FF[GamePadHelper]|r Auto Antiquarian's Eye " .. (savedVars.antiquariansEyeEnabled and "|c00FF00ENABLED|r" or "|cFF0000DISABLED|r"))
         else
             d("|c3399FF[GamePadHelper]|r Unknown command. Use /gph for help.")
         end

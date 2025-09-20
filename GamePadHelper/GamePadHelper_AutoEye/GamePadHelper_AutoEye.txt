@@ -1,0 +1,8 @@
+## Title: |c3399FFGamePadHelper|r Auto Eye
+## APIVersion: 101047
+## Version: 1.00
+## Author: quelron
+## Description: |c3399FFGamePadHelper|r module that automates Antiquarian's Eye usage by slotting and using the collectible automatically when not in combat or moving, and unslotting when blocked.
+## DependsOn: GamePadHelper
+
+GamePadHelper_AutoEye.lua

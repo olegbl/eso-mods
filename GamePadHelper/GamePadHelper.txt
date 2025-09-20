@@ -1,8 +1,9 @@
 ## Title: |c3399FFGamePadHelper|r
 ## APIVersion: 101047
-## Version: 1.03
+## Version: 1.04
 ## Author: olegbl, quelron
 ## Description: |c3399FFGamePadHelper|r is a collection of miscellaneous mods that improve and enhance the UI for gamepads |cDAA520/gph|r.
 ## SavedVariables: GamePadHelperSavedVars
 
 GamePadHelper.lua
+

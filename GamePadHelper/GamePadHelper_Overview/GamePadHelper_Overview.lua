@@ -19,15 +19,15 @@ local isChatFaded = false
 -- CONFIGURATION
 -- =============================================================================
 
--- Crafting profession data with quest IDs
+-- Crafting profession types
 local CRAFTING = {
-  [CRAFTING_TYPE_BLACKSMITHING] = {questId = 5377},
-  [CRAFTING_TYPE_CLOTHIER] = {questId = 5374},
-  [CRAFTING_TYPE_ENCHANTING] = {questId = 5407},
-  [CRAFTING_TYPE_ALCHEMY] = {questId = 6105},
-  [CRAFTING_TYPE_JEWELRYCRAFTING] = {questId = 6228},
-  [CRAFTING_TYPE_PROVISIONING] = {questId = 5414},
-  [CRAFTING_TYPE_WOODWORKING] = {questId = 5395}
+  CRAFTING_TYPE_BLACKSMITHING,
+  CRAFTING_TYPE_CLOTHIER,
+  CRAFTING_TYPE_ENCHANTING,
+  CRAFTING_TYPE_ALCHEMY,
+  CRAFTING_TYPE_JEWELRYCRAFTING,
+  CRAFTING_TYPE_PROVISIONING,
+  CRAFTING_TYPE_WOODWORKING
 }
 
 
@@ -104,7 +104,7 @@ local function GetResearchInfo(craftingType)
   -- Collect researchable traits (unknown and not researching)
   local researchableTraitList = {}
   for researchLineIndex = 1, GetNumSmithingResearchLines(craftingType) do
-    local name, icon, numTraits, timeRequiredForNextResearchSecs = GetSmithingResearchLineInfo(craftingType, researchLineIndex)
+    local _, _, numTraits = GetSmithingResearchLineInfo(craftingType, researchLineIndex)
     if numTraits > 0 then
         local researchingTraitIndex, areAllTraitsKnown = GetResearhLineInfo(craftingType, researchLineIndex, numTraits)
         if researchingTraitIndex then
@@ -112,7 +112,7 @@ local function GetResearchInfo(craftingType)
         end
         if not areAllTraitsKnown then
           for traitIndex = 1, numTraits do
-            local traitType, _, known = GetSmithingResearchLineTraitInfo(craftingType, researchLineIndex, traitIndex)
+            local _, _, known = GetSmithingResearchLineTraitInfo(craftingType, researchLineIndex, traitIndex)
             if not known then
               local durationSecs = GetSmithingResearchLineTraitTimes(craftingType, researchLineIndex, traitIndex)
               if not durationSecs or durationSecs == 0 then
@@ -209,11 +209,8 @@ end
 -- Count scryable antiquities and find minimum lead expiration time
 local function GetScryableAntiquitiesInfo()
   local totalLeads = 0
-  local currentZoneLeads = 0
   local totalMinTimeRemaining = nil
-  local currentZoneMinTimeRemaining = nil
   local urgentZoneName = nil
-  local currentZoneId = ZO_ExplorationUtils_GetPlayerCurrentZoneId()
 
   local antiquityId = GetNextAntiquityId()
   while antiquityId do
@@ -222,11 +219,6 @@ local function GetScryableAntiquitiesInfo()
     -- Check if this antiquity has a lead and meets skill requirements (global count)
     if antiquityData:HasLead() and antiquityData:MeetsScryingSkillRequirements() and not antiquityData:HasAchievedAllGoals() then
       totalLeads = totalLeads + 1
-
-      -- Check if it's in current zone for zone-specific count
-      if antiquityData:IsInZone(currentZoneId) then
-        currentZoneLeads = currentZoneLeads + 1
-      end
     end
 
     -- Check lead expiration time for all antiquities with expiring leads
@@ -237,18 +229,11 @@ local function GetScryableAntiquitiesInfo()
         totalMinTimeRemaining = timeRemaining
         urgentZoneName = GetZoneNameById(antiquityData:GetZoneId())
       end
-
-      -- Track current zone minimum time
-      if antiquityData:IsInZone(currentZoneId) then
-        if currentZoneMinTimeRemaining == nil or timeRemaining < currentZoneMinTimeRemaining then
-          currentZoneMinTimeRemaining = timeRemaining
-        end
-      end
     end
 
     antiquityId = GetNextAntiquityId(antiquityId)
   end
-  return totalLeads, currentZoneLeads, totalMinTimeRemaining, currentZoneMinTimeRemaining, urgentZoneName
+  return totalLeads, totalMinTimeRemaining, urgentZoneName
 end
 
 -- =============================================================================
@@ -271,13 +256,19 @@ local function ShowTooltips()
     ZO_ClearNumericallyIndexedTable(questStrings)
     QUEST_JOURNAL_MANAGER:BuildTextForTasks(activeStepOverrideText, questIndex, questStrings)
     local taskText = ""
+    local completedTasks = ""
     for key, value in ipairs(questStrings) do
         if not value.isComplete then
             taskText = taskText .. "\n• " .. value.name
+        else
+            completedTasks = completedTasks .. "\n|c9D9D9D~~" .. value.name .. "~~|r"
         end
     end
     if taskText ~= "" then
         questDescription = questDescription .. "\n\n|cDAA520Tasks:|r" .. taskText
+    end
+    if completedTasks ~= "" then
+        questDescription = questDescription .. "\n\n|cDAA520Completed:|r" .. completedTasks
     end
 
     -- Add optional steps
@@ -308,7 +299,7 @@ local function ShowTooltips()
     local tasksDescription = ""
 
     -- Check for urgent antiquity timers first (show at very top)
-    local totalCount, currentZoneCount, totalMinTime, currentZoneMinTime, urgentZoneName = GetScryableAntiquitiesInfo()
+    local totalCount, totalMinTime, urgentZoneName = GetScryableAntiquitiesInfo()
     local isUrgent = totalMinTime and (totalMinTime / 86400) <= 3
     if isUrgent then
         local zoneText = urgentZoneName and (" in |cFFFF00" .. urgentZoneName .. "|r") or ""
@@ -343,7 +334,7 @@ local function ShowTooltips()
     end
 
     -- Second pass: show individual profession research info
-    for craftingType, craft in pairs(CRAFTING) do
+    for _, craftingType in ipairs(CRAFTING) do
         local researchableTraits, researchableItems, current, availableSlots = GetResearchInfo(craftingType)
         local craftText = GetCraftingSkillName(craftingType)
 
@@ -373,7 +364,7 @@ local function ShowTooltips()
                  if not hasCrafting then
                      hasCrafting = true
                  end
-                 tasksDescription = tasksDescription .. "|cDAA520" .. craftText .. "|r:\n  Visit crafting station\n"
+                 tasksDescription = tasksDescription .. "|cDAA520" .. craftText .. ":|r\n  Visit crafting station\n"
              end
              -- Don't show empty entries for non-smithing professions that player has
          elseif researchableTraits > 0 and availableSlots > 0 then
@@ -382,7 +373,7 @@ local function ShowTooltips()
              end
              local slotText = availableSlots > 0 and string.format(" |c00FF00%d|r %s avaliable", availableSlots, zo_strformat("<<1[slot/slots/slots]>>", availableSlots)) or ""
              local text = string.format("  |cFFFFFF%d|r/|cFFFFFF%d|r Reseachable%s", researchableTraits, researchableItems, slotText)
-             tasksDescription = tasksDescription .. "|cDAA520" .. craftText .. "|r:\n" .. text .. "\n"
+             tasksDescription = tasksDescription .. "|cDAA520" .. craftText .. ":|r\n" .. text .. "\n"
          end
      end
     if hasCrafting then

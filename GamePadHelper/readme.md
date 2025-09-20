@@ -8,23 +8,43 @@ Adds various UI improvements for GamePad. Each addition is split into a separate
 
 ## Auto Charge
 
-automatically charges equipped weapons (main hand, off hand, backup main, backup off) with soul gems when their charge drops below 25%, using the highest level filled soul gem available. Configure with /gph charge.
+automatically charges equipped weapons (main hand, off hand, backup main, backup off) with soul gems when their charge drops below 25%, using the highest level filled soul gem available.
+
+---
+
+Configure with `/gph charge`.
 
 ## Auto Eye
 
-automates Antiquarian's Eye usage by slotting and using the collectible automatically when not in combat or moving, and unslotting when blocked. Configure with /gph eye.
+automates Antiquarian's Eye usage by slotting and using the collectible automatically when not in combat or moving, and unslotting when blocked.
+
+---
+
+Configure with `/gph eye`.
 
 ## Auto Repair
 
-automatically repairs all equipped items when opening a merchant store, provided repair is available and costs gold. Configure with /gph repair.
+automatically repairs all equipped items when opening a merchant store, provided repair is available and costs gold.
+
+---
+
+Configure with `/gph repair`.
 
 ## Dungeon Finder
 
-enhances the dungeon finder by displaying pledge quests in the list, replacing dungeon names with their corresponding pledge quest names for easier identification. Configure with /gph dungeon.
+enhances the dungeon finder by displaying pledge quests in the list, replacing dungeon names with their corresponding pledge quest names for easier identification.
+
+---
+
+Configure with `/gph dungeon`.
 
 ## Fishing
 
-enhances fishing with controller vibration feedback on fish bites, 'Reel in!' alerts, and automatic bait selection based on fishing hole type. Configure with /gph fish and /gph bait.
+enhances fishing with controller vibration feedback on fish bites, 'Reel in!' alerts, and automatic bait selection based on fishing hole type.
+
+---
+
+Configure with `/gph fish` and `/gph bait`.
 
 ## Gear Comparison
 
@@ -50,7 +70,11 @@ shows a magnifying glass icon next to items that have a trait that can be resear
 
 ## Loot Offset
 
-adjusts the loot history offset for keyboard chat users. Configure with /gph loot.
+adjusts the loot history offset for keyboard chat users.
+
+---
+
+Configure with `/gph loot`.
 
 ## Overview
 
@@ -58,7 +82,11 @@ shows an overview panel at the root menu with detailed quest information (backgr
 
 ## Provisioning
 
-adds a filter option to hide low-level recipes (under CP160) in the provisioning interface, with a toggle in the options menu. Configure with /gph provisioning.
+adds a filter option to hide low-level recipes (under CP160) in the provisioning interface, with a toggle in the options menu.
+
+---
+
+Configure with `/gph provisioning`.
 
 ## Teleporter
 

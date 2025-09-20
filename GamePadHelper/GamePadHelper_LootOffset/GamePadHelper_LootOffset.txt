@@ -2,7 +2,7 @@
 ## APIVersion: 101047
 ## Version: 1.00
 ## Author: quelron
-## Description: |c3399FFGamePadHelper|r module that adjusts the loot history offset for keyboard chat users. Configure with /gph loot.
+## Description: |c3399FFGamePadHelper|r module that adjusts the loot history offset for keyboard chat users |cDAA520/gph loot|r.
 ## DependsOn: GamePadHelper
 
 GamePadHelper_LootOffset.lua

@@ -2,7 +2,7 @@
 ## APIVersion: 101047
 ## Version: 1.01
 ## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that shows a magnifying glass icon next to items that have a trait that can be researched by the current character. The icon is red if there is another item with the same trait in the bank. The icon is yellow if there is another item with the same trait in the inventory. The icon is green if it is the only one with that trait that the character has access to. If there is another item with the same trait in the bank, there is a red number below the icon indicating how many duplicate copies there are. If there is another item with the same trait in the inventory, there is a yellow number below the icon indicating how many duplicate copies there are. Locked items still show an icon but are ignored by all other items. Other characters in the account are ignored.
+## Description: |c3399FFGamePadHelper|r module that shows icons next to items indicating trait research status and duplicates.
 ## DependsOn: GamePadHelper LibMultiIcon LibTraitResearch
 
 GamePadHelper_InventoryTrait.lua

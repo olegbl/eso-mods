@@ -2,7 +2,7 @@
 ## APIVersion: 101047
 ## Version: 1.00
 ## Author: quelron
-## Description: |c3399FFGamePadHelper|r module that automatically charges equipped weapons (main hand, off hand, backup main, backup off) with soul gems when their charge drops below 25%, using the highest level filled soul gem available.
+## Description: |c3399FFGamePadHelper|r module that automatically charges equipped weapons (main hand, off hand, backup main, backup off) with soul gems when their charge drops below 25%, using the highest level filled soul gem available. Configure with /gph charge.
 ## DependsOn: GamePadHelper
 
 GamePadHelper_AutoCharge.lua

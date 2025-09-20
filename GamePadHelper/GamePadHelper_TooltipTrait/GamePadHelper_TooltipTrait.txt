@@ -1,8 +1,8 @@
 ## Title: |c3399FFGamePadHelper|r Tooltip Trait
 ## APIVersion: 101047
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that improves the display of trait information in equipment tooltips.
 ## Version: 1.01
+## Author: olegbl
+## Description: |c3399FFGamePadHelper|r module that reformats the trait information in item tooltips. See Inventory Trait sub-addon's description for a brief description of what the colors mean.
 ## DependsOn: GamePadHelper LibTraitResearch
 
 GamePadHelper_TooltipTrait.lua

@@ -3,15 +3,13 @@
 
 local addonName = "GamePadHelper_Provisioning"
 
-local SHOW_LOW_LEVEL_SETTING_KEY = "SHOW_LOW_LEVEL_RECIPES"
 local showLowLevelFilter = {
     filterName = "Show Low Level Recipes",
     filterTooltip = "Shows Recipes under CP160",
-    checked = false,
 }
 
 local function HideRecipies(recipeList)
-    if GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY] then
+    if GamePadHelper_SavedVars["showLowLevelRecipes"] then
         return false
     end
 
@@ -41,13 +39,13 @@ local function HideRecipies(recipeList)
 end
 
 local function AddCustomOptions(dialog, dialogData)
-    showLowLevelFilter.checked = GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY]
+    showLowLevelFilter.checked = GamePadHelper_SavedVars["showLowLevelRecipes"]
     table.insert(dialogData.filters, showLowLevelFilter)
 end
 
 local function SaveOptions()
-    if GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY] ~= showLowLevelFilter.checked then
-        GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY] = showLowLevelFilter.checked
+    if GamePadHelper_SavedVars["showLowLevelRecipes"] ~= showLowLevelFilter.checked then
+        GamePadHelper_SavedVars["showLowLevelRecipes"] = showLowLevelFilter.checked
         GAMEPAD_PROVISIONER:DirtyRecipeList()
     end
 end
@@ -67,8 +65,7 @@ local function OnAddonLoaded(event, name)
     if not GamePadHelper_SavedVars or not GamePadHelper_SavedVars.provisioningEnabled then return end
 
     -- Initialize settings
-    GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY] = GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY] or false
-    showLowLevelFilter.checked = GamePadHelper_SavedVars[SHOW_LOW_LEVEL_SETTING_KEY]
+    showLowLevelFilter.checked = GamePadHelper_SavedVars["showLowLevelRecipes"]
 
     -- Apply hooks
     ZO_PreHook(GAMEPAD_PROVISIONER.recipeList, "Commit", HideRecipies)

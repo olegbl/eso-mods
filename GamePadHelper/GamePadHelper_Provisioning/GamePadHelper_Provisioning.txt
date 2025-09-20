@@ -2,7 +2,7 @@
 ## APIVersion: 101047
 ## Version: 1.00
 ## Author: quelron
-## Description: |c3399FFGamePadHelper|r module that adds a filter option to hide low-level recipes (under CP160) in the provisioning interface, with a toggle in the options menu.
-## SavedVariables: GamePadHelperSavedVars
+## Description: |c3399FFGamePadHelper|r module that adds a filter option to hide low-level recipes (under CP160) in the provisioning interface, with a toggle in the options menu. Configure with /gph provisioning.
+## DependsOn: GamePadHelper
 
 GamePadHelper_Provisioning.lua

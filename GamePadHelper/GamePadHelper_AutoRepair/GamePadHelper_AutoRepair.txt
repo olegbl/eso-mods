@@ -2,7 +2,7 @@
 ## APIVersion: 101047
 ## Version: 1.00
 ## Author: quelron
-## Description: |c3399FFGamePadHelper|r module that automatically repairs all equipped items when opening a merchant store, provided repair is available and costs gold.
+## Description: |c3399FFGamePadHelper|r module that automatically repairs all equipped items when opening a merchant store, provided repair is available and costs gold. Configure with /gph repair.
 ## DependsOn: GamePadHelper
 
 GamePadHelper_AutoRepair.lua

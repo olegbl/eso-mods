@@ -16,6 +16,9 @@ local defaults = {
     antiquariansEyeEnabled = true,
     dungeonFinderEnabled = true,
     provisioningEnabled = true,
+    lootOffsetEnabled = true,
+    lootOffset = 350,
+    showLowLevelRecipes = false,
 }
 
 -- Saved variables
@@ -44,6 +47,8 @@ local function OnAddonLoaded(event, addonName)
             d("  /gph eye - Toggle auto Antiquarian's Eye (current: " .. (savedVars.antiquariansEyeEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
             d("  /gph dungeon - Toggle dungeon finder (current: " .. (savedVars.dungeonFinderEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
             d("  /gph provisioning - Toggle provisioning filter (current: " .. (savedVars.provisioningEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
+            d("  /gph loot - Toggle loot offset (current: " .. (savedVars.lootOffsetEnabled and "|c00FF00ON|r" or "|cFF0000OFF|r") .. ")")
+            d("  /gph loot <number> - Set loot offset value (current: " .. savedVars.lootOffset .. ")")
             return
         end
 
@@ -70,6 +75,19 @@ local function OnAddonLoaded(event, addonName)
         elseif command == "provisioning" then
             savedVars.provisioningEnabled = not savedVars.provisioningEnabled
             d("|c3399FF[GamePadHelper]|r Provisioning filter " .. (savedVars.provisioningEnabled and "|c00FF00ENABLED|r" or "|cFF0000DISABLED|r"))
+        elseif command == "loot" then
+            if #args == 1 then
+                savedVars.lootOffsetEnabled = not savedVars.lootOffsetEnabled
+                d("|c3399FF[GamePadHelper]|r Loot offset " .. (savedVars.lootOffsetEnabled and "|c00FF00ENABLED|r" or "|cFF0000DISABLED|r"))
+            elseif #args == 2 then
+                local offset = tonumber(args[2])
+                if offset then
+                    savedVars.lootOffset = offset
+                    d("|c3399FF[GamePadHelper]|r Loot offset set to " .. offset)
+                else
+                    d("|c3399FF[GamePadHelper]|r Invalid offset value. Use a number.")
+                end
+            end
         else
             d("|c3399FF[GamePadHelper]|r Unknown command. Use /gph for help.")
         end

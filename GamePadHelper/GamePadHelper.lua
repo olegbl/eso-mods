@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper"
-local ADDON_VERSION = 1.03
+local ADDON_VERSION = 1.04
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then
@@ -96,5 +96,6 @@ local function OnAddonLoaded(event, addonName)
     -- Make saved variables globally accessible for submodules
     _G["GamePadHelper_SavedVars"] = savedVars
 end
+
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)

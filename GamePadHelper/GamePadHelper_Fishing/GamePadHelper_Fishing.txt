@@ -1,4 +1,4 @@
-## Title: |c3399FFGamePadHelper|r - Fishing
+## Title: |c3399FFGamePadHelper|r Fishing
 ## APIVersion: 101047
 ## Version: 1.00
 ## Author: quelron

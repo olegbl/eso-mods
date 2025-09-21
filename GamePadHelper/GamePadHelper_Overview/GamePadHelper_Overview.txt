@@ -1,8 +1,8 @@
 ## Title: |c3399FFGamePadHelper|r Overview
 ## APIVersion: 101047
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that shows an overview tooltip while on the main menu.
-## Version: 1.02
+## Version: 1.03
+## Author: olegbl, quelron
+## Description: |c3399FFGamePadHelper|r module that shows an overview panel at the root menu that shows information about the currently selected quest as well as reminders for common tasks (horse training, crafting research).
 ## DependsOn: GamePadHelper
 
 GamePadHelper_Overview.lua

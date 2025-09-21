@@ -1,8 +1,9 @@
 ## Title: |c3399FFGamePadHelper|r Teleporter
 ## APIVersion: 101047
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that allows fast traveling to a friend or guildmate in a zone directly from the map interface (i.e. gamepad-friendly BeamMeUp).
-## Version: 1.03
-## DependsOn: GamePadHelper BeamMeUp
+## Version: 1.04
+## Author: olegbl, quelron
+## Description: |c3399FFGamePadHelper|r module that adds a hotkey on the world map to teleport to hovered zones using BeamMeUp.
+## DependsOn: GamePadHelper
+## OptionalDependsOn: BeamMeUp
 
 GamePadHelper_Teleporter.lua

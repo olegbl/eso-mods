@@ -1,8 +1,8 @@
 ## Title: |c3399FFGamePadHelper|r Tooltip Price
 ## APIVersion: 101047
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that improves the display of price information in equipment tooltips.
 ## Version: 1.01
+## Author: olegbl
+## Description: |c3399FFGamePadHelper|r module that reformats the price information in item tooltips. Optionally, adds pricing based on Tamriel Trade Centre if that addon is available.
 ## DependsOn: GamePadHelper
 ## OptionalDependsOn: TamrielTradeCentre
 

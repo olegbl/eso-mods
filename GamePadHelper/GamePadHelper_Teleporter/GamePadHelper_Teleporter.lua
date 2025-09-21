@@ -1,5 +1,5 @@
 local ADDON_NAME = "GamePadHelper_Teleporter"
-local ADDON_VERSION = 1.03
+local ADDON_VERSION = 1.04
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then
@@ -43,7 +43,7 @@ local function PopulateKeybindStripDescriptor()
     keybind = "UI_SHORTCUT_QUINARY",
 
     enabled = function()
-      return GetIsTeleportKeybindEnabled() and CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player")
+      return GetIsTeleportKeybindEnabled() and CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player") and BMU and BMU.createTable and BMU.PortalToPlayer
     end,
 
     visible = function()
@@ -81,8 +81,8 @@ local function PopulateKeybindStripDescriptor()
 
          local entry = resultTable and resultTable[1]
 
-         if entry and entry.displayName ~= nil and entry.displayName ~= "" then
-           local success3 = pcall(BMU.PortalToPlayer, entry.displayName, entry.sourceIndexLeading, entry.zoneName, entry.zoneId, entry.category, true, true, true)
+         if entry and type(entry.displayName) == "string" and entry.displayName ~= "" then
+           local success3 = pcall(BMU.PortalToPlayer, entry.displayName, entry.sourceIndexLeading or "", entry.zoneName or "", entry.zoneId or 0, entry.category or "", true, true, true)
            if success3 then
                SCENE_MANAGER:HideCurrentScene()
            else
@@ -137,6 +137,69 @@ local function OnWorldMapChanged(event, zoneName, subZoneName, newSubzone, zoneI
   KEYBIND_STRIP:UpdateKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
 end
 
+-- Chat Teleporting Functions
+local function BuildJumpToFriend()
+    return CHAT_MENU_GAMEPAD:BuildOptionEntry(nil,
+            GetString(SI_SOCIAL_MENU_JUMP_TO_PLAYER),
+            function() JumpToFriend(CHAT_MENU_GAMEPAD.socialData.displayName) end)
+end
+
+local function IsFriendJumpable()
+    return IsFriend(CHAT_MENU_GAMEPAD.socialData.displayName)
+end
+
+local function BuildJumpToGuildMember()
+    if IsFriendJumpable() then return false end
+
+    return CHAT_MENU_GAMEPAD:BuildOptionEntry(nil,
+            GetString(SI_SOCIAL_MENU_JUMP_TO_PLAYER),
+            function() JumpToGuildMember(CHAT_MENU_GAMEPAD.socialData.displayName) end)
+end
+
+local function IsGuildJumpable()
+    if CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_1 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_2 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_3 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_4 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_5 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_OFFICER_1 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_OFFICER_2 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_OFFICER_3 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_OFFICER_4 or
+        CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_OFFICER_5
+    then
+        return CHAT_MENU_GAMEPAD:SelectedDataIsNotPlayer()
+    end
+
+    return false
+end
+
+local function BuildJumpToGroupMember()
+    return CHAT_MENU_GAMEPAD:BuildOptionEntry(nil,
+            GetString(SI_SOCIAL_MENU_JUMP_TO_PLAYER),
+            function() JumpToGroupMember(DecorateDisplayName(CHAT_MENU_GAMEPAD.socialData.displayName)) end)
+end
+
+local function IsGroupJumpable()
+    if IsFriendJumpable() then return false end
+
+    return CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_PARTY
+end
+
+local _optionsInitialized = nil
+local function GamepadChatInit()
+    if _optionsInitialized then
+        return false
+    end
+    _optionsInitialized = true
+
+    CHAT_MENU_GAMEPAD:AddOptionTemplate(1, BuildJumpToFriend, IsFriendJumpable)
+    CHAT_MENU_GAMEPAD:AddOptionTemplate(1, BuildJumpToGuildMember, IsGuildJumpable)
+    CHAT_MENU_GAMEPAD:AddOptionTemplate(1, BuildJumpToGroupMember, IsGroupJumpable)
+
+    return false
+end
+
 local function OnAddOnLoaded(event, name)
   if name ~= ADDON_NAME then return end
 
@@ -146,6 +209,9 @@ local function OnAddOnLoaded(event, name)
   WORLD_MAP_SCENE:RegisterCallback("StateChange", OnWorldMapSceneStateChange)
   GAMEPAD_WORLD_MAP_SCENE:RegisterCallback("StateChange", OnWorldMapSceneStateChange)
   CALLBACK_MANAGER:RegisterCallback("OnWorldMapChanged", OnWorldMapChanged)
+
+  -- Initialize chat teleporting
+  ZO_PreHook(CHAT_MENU_GAMEPAD, "OnShow", GamepadChatInit)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)

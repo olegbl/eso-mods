@@ -1,0 +1,8 @@
+## Title: |c3399FFGamePadHelper|r Fishing
+## APIVersion: 101047
+## Version: 1.00
+## Author: quelron
+## Description: |c3399FFGamePadHelper|r module that enhances fishing with controller vibration feedback on fish bites, 'Reel in!' alerts, and automatic bait selection based on fishing hole type |cDAA520/gph fish|r and |cDAA520/gph bait|r.
+## DependsOn: GamePadHelper
+
+GamePadHelper_Fishing.lua

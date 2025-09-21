@@ -1,0 +1,8 @@
+## Title: |c3399FFGamePadHelper|r Dungeon Finder
+## APIVersion: 101047
+## Version: 1.00
+## Author: quelron
+## Description: |c3399FFGamePadHelper|r module that enhances the dungeon finder by displaying pledge quests in the list, replacing dungeon names with their corresponding pledge quest names for easier identification |cDAA520/gph dungeon|r.
+## DependsOn: GamePadHelper
+
+GamePadHelper_DungeonFinder.lua

@@ -1,8 +1,8 @@
 ## Title: |c3399FFGamePadHelper|r Inventory Trait
 ## APIVersion: 101047
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that displays indicator icons in inventory denoting if an item's trait can be researched and if there are other items with the same trait already available.
 ## Version: 1.01
+## Author: olegbl
+## Description: |c3399FFGamePadHelper|r module that shows icons next to items indicating trait research status and duplicates.
 ## DependsOn: GamePadHelper LibMultiIcon LibTraitResearch
 
 GamePadHelper_InventoryTrait.lua

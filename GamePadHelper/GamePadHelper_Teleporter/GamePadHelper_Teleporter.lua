@@ -7,7 +7,9 @@ if GetAPIVersion() < 101047 then
     return
 end
 
--- https://github.com/esoui/esoui/blob/e966309767c2158e1ad22c326f6562bae365efa5/esoui/ingame/map/worldmap.lua#L210
+local MAP_NAME_TO_ZONE_ID = {}
+
+-- Helper function to get normalized mouse position for map interactions
 local function GetNormalizedMousePositionToMap()
     if IsInGamepadPreferredMode() then
         local x, y = ZO_WorldMapScroll:GetCenter()
@@ -17,93 +19,119 @@ local function GetNormalizedMousePositionToMap()
     end
 end
 
-local MAP_NAME_TO_ZONE_ID = {}
 local function PopulateMapNameToZoneIdMapping()
-  for mapIndex = 1, GetNumMaps() do
-    local mapName, mapType, mapContentType, zoneIndex, description = GetMapInfoByIndex(mapIndex)
-    local zoneId = GetZoneId(zoneIndex)
-    MAP_NAME_TO_ZONE_ID[mapName] = zoneId
-  end
+    for mapIndex = 1, GetNumMaps() do
+        local mapName, mapType, mapContentType, zoneIndex, description = GetMapInfoByIndex(mapIndex)
+        local zoneId = GetZoneId(zoneIndex)
+        MAP_NAME_TO_ZONE_ID[mapName] = zoneId
+    end
 end
 
-local function GetIsTeleportKeybindEnabled()
-  local mapType = GetMapType()
-  return mapType == MAPTYPE_WORLD or mapType == MAPTYPE_COSMIC
+local function FindJumpablePlayerInZone(zoneId)
+    if not BMU or not BMU.createTable then return nil end
+    
+    -- Try players first
+    local success, resultTable = pcall(BMU.createTable, {index=6, fZoneId=zoneId, dontDisplay=true})
+    if success and resultTable and resultTable[1] then
+        local entry = resultTable[1]
+        
+        -- Check for valid player
+        if entry.displayName and entry.displayName ~= "" and not string.match(entry.displayName, "^%(%d+%)$") then
+            return "bmu", entry
+        end
+        
+        -- Check for house
+        if entry.houseId or entry.isOwnHouse then
+            return "bmu", entry
+        end
+    end
+
+    -- Fallback to houses
+    success, resultTable = pcall(BMU.createTable, {index=7, fZoneId=zoneId, dontDisplay=true})
+    if success and resultTable and resultTable[1] then
+        local entry = resultTable[1]
+        if entry.houseId or entry.isOwnHouse or entry.category == BMU.ZONE_CATEGORY_HOUSE then
+            return "bmu", entry
+        end
+    end
+
+    return nil
 end
 
 local KEYBOARD_KEYBIND_STRIP_DESCRIPTOR = nil
 local GAMEPAD_KEYBIND_STRIP_DESCRIPTOR = nil
+local CHAT_KEYBIND_STRIP_DESCRIPTOR = nil
+local function ExecuteTeleportFromEntry(entry, allowHouses)
+    if not entry then return false end
+    
+    SCENE_MANAGER:HideCurrentScene()
+
+    -- House teleportation only allowed from map, not from chat menu
+    if allowHouses and entry.isOwnHouse then
+        local houseName = entry.houseNameFormatted or "Primary Residence"
+        local travelOutside = entry.forceOutside or false
+        CHAT_SYSTEM:AddMessage("[Teleport] your house: " .. houseName)
+
+        RequestJumpToHouse(entry.houseId, travelOutside)
+        return true
+    elseif allowHouses and entry.houseId then
+        local owner = entry.displayName or "Friend"
+        local houseName = entry.houseNameFormatted or (owner .. "'s house")
+        CHAT_SYSTEM:AddMessage("[Teleport] " .. owner .. "'s house: " .. houseName)
+
+        RequestJumpToHouse(entry.houseId, entry.forceOutside)
+        return true
+    elseif IsFriend(entry.displayName) then
+        CHAT_SYSTEM:AddMessage("[Teleport] friend " .. entry.displayName)
+        JumpToFriend(entry.displayName)
+        return true
+    elseif entry.category == BMU.ZONE_CATEGORY_GROUP then
+        CHAT_SYSTEM:AddMessage("[Teleport] group member " .. entry.displayName)
+        JumpToGroupMember(entry.displayName)
+        return true
+    else
+        CHAT_SYSTEM:AddMessage("[Teleport] guild member " .. entry.displayName)
+        JumpToGuildMember(entry.displayName)
+        return true
+    end
+end
+
+local function CreateTeleportCallback()
+    local normalizedMouseX, normalizedMouseY = GetNormalizedMousePositionToMap()
+    local success, locationName = pcall(GetMapMouseoverInfo, normalizedMouseX, normalizedMouseY)
+    if not success then
+        d("[" .. ADDON_NAME .. "] Error getting map mouseover info: " .. tostring(locationName))
+        return
+    end
+
+    local zoneId = MAP_NAME_TO_ZONE_ID[locationName]
+    if not zoneId then
+        ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No zone data for " .. locationName)
+        return
+    end
+
+    local jumpType, entry = FindJumpablePlayerInZone(zoneId)
+    if jumpType ~= "bmu" or not entry then
+        ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No players or houses found to port to")
+        return
+    end
+
+    ExecuteTeleportFromEntry(entry, true)  -- Allow houses for map teleportation
+end
+
 local function PopulateKeybindStripDescriptor()
   local keybind = {
     name = "Teleport",
-
-    -- this keybind is really finicky since it does not show up in the UI
-    -- if it duplicates any base game shortcut (even if the base game shortcut
-    -- is being hidden)
     keybind = "UI_SHORTCUT_QUINARY",
-
     enabled = function()
-      return GetIsTeleportKeybindEnabled() and CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player") and BMU and BMU.createTable and BMU.PortalToPlayer
+      return CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player") and BMU and BMU.createTable
     end,
-
-    visible = function()
-      return GetIsTeleportKeybindEnabled()
-    end,
-
-    callback = function()
-       if not GetIsTeleportKeybindEnabled() then return end
-
-       -- Check if BeamMeUp is available
-       if not BMU or not BMU.createTable or not BMU.PortalToPlayer then
-           ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "BeamMeUp addon not found or incompatible")
-           return
-       end
-
-       local normalizedMouseX, normalizedMouseY = GetNormalizedMousePositionToMap()
-       local success, locationName, textureFile, textureWidthNormalized, textureHeightNormalized, textureXOffsetNormalized, textureYOffsetNormalized = pcall(GetMapMouseoverInfo, normalizedMouseX, normalizedMouseY)
-       if not success then
-           d("[" .. ADDON_NAME .. "] Error getting map mouseover info: " .. tostring(locationName))
-           return
-       end
-
-       local zoneId = MAP_NAME_TO_ZONE_ID[locationName]
-
-       if zoneId ~= nil then
-         -- use BeamMeUp to teleport
-         -- using BMU.sc_porting(zoneId) would be even cleaner
-         -- but there's no way to know if it worked or not
-         local success2, resultTable = pcall(BMU.createTable, {index=6, fZoneId=zoneId, dontDisplay=true})
-         if not success2 then
-             d("[" .. ADDON_NAME .. "] Error creating BeamMeUp table: " .. tostring(resultTable))
-             ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "Error accessing BeamMeUp teleport data")
-             return
-         end
-
-         local entry = resultTable and resultTable[1]
-
-         if entry and type(entry.displayName) == "string" and entry.displayName ~= "" then
-           local success3 = pcall(BMU.PortalToPlayer, entry.displayName, entry.sourceIndexLeading or "", entry.zoneName or "", entry.zoneId or 0, entry.category or "", true, true, true)
-           if success3 then
-               SCENE_MANAGER:HideCurrentScene()
-           else
-               ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "Teleport failed")
-           end
-         else
-           ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No players found to port to")
-         end
-       end
-     end,
+    visible = function() return true end,
+    callback = CreateTeleportCallback,
   }
 
-  KEYBOARD_KEYBIND_STRIP_DESCRIPTOR = {
-    alignment = KEYBIND_STRIP_ALIGN_CENTER,
-    keybind
-  }
-
-  GAMEPAD_KEYBIND_STRIP_DESCRIPTOR = {
-    alignment = KEYBIND_STRIP_ALIGN_LEFT,
-    keybind
-  }
+  KEYBOARD_KEYBIND_STRIP_DESCRIPTOR = { alignment = KEYBIND_STRIP_ALIGN_CENTER, keybind }
+  GAMEPAD_KEYBIND_STRIP_DESCRIPTOR  = { alignment = KEYBIND_STRIP_ALIGN_LEFT,   keybind }
 end
 
 local function OnWorldMapSceneShow()
@@ -137,26 +165,16 @@ local function OnWorldMapChanged(event, zoneName, subZoneName, newSubzone, zoneI
   KEYBIND_STRIP:UpdateKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
 end
 
--- Chat Teleporting Functions
-local function BuildJumpToFriend()
-    return CHAT_MENU_GAMEPAD:BuildOptionEntry(nil,
-            GetString(SI_SOCIAL_MENU_JUMP_TO_PLAYER),
-            function() JumpToFriend(CHAT_MENU_GAMEPAD.socialData.displayName) end)
-end
-
+-- Helper functions for teleportation eligibility
 local function IsFriendJumpable()
+    if not CHAT_MENU_GAMEPAD.socialData or not CHAT_MENU_GAMEPAD.socialData.displayName then return false end
     return IsFriend(CHAT_MENU_GAMEPAD.socialData.displayName)
 end
 
-local function BuildJumpToGuildMember()
-    if IsFriendJumpable() then return false end
-
-    return CHAT_MENU_GAMEPAD:BuildOptionEntry(nil,
-            GetString(SI_SOCIAL_MENU_JUMP_TO_PLAYER),
-            function() JumpToGuildMember(CHAT_MENU_GAMEPAD.socialData.displayName) end)
-end
-
 local function IsGuildJumpable()
+    if IsFriendJumpable() then return false end
+    if not CHAT_MENU_GAMEPAD.socialData or not CHAT_MENU_GAMEPAD.socialData.category then return false end
+
     if CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_1 or
         CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_2 or
         CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_GUILD_3 or
@@ -174,29 +192,51 @@ local function IsGuildJumpable()
     return false
 end
 
-local function BuildJumpToGroupMember()
-    return CHAT_MENU_GAMEPAD:BuildOptionEntry(nil,
-            GetString(SI_SOCIAL_MENU_JUMP_TO_PLAYER),
-            function() JumpToGroupMember(DecorateDisplayName(CHAT_MENU_GAMEPAD.socialData.displayName)) end)
-end
-
 local function IsGroupJumpable()
     if IsFriendJumpable() then return false end
-
+    if not CHAT_MENU_GAMEPAD.socialData or not CHAT_MENU_GAMEPAD.socialData.category then return false end
     return CHAT_MENU_GAMEPAD.socialData.category == CHAT_CATEGORY_PARTY
 end
 
-local _optionsInitialized = nil
+local function IsAnyJumpable()
+    if not CHAT_MENU_GAMEPAD.socialData then return false end
+    
+    local data = CHAT_MENU_GAMEPAD.socialData
+    
+    -- For chat menu, only allow teleporting to friends, guild members, and group members
+    -- House teleportation is disabled for chat menu
+    return IsFriendJumpable() or IsGuildJumpable() or IsGroupJumpable()
+end
+
+local _keybindInitialized = nil
 local function GamepadChatInit()
-    if _optionsInitialized then
-        return false
+    if not _keybindInitialized then
+        _keybindInitialized = true
+        CHAT_KEYBIND_STRIP_DESCRIPTOR = {
+            alignment = KEYBIND_STRIP_ALIGN_LEFT,
+            {
+                name = "Teleport",
+                keybind = "UI_SHORTCUT_QUINARY",
+                enabled = function()
+                    return CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player")
+                end,
+                visible = function() return true end,
+                callback = function()
+                    local data = CHAT_MENU_GAMEPAD.socialData
+                    
+                    if not data or not IsAnyJumpable() then
+                        ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, "No valid teleportable target selected")
+                        return
+                    end
+                    
+                    ExecuteTeleportFromEntry(data, false)  -- Disable houses for chat menu teleportation
+                end,
+            }
+        }
     end
-    _optionsInitialized = true
 
-    CHAT_MENU_GAMEPAD:AddOptionTemplate(1, BuildJumpToFriend, IsFriendJumpable)
-    CHAT_MENU_GAMEPAD:AddOptionTemplate(1, BuildJumpToGuildMember, IsGuildJumpable)
-    CHAT_MENU_GAMEPAD:AddOptionTemplate(1, BuildJumpToGroupMember, IsGroupJumpable)
-
+    KEYBIND_STRIP:AddKeybindButtonGroup(CHAT_KEYBIND_STRIP_DESCRIPTOR)
+    KEYBIND_STRIP:UpdateKeybindButtonGroup(CHAT_KEYBIND_STRIP_DESCRIPTOR)
     return false
 end
 
@@ -212,6 +252,25 @@ local function OnAddOnLoaded(event, name)
 
   -- Initialize chat teleporting
   ZO_PreHook(CHAT_MENU_GAMEPAD, "OnShow", GamepadChatInit)
+
+   -- Hook into selection changes to update teleport button state
+  ZO_PreHook(CHAT_MENU_GAMEPAD, "OnTargetChanged", function(self, list, targetData, oldTargetData, reachedTarget, targetSelectedIndex)
+    CHAT_MENU_GAMEPAD.socialData = targetData and (targetData.data or targetData) or nil
+    if CHAT_KEYBIND_STRIP_DESCRIPTOR then
+      KEYBIND_STRIP:UpdateKeybindButtonGroup(CHAT_KEYBIND_STRIP_DESCRIPTOR)
+    end
+  end)
+
+  ZO_PreHook(CHAT_MENU_GAMEPAD, "OnHide", function() 
+      KEYBIND_STRIP:RemoveKeybindButtonGroup(CHAT_KEYBIND_STRIP_DESCRIPTOR) 
+  end)
+
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddOnLoaded)
+-- Event handler for addon loaded
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, function(event, addonName)
+    if addonName == ADDON_NAME then
+        OnAddOnLoaded(event, addonName)
+        EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
+    end
+end)

@@ -1,8 +1,8 @@
 ## Title: |c3399FFGamePadHelper|r Teleporter
 ## APIVersion: 101047
-## Version: 1.04
+## Version: 1.05
 ## Author: olegbl, quelron
-## Description: |c3399FFGamePadHelper|r module that adds a hotkey on the world map to teleport to hovered zones using BeamMeUp.
+## Description: |c3399FFGamePadHelper|r module that adds teleportation features. Chat teleportation is always available. Map teleportation to hovered zones requires BeamMeUp addon.
 ## DependsOn: GamePadHelper
 ## OptionalDependsOn: BeamMeUp
 

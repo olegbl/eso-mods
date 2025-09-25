@@ -163,7 +163,7 @@ local function onLureCleared(event)
     end
 
     -- Set global flag to indicate module is loaded
-    _G["gamepadhelperx_Fishing_Loaded"] = true
+    _G["gamepadhelper_Fishing_Loaded"] = true
 
 end
 local function onLureSet(event, lure)

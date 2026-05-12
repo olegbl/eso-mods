@@ -146,7 +146,7 @@ local function getStackPrice(price, count)
   return price * count
 end
 
-local function getPriceSummary(gameValue, gameMaxValue, ttcValue, suffix, isBound)
+local function getPriceSummary(gameValue, gameMaxValue, ttcValue, suffix, suppressNoDataLabel)
    local gameValueText = gameValue == gameMaxValue
      and SafeFormatNumber(gameValue or 0, 0)
      or zo_strformat(SI_ITEM_FORMAT_STR_EFFECTIVE_VALUE_OF_MAX, gameValue, gameMaxValue)
@@ -163,16 +163,7 @@ local function getPriceSummary(gameValue, gameMaxValue, ttcValue, suffix, isBoun
        COLOR_TTC:Colorize(ttcValueText),
        suffix or ""
      ))
-   elseif isMarketLoaded then
-     if isBound then
-       return COLOR_TITLE:Colorize(string.format(
-         "%s %s %s %s",
-         PRICE_ICON,
-         COLOR_GAME:Colorize(gameValueText),
-         COLOR_DETAILS:Colorize("(Bound Item)"),
-         suffix or ""
-       ))
-     end
+   elseif isMarketLoaded and not suppressNoDataLabel then
      return COLOR_TITLE:Colorize(string.format(
        "%s %s %s %s",
        PRICE_ICON,
@@ -212,23 +203,86 @@ end
 
 local lastItemLink = nil
 local lastStackSize = nil
+local lastBagId = nil
+local lastSlotIndex = nil
+local lastLootValue = nil
+
+local function FindLootValueByItemLink(itemLink)
+  if type(itemLink) ~= "string" or itemLink == "" then return nil end
+  if type(GetNumLootItems) ~= "function" or type(GetLootItemInfo) ~= "function" or type(GetLootItemLink) ~= "function" then
+    return nil
+  end
+
+  local numLootItems = GetNumLootItems()
+  if type(numLootItems) ~= "number" or numLootItems <= 0 then
+    return nil
+  end
+
+  for i = 1, numLootItems do
+    local lootId = GetLootItemInfo(i)
+    if lootId ~= nil then
+      local link = GetLootItemLink(lootId)
+      if link == itemLink then
+        local _, _, _, _, _, value = GetLootItemInfo(i)
+        if type(value) == "number" and value > 0 then
+          return value
+        end
+        return 0
+      end
+    end
+  end
+
+  return nil
+end
+
+local function Tooltip_LayoutItemWithStackCount_Before(self, itemLink, equipped, creatorName, forceFullDurability, previewValueToAdd, stackCount)
+  local sv = _G["GamePadHelper_SavedVars"]
+  if not sv or not sv.tooltipPriceEnabled then return end
+
+  self.__gph_priceAdded = nil
+  lastItemLink = itemLink
+  lastStackSize = type(stackCount) == "number" and stackCount or 1
+  lastBagId = nil
+  lastSlotIndex = nil
+  lastLootValue = FindLootValueByItemLink(itemLink)
+end
+
 local function Tooltip_LayoutBagItem_Before(self, bagId, slotIndex, showCombinedCount, extraData)
   local sv = _G["GamePadHelper_SavedVars"]
   if not sv or not sv.tooltipPriceEnabled then return end
-  self.__gph_boundLineSeen = nil
+  self.__gph_priceAdded = nil
   lastItemLink = GetItemLink(bagId, slotIndex)
   lastStackSize = GetSlotStackSize(bagId, slotIndex)
+  lastBagId = bagId
+  lastSlotIndex = slotIndex
+  lastLootValue = nil
 end
 
 local function Tooltip_AddItemTitle_After(self, itemLink, name)
   local sv = _G["GamePadHelper_SavedVars"]
   if not sv or not sv.tooltipPriceEnabled then return end
-  self.__gph_boundLineSeen = nil
+  self.__gph_priceAdded = nil
   local stackSize = itemLink == lastItemLink and lastStackSize or 1
   local isBound = IsBoundItemLink(itemLink)
 
-  local gamePrice = GetItemLinkValue(itemLink, false)
-  local gameMaxPrice = GetItemLinkValue(itemLink, true)
+  local gamePrice = 0
+  local gameMaxPrice = 0
+  local isFromBag = itemLink == lastItemLink and lastBagId ~= nil and lastSlotIndex ~= nil
+  if isFromBag and type(GetItemSellValueWithBonuses) == "function" then
+    local success, value = pcall(GetItemSellValueWithBonuses, lastBagId, lastSlotIndex)
+    if success and type(value) == "number" and value > 0 then
+      gamePrice = value
+      gameMaxPrice = value
+    end
+  end
+  if gamePrice == 0 and itemLink == lastItemLink and type(lastLootValue) == "number" and lastLootValue > 0 then
+    gamePrice = lastLootValue
+    gameMaxPrice = lastLootValue
+  end
+  if gamePrice == 0 then
+    gamePrice = GetItemLinkValue(itemLink, false)
+    gameMaxPrice = GetItemLinkValue(itemLink, true)
+  end
   local ttcPriceInfo = SafeGetPriceInfo(itemLink)
   local ttcPrice = (ttcPriceInfo.SuggestedPrice or 0) > 0
     and ttcPriceInfo.SuggestedPrice
@@ -239,8 +293,9 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
   local ttcProductPrice = 0
   local productIsBound = false
 
+  local itemType = GetItemLinkItemType(itemLink)
+
   -- show product pricing for recipes
-  local itemType, specializedItemType = GetItemLinkItemType(itemLink)
   if itemType == ITEMTYPE_RECIPE then
     local productItemLink = GetItemLinkRecipeResultItemLink(itemLink)
     if productItemLink then
@@ -271,17 +326,21 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
   local isTtcAvailable = HasMarketProvider()
 
   local hasValue = gamePrice > 0 or (isTtcAvailable and ttcPrice > 0)
-  local hasAmount = isTtcAvailable and ((ttcPriceInfo.AmountCount or 0) > 0 or ((ttcPriceInfo.Min or 0) > 0 and (ttcPriceInfo.Max or 0) > 0))
+  local hasAmount = not isBound and isTtcAvailable and ((ttcPriceInfo.AmountCount or 0) > 0 or ((ttcPriceInfo.Min or 0) > 0 and (ttcPriceInfo.Max or 0) > 0))
   local productHasValue = gameProductPrice > 0 or (isTtcAvailable and ttcProductPrice > 0)
-  local productHasAmount = isTtcAvailable and ((ttcProductPriceInfo.AmountCount or 0) > 0 or ((ttcProductPriceInfo.Min or 0) > 0 and (ttcProductPriceInfo.Max or 0) > 0))
+  local productHasAmount = not productIsBound and isTtcAvailable and ((ttcProductPriceInfo.AmountCount or 0) > 0 or ((ttcProductPriceInfo.Min or 0) > 0 and (ttcProductPriceInfo.Max or 0) > 0))
 
   local addedAny = false
+  -- Bound items (including treasure) can't be sold on the guild store, so market price is irrelevant.
+  -- Show only the vendor/game price with no TTC price and no market labels.
+  local displayTtcPrice = isBound and 0 or ttcPrice
+  local suppressNoDataLabel = isBound
   if hasValue then
-    section:AddLine(getPriceSummary(gamePrice, gameMaxPrice, ttcPrice, nil, isBound))
+    section:AddLine(getPriceSummary(gamePrice, gameMaxPrice, displayTtcPrice, nil, suppressNoDataLabel))
     addedAny = true
   end
   if hasValue and stackSize > 1 then
-    section:AddLine(getPriceSummary(getStackPrice(gamePrice, stackSize), getStackPrice(gameMaxPrice, stackSize), getStackPrice(ttcPrice, stackSize), string.format("(stack of %s)", stackSize), isBound))
+    section:AddLine(getPriceSummary(getStackPrice(gamePrice, stackSize), getStackPrice(gameMaxPrice, stackSize), getStackPrice(displayTtcPrice, stackSize), string.format("(stack of %s)", stackSize), suppressNoDataLabel))
     addedAny = true
   end
   if hasAmount then
@@ -289,7 +348,7 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
     addedAny = true
   end
   if productHasValue then
-    section:AddLine(getPriceSummary(gameProductPrice, gameProductPrice, ttcProductPrice, "(product)", productIsBound))
+    section:AddLine(getPriceSummary(gameProductPrice, gameProductPrice, productIsBound and 0 or ttcProductPrice, "(product)", productIsBound))
     addedAny = true
   end
   if productHasAmount then
@@ -300,43 +359,18 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
     section:AddLine(" ")
   end
 
+  self.__gph_priceAdded = addedAny
   self:AddSection(section)
 end
 
 local function Tooltip_AddItemValue_Before(self, itemLink)
   local sv = _G["GamePadHelper_SavedVars"]
   if not sv or not sv.tooltipPriceEnabled then return end
-  -- Suppress ESO's default value line to avoid duplicate price tags.
-  return true
-end
-
-local function Tooltip_AddLine_Before(self, lineText)
-  local sv = _G["GamePadHelper_SavedVars"]
-  if not sv or not sv.tooltipPriceEnabled then return end
-  if type(lineText) ~= "string" then return end
-
-  -- Suppress duplicate TSC tooltip lines when GamePadHelper is rendering price info.
-  local lower = string.lower(lineText)
-  local suppressPatterns = {
-    "tsc",
-    "tamriel savings",
-    "price fetcher",
-    "no price data",
-    "bound item",
-    "exact avg:",
-    "exact range:",
-    "item avg:",
-    "item range:",
-    "common price range",
-    "legacy avg",
-    "average price",
-    "avg price",
-    "price range",
-  }
-  for _, pattern in ipairs(suppressPatterns) do
-    if string.find(lower, pattern, 1, true) then
-      return true
-    end
+  -- Only suppress ESO's default value line when we've already added our own.
+  -- If we couldn't determine a price (e.g. stolen items with 0 merchant value),
+  -- fall through so ESO's built-in value is still visible.
+  if self.__gph_priceAdded then
+    return true
   end
 end
 
@@ -369,6 +403,14 @@ local function ShouldSuppressExternalPriceLine(lineText)
   return false
 end
 
+local function Tooltip_AddLine_Before(self, lineText)
+  local sv = _G["GamePadHelper_SavedVars"]
+  if not sv or not sv.tooltipPriceEnabled then return end
+  if ShouldSuppressExternalPriceLine(lineText) then
+    return true
+  end
+end
+
 local function TooltipSection_AddLine_Before(self, lineText)
   local sv = _G["GamePadHelper_SavedVars"]
   if not sv or not sv.tooltipPriceEnabled then return end
@@ -389,6 +431,9 @@ local tooltips = {
 for index, tooltip in ipairs(tooltips) do
   local gamepadTooltip = GAMEPAD_TOOLTIPS:GetTooltip(tooltip)
   ZO_PreHook(gamepadTooltip, "LayoutBagItem", Tooltip_LayoutBagItem_Before)
+  if type(gamepadTooltip.LayoutItemWithStackCount) == "function" then
+    ZO_PreHook(gamepadTooltip, "LayoutItemWithStackCount", Tooltip_LayoutItemWithStackCount_Before)
+  end
   ZO_PostHook(gamepadTooltip, "AddItemTitle", Tooltip_AddItemTitle_After)
   ZO_PreHook(gamepadTooltip, "AddItemValue", Tooltip_AddItemValue_Before)
   ZO_PreHook(gamepadTooltip, "AddLine", Tooltip_AddLine_Before)
@@ -616,8 +661,10 @@ local function AddCraftingPriceTooltip(hookObject, toolTipControl, functionName,
       actualTooltipControl = toolTipControl(select(1, ...))
     end
     local tooltip = ResolveTooltipControl(actualTooltipControl)
+    -- Pre-set the flag so AddItemValue (called during LayoutItem inside the original
+    -- function) is suppressed before our SecurePostHook has a chance to run.
     if tooltip then
-      tooltip.__gph_boundLineSeen = nil
+      tooltip.__gph_priceAdded = true
     end
     EnsureValueSuppressedForTooltip(tooltip)
   end)
@@ -638,7 +685,6 @@ local function AddCraftingPriceTooltip(hookObject, toolTipControl, functionName,
     if itemLink == nil then
       return
     end
-    tooltip.__gph_boundLineSeen = nil
     local isBound = IsBoundItemLink(itemLink)
 
     local ttcPriceInfo = SafeGetPriceInfo(itemLink)
@@ -720,17 +766,18 @@ local function AddCraftingPriceTooltip(hookObject, toolTipControl, functionName,
 
       -- Show result item price
       if hasValue then
-        section:AddLine(getPriceSummary(gamePrice, gamePrice, ttcPrice, nil, isBound))
+        section:AddLine(getPriceSummary(gamePrice, gamePrice, isBound and 0 or ttcPrice, nil, isBound))
       end
 
-      if (ttcPriceInfo.AmountCount and ttcPriceInfo.AmountCount > 0)
-        or ((ttcPriceInfo.Min or 0) > 0 and (ttcPriceInfo.Max or 0) > 0) then
+      if not isBound and ((ttcPriceInfo.AmountCount and ttcPriceInfo.AmountCount > 0)
+        or ((ttcPriceInfo.Min or 0) > 0 and (ttcPriceInfo.Max or 0) > 0)) then
         section:AddLine(getPriceBreakdown(ttcPriceInfo))
       end
       section:AddLine(" ")
 
       outerSection:AddSection(section)
       tooltip:AddSection(outerSection)
+      tooltip.__gph_priceAdded = true
     end
   end)
 end

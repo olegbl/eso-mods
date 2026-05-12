@@ -4,6 +4,7 @@
 local autoUse = true
 local previousSlot, eyeSlot, backupSlot
 local isDigging = false
+local eyeIsActive = false
 
 local function FindEye()
     eyeSlot = 0
@@ -14,16 +15,30 @@ local function FindEye()
     end
 end
 
+local function AnnounceCenter(text)
+    local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_SMALL_TEXT)
+    messageParams:SetText(text)
+    CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
+end
+
 local function SlotEye()
     if eyeSlot ~= 0 and GetSlotItemLink(GetCurrentQuickslot(), HOTBAR_CATEGORY_QUICKSLOT_WHEEL) ~= "|H0:collectible:8006|h|h" then
         previousSlot = GetCurrentQuickslot()
         SetCurrentQuickslot(eyeSlot)
+        if not eyeIsActive then
+            eyeIsActive = true
+            AnnounceCenter("Antiquarian's Eye equipped")
+        end
     end
 end
 
 local function UnslotEye()
     if GetSlotItemLink(GetCurrentQuickslot(), HOTBAR_CATEGORY_QUICKSLOT_WHEEL) == "|H0:collectible:8006|h|h" then
         SetCurrentQuickslot(previousSlot)
+        if eyeIsActive then
+            eyeIsActive = false
+            AnnounceCenter("Antiquarian's Eye unequipped")
+        end
     end
 end
 

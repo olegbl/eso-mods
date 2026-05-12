@@ -9,7 +9,9 @@ local function AutoRepairStore()
     local cost = GetRepairAllCost()
     if cost > 0 and CanStoreRepair() then
         RepairAll()
-        d("|c3399FFGamePadHelper|r: Equipment repaired for |cFFFF00" .. cost .. "|r " .. PRICE_ICON)
+        local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_SMALL_TEXT)
+        messageParams:SetText("Equipment repaired for " .. ZO_CommaDelimitNumber(cost) .. " " .. PRICE_ICON)
+        CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
     end
 end
 

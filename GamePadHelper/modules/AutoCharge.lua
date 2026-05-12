@@ -54,7 +54,9 @@ local function AutoCharge()
                 local gemBagId, gemSlotIndex = FindSoulGem()
                 if gemBagId and gemSlotIndex then
                     ChargeItemWithSoulGem(BAG_WORN, equipSlot, gemBagId, gemSlotIndex)
-                    d("|c3399FFGamePadHelper|r: " .. GetSlotName(equipSlot) .. " charged (" .. string.format("%.1f", chargePercentage) .. "% → 100%)")
+                    local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_SMALL_TEXT)
+                    messageParams:SetText(GetSlotName(equipSlot) .. " charged (" .. string.format("%.0f", chargePercentage) .. "% → 100%)")
+                    CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
                 end
             end
         end

@@ -1,133 +1,254 @@
 # GamePadHelper
 
-[https://github.com/olegbl/eso-mods/tree/main/GamePadHelper](https://github.com/olegbl/eso-mods/tree/main/GamePadHelper)
+**Version:** 1.06 · **Authors:** olegbl, quelron · **API:** 101049
 
-## Description
+A collection of UI improvements and quality-of-life enhancements for Elder Scrolls Online, designed for gamepad play but compatible with keyboard & mouse too. Every feature can be toggled individually from the in-game settings panel. 
 
-Adds various UI improvements for GamePad. Each addition is split into a separate sub-addon and can be enabled or disabled individually from the addon list.
-
-## Auto Charge
-
-automatically charges equipped weapons (main hand, off hand, backup main, backup off) with soul gems when their charge drops below 25%, using the highest level filled soul gem available.
+Price data provided by **Tamriel Savings Co** when TSC sources are available.
 
 ---
 
-Configure with `/gph charge`.
+## Table of Contents
 
-## Auto Eye
-
-automates Antiquarian's Eye usage by slotting and using the collectible automatically when not in combat or moving, and unslotting when blocked.
-
----
-
-Configure with `/gph eye`.
-
-## Auto Repair
-
-automatically repairs all equipped items when opening a merchant store, provided repair is available and costs gold.
-
----
-
-Configure with `/gph repair`.
-
-## Dungeon Finder
-
-enhances the dungeon finder by displaying pledge quests in the list, replacing dungeon names with their corresponding pledge quest names for easier identification.
-
----
-
-Configure with `/gph dungeon`.
-
-## Fishing
-
-enhances fishing with controller vibration feedback on fish bites, 'Reel in!' alerts, and automatic bait selection based on fishing hole type.
+- [Installation](#installation)
+- [Settings](#settings)
+- [Features](#features)
+  - [Fishing](#fishing)
+  - [Auto Repair](#auto-repair)
+  - [Auto Weapon Charge](#auto-weapon-charge)
+  - [Antiquarian's Eye](#antiquarians-eye)
+  - [Teleporter](#teleporter)
+  - [Dungeon Finder](#dungeon-finder)
+  - [Provisioning](#provisioning)
+  - [Gear Comparison](#gear-comparison)
+  - [Inventory Covetous Countess](#inventory-covetous-countess)
+  - [Inventory Trait](#inventory-trait)
+  - [Loot Offset](#loot-offset)
+  - [Overview Panel](#overview-panel)
+  - [Tooltip Enchantment](#tooltip-enchantment)
+  - [Tooltip Font](#tooltip-font)
+  - [Tooltip Poison](#tooltip-poison)
+  - [Tooltip Price](#tooltip-price)
+  - [Tooltip Trait](#tooltip-trait)
+- [Dependencies](#dependencies)
+- [Support](#support)
 
 ---
 
-Configure with `/gph fish` and `/gph bait`.
+## Installation
 
-## Gear Comparison
-
-when toggling between preview of currently equipped item and preview of stats changes, allows both panels to be shown side-by-side.
-
-## Inventory Covetous Countess
-
-shows a magnifying glass icons next to treasures that are useful for the Covetous Countess quest. The icon is green if the item is useful for the currently active quest (if any) and white otherwise.
-
-### Dependencies
-
-* [LibCovetousCountess](https://www.esoui.com/downloads/info3266-LibCovetousCountess.html)
-* [LibMultiIcon](https://www.esoui.com/downloads/info3267-LibMultiIcon.html)
-
-## Inventory Trait
-
-shows a magnifying glass icon next to items that have a trait that can be researched by the current character. The icon is red if there is another item with the same trait in the bank. The icon is yellow if there is another item with the same trait in the inventory. The icon is green if it is the only one with that trait that the character has access to. If there is another item with the same trait in the bank, there is a red number below the icon indicating how many duplicate copies there are. If there is another item with the same trait in the inventory, there is a yellow number below the icon indicating how many duplicate copies there are. Locked items still show an icon but are ignored by all other items. Other characters in the account are ignored.
-
-### Dependencies
-
-* [LibMultiIcon](https://www.esoui.com/downloads/info3267-LibMultiIcon.html)
-* [LibTraitResearch](https://www.esoui.com/downloads/info3264-LibTraitResearch.html)
-
-## Loot Offset
-
-adjusts the loot history offset for keyboard chat users.
+1. Download and extract the archive into your AddOns folder:
+   ```
+   Documents\Elder Scrolls Online\live\AddOns\GamePadHelper\
+   ```
+2. Install all required dependencies listed in [Dependencies](#dependencies).
+3. Launch ESO and enable **GamePadHelper** in the AddOn Manager.
 
 ---
 
-Configure with `/gph loot`.
+## Settings
 
-## Overview
+All features can be toggled without reloading the UI. Open the settings panel via:
 
-shows an overview panel at the root menu with detailed quest information (background, active step, tasks, completed tasks, optional steps, and hints) on the left, and reminders for common tasks on the right including horse training availability, crafting research status with available slots and researchable traits/items, surveys and writs counts, antiquities scryable leads with expiration timers, and treasure maps count.
-
-## Provisioning
-
-adds a filter option to hide low-level recipes (under CP160) in the provisioning interface, with a toggle in the options menu.
+- **Keyboard / Mouse** — `ESC → Settings → AddOns → GamePadHelper`
+- **Gamepad** — `Menu → Options → Extensions → GamePadHelper`
 
 ---
 
-Configure with `/gph provisioning`.
+## Features
 
-## Teleporter
+### Fishing
 
-when hovering a zone on the world map, adds a new hotkey that can be pressed in order to ask BeamMeUp to teleport the player to the target zone using the best available method. This also works with Keyboard + Mouse but is mostly useful for GamePad which does not have a convenient way to utilize BeamMeUp's normal interface. Additionally, adds "Jump to Player" options in the chat menu for friends, guild members, and group members.
+Enhances the fishing experience for gamepad users with three improvements:
 
-### Dependencies
+- **Controller vibration** pulses when a fish bites.
+- **"Reel in!" alert** appears on screen so you don't miss a catch.
+- **Automatic bait selection** picks the correct bait for the current fishing hole type (foul, saltwater, lake, river). Falls back to alternative baits (Minnow/Guts, Chub/Worms) when the primary bait is unavailable.
 
-* [BeamMeUp](https://www.esoui.com/downloads/info2143-BeamMeUp-TeleporterFastTravel.html) (Optional)
+---
 
-## Tooltip Enchantment
+### Auto Repair
 
-reformats the enchantment information in item tooltips.
+Automatically repairs all equipped items when you open any merchant store, as long as repair is available and costs gold. No more forgetting to repair between combat sessions.
 
-### Dependencies
+---
 
-* [LibItemLinkDecoder](https://www.esoui.com/downloads/info3265-LibItemLinkDecoder.html)
+### Auto Weapon Charge
 
-## Tooltip Font
+Automatically recharges equipped weapons (main hand, off hand, backup main, backup off) using the highest-level filled soul gem available when charge drops below **25%** after leaving combat.
 
-changes the font used in item tooltips.
+---
 
-## Tooltip Poison
+### Antiquarian's Eye
 
-reformats the applied poison information in item tooltips.
+Automatically slots and activates the **Antiquarian's Eye** collectible when you are not in combat and not moving, then unslots it when it would be blocked. Removes the need to manually manage the collectible slot while scrying.
 
-## Tooltip Price
+---
 
-reformats the price information in item tooltips. Optionally, adds pricing based on Tamriel Trade Centre if that addon is available.
+### Teleporter
 
-### Dependencies
+| Screenshot | Screenshot |
+|---|---|
+| ![Teleporter map hotkey](screenshots/Teleporter_1.png) | ![Teleporter chat menu](screenshots/Teleporter_2.png) |
+| ![Teleporter in action](screenshots/Teleporter_3.png) | |
 
-* [TamrielTradeCentre](https://www.esoui.com/downloads/info1245-TamrielTradeCentre.html) (Optional)
+Two teleport improvements:
 
-## Tooltip Trait
+- **World Map hotkey** — while hovering a zone on the world map, a new hotkey lets you instantly ask BeamMeUp to teleport to that zone using the best available method. Especially useful on gamepad where BeamMeUp's normal interface is hard to reach.
+- **Chat "Jump to Player"** — adds jump options to the chat context menu for friends, guild members, and group members.
 
-reformats the trait information in item tooltips. See Inventory Trait sub-addon's description for a brief description of what the colors mean.
+> Requires **BeamMeUp** (optional) for the teleport functionality.
 
-### Dependencies
+---
 
-* [LibTraitResearch](https://www.esoui.com/downloads/info3264-LibTraitResearch.html)
+### Dungeon Finder
+
+![Dungeon Finder](screenshots/DungeonFinder.png)
+
+Replaces dungeon names in the Dungeon Finder list with their corresponding **pledge quest names**, making it much easier to identify which dungeon completes your daily pledge without cross-referencing.
+
+---
+
+### Provisioning
+
+Adds a filter to hide **low-level recipes (below CP160)** in the provisioning interface. Keeps the recipe list clean and focused on relevant recipes for end-game characters.
+
+---
+
+### Gear Comparison
+
+![Gear Comparison](screenshots/GearComparison.png)
+
+When toggling between a preview of your currently equipped item and a new item's stat changes, both panels are shown **side-by-side** simultaneously, making it easy to compare at a glance without toggling back and forth.
+
+---
+
+### Inventory Covetous Countess
+
+![Inventory Covetous Countess](screenshots/InventoryCovetousCountess.png)
+
+Adds a magnifying glass icon next to treasures in your inventory that are relevant to the **Covetous Countess** quest:
+
+- **Green icon** — item is useful for your currently active Covetous Countess quest step.
+- **White icon** — item is useful for the quest but not the current active step.
+
+---
+
+### Inventory Trait
+
+| Screenshot | Screenshot | Screenshot |
+|---|---|---|
+| ![Inventory Trait 1](screenshots/InventoryTrait_1.png) | ![Inventory Trait 2](screenshots/InventoryTrait_2.png) | ![Inventory Trait 3](screenshots/InventoryTrait_3.png) |
+
+Shows a magnifying glass icon next to items whose trait can be **researched by the current character**, with color coding to indicate duplicates:
+
+| Icon | Meaning |
+|---|---|
+| 🟢 Green | Only copy with this trait you have access to — safe to research |
+| 🟡 Yellow | Another copy with the same trait exists in your **inventory** |
+| 🔴 Red | Another copy with the same trait exists in your **bank** |
+
+Numbers below the icon show exactly how many duplicate copies exist (yellow = inventory, red = bank). Locked items show an icon but are excluded from duplicate counting. Other account characters are not considered.
+
+---
+
+### Loot Offset
+
+![Loot Offset](screenshots/LootOffset.png)
+
+Shifts the **loot history panel** upward so it does not overlap the chat box for keyboard/mouse users. The offset amount is configurable (default: 350 px).
+
+> Requires a UI reload after toggling.
+
+---
+
+### Overview Panel
+
+![Overview](screenshots/Overview.png)
+
+Adds a rich overview panel at the root menu with two columns:
+
+**Left — Quest Details**
+- Quest background, active step, tasks, completed tasks, optional steps, and hints.
+
+**Right — Daily Reminders**
+- Horse training availability
+- Crafting research slots and researchable traits/items per craft
+- Surveys and writs counts
+- Antiquities scryable leads with expiration timers
+- Treasure map count
+
+---
+
+### Tooltip Enchantment
+
+![Tooltip Enchantment](screenshots/TooltipEnchantment.png)
+
+Reformats the **enchantment information** in item tooltips for improved readability.
+
+---
+
+### Tooltip Font
+
+![Tooltip Font](screenshots/TooltipFont.png)
+
+Applies a cleaner font to **item tooltips**, optimized for readability on both gamepad (TV distance) and keyboard (monitor distance).
+
+---
+
+### Tooltip Poison
+
+![Tooltip Poison](screenshots/TooltipPoison.png)
+
+Reformats **applied poison information** in item tooltips for improved readability.
+
+---
+
+### Tooltip Price
+
+![Tooltip Price](screenshots/TooltipPrice.png)
+
+Reformats the **price information** in item tooltips. When a supported market addon is installed (for example **TamrielTradeCentre** or console price providers), also shows market pricing data inline.
+
+Price data provided by **Tamriel Savings Co** when TSC sources are available.
+
+---
+
+### Tooltip Trait
+
+![Tooltip Trait](screenshots/TooltipTrait.png)
+
+Reformats **trait information** in item tooltips. Uses the same color coding as [Inventory Trait](#inventory-trait) to indicate research status at a glance.
+
+---
+
+## Dependencies
+
+### Required
+
+These must be installed for GamePadHelper to load. All are available on both PC and console.
+
+| Library | What it does |
+|---|---|
+| [LibCovetousCountess](https://www.esoui.com/downloads/info3266-LibCovetousCountess.html) | Supplies quest-step data used by the **Inventory Covetous Countess** feature to identify which treasures are relevant to your active quest step. |
+| [LibItemLinkDecoder](https://www.esoui.com/downloads/info3265-LibItemLinkDecoder.html) | Decodes raw item link data used by **Tooltip Enchantment** to reformat enchantment information in item tooltips. |
+| [LibTraitResearch](https://www.esoui.com/downloads/info3264-LibTraitResearch.html) | Tracks per-character trait research progress, powering both the **Inventory Trait** icons and the **Tooltip Trait** color coding. |
+| [LibMultiIcon](https://www.esoui.com/downloads/info3267-LibMultiIcon.html) | Renders stacked icon overlays on inventory slots, used by **Inventory Trait** and **Inventory Covetous Countess** to display their indicator icons without conflicting with each other. |
+
+### Optional
+
+These are not required to load the addon. Each one unlocks or enhances a specific feature.
+
+| Library / Addon | What it unlocks |
+|---|---|
+| [BeamMeUp](https://www.esoui.com/downloads/info2143-BeamMeUp-TeleporterFastTravel.html) | Powers the **Teleporter** feature — the world map zone hotkey and the chat "Jump to Player" options both call BeamMeUp to perform the actual travel. Without it the Teleporter feature does nothing. |
+| [TamrielTradeCentre](https://www.esoui.com/downloads/info1245-TamrielTradeCentre.html) | Optional market source for **Tooltip Price**. |
+| TSC Price Data API (`TSCPriceDataAPIXBNA`, `TSCPriceDataAPIPSNA`, `TSCPriceDataAPIXBEU`, `TSCPriceDataAPIPSEU`) | Optional console market data source for **Tooltip Price**. |
+
+Attribution: Price data provided by **Tamriel Savings Co** when available.
+
+---
 
 ## Support
 
-This addon is provided as is, without warranty or support of any kind, express or implied.
+This addon is provided as-is, without warranty or support of any kind. Bug reports and contributions are welcome via the [GitHub repository](https://github.com/olegbl/eso-mods/tree/main/GamePadHelper).

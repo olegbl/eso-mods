@@ -1,10 +1,23 @@
 local ADDON_NAME = "LibMultiIcon"
-local ADDON_VERSION = 1.01
+local ADDON_VERSION = 1.02
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then return end
 
 LibMultiIcon = {}
+
+-- ZO_MultiIcon's animation timer calls SetTexture then SetColor(tint) each cycle.
+-- We hook SetColor so the tint passed by ZO_MultiIcon cannot overwrite stored icon colors.
+local function SetColor(self, r, g, b, a)
+  if self.iconColors ~= nil and self.activeTexture ~= nil then
+    local color = self.iconColors[self.activeTexture]
+    if color ~= nil then
+      self.SetColorWithoutIconColor(self, color.r, color.g, color.b, color.a)
+      return
+    end
+  end
+  self.SetColorWithoutIconColor(self, r, g, b, a)
+end
 
 local function SetTexture(self, texture)
   self.activeTexture = texture
@@ -52,6 +65,10 @@ local function MultiIcon_Initialize_After(self)
   if self.SetTexture ~= SetTexture then
     self.SetTextureWithoutColor = self.SetTexture
     self.SetTexture = SetTexture
+  end
+  if self.SetColor ~= SetColor then
+    self.SetColorWithoutIconColor = self.SetColor
+    self.SetColor = SetColor
   end
   self.RemoveIcon = RemoveIcon
   self.SetIconColor = SetIconColor

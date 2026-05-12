@@ -1,10 +1,13 @@
 local ADDON_NAME = "LibItemLinkDecoder"
-local ADDON_VERSION = 1.00
+local ADDON_VERSION = 1.02
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then return end
 
 LibItemLinkDecoder = {}
+
+-- GetItemLinkQuality is a PC-only alias for GetItemLinkFunctionalQuality
+local _GetItemLinkQuality = GetItemLinkFunctionalQuality or GetItemLinkQuality
 
 -- https://en.uesp.net/wiki/Online:Item_Link
 local INDEX_TO_NAME = {
@@ -91,7 +94,7 @@ function LibItemLinkDecoder:Decode(itemLink)
     end
   end
 
-  decodedItemLink.quality = GetItemLinkQuality(itemLink)
+  decodedItemLink.quality = _GetItemLinkQuality(itemLink)
   decodedItemLink.level = GetItemLinkRequiredLevel(itemLink)
   decodedItemLink.championLevel = GetItemLinkRequiredChampionPoints(itemLink)
 
@@ -114,7 +117,7 @@ function LibItemLinkDecoder:Decode(itemLink)
     enchantDecodedItemLink:SetValue("enchantLevel", 0)
 
     decodedItemLink.enchantItemLink = enchantDecodedItemLink:Encode()
-    decodedItemLink.enchantQuality = GetItemLinkQuality(decodedItemLink.enchantItemLink)
+    decodedItemLink.enchantQuality = _GetItemLinkQuality(decodedItemLink.enchantItemLink)
 
     local enchantLevel, enchantChampionLevel = GetItemLinkGlyphMinLevels(decodedItemLink.enchantItemLink)
     if enchantLevel or enchantChampionLevel then

@@ -1,0 +1,10 @@
+## Title: LibItemLinkDecoder
+## APIVersion: 101049
+## Version: 1.02
+## Author: olegbl
+## Description: APIs for decoding and modifying item links.
+## IsLibrary: true
+## AddOnVersion: 102
+
+LibItemLinkDecoder.lua
+

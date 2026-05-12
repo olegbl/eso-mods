@@ -1,5 +1,5 @@
 local ADDON_NAME = "LibCovetousCountess"
-local ADDON_VERSION = 1.01
+local ADDON_VERSION = 1.02
 
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then return end

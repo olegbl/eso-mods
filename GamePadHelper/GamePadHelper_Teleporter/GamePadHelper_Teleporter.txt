@@ -1,9 +1,0 @@
-﻿## Title: |c3399FFGamePadHelper|r Teleporter
-## APIVersion: 101049
-## Version: 1.06
-## Author: olegbl, quelron
-## Description: |c3399FFGamePadHelper|r module that adds teleportation features. Chat teleportation is always available. Map teleportation to hovered zones requires BeamMeUp addon.
-## DependsOn: GamePadHelper
-## OptionalDependsOn: BeamMeUp
-
-GamePadHelper_Teleporter.lua

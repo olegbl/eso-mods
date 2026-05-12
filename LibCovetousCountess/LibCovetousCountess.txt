@@ -1,9 +1,0 @@
-## Title: LibCovetousCountess
-## APIVersion: 101047
-## Version: 1.01
-## Author: olegbl
-## Description: Allows querying if a given item is useful for The Covetous Countess quest.
-## IsLibrary: true
-## AddOnVersion: 1
-
-LibCovetousCountess.lua

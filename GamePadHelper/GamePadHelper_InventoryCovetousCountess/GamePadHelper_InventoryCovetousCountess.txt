@@ -1,8 +1,0 @@
-﻿## Title: |c3399FFGamePadHelper|r Inventory Covetous Countess
-## APIVersion: 101049
-## Version: 1.02
-## Author: olegbl
-## Description: |c3399FFGamePadHelper|r module that shows a magnifying glass icons next to treasures that are useful for the Covetous Countess quest. The icon is green if the item is useful for the currently active quest (if any) and white otherwise.
-## DependsOn: GamePadHelper LibMultiIcon LibCovetousCountess
-
-GamePadHelper_InventoryCovetousCountess.lua

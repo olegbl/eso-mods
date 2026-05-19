@@ -37,6 +37,10 @@ local tooltips = {
   GAMEPAD_RIGHT_TOOLTIP
 }
 
-for index, tooltip in ipairs(tooltips) do
-  ZO_PreHook(GAMEPAD_TOOLTIPS:GetTooltip(tooltip), "AddPoisonInfo", Tooltip_AddPoisonInfo_Before)
-end
+EVENT_MANAGER:RegisterForEvent("TooltipPoison", EVENT_ADD_ON_LOADED, function(_, name)
+    if name ~= "GamePadHelper" then return end
+    EVENT_MANAGER:UnregisterForEvent("TooltipPoison", EVENT_ADD_ON_LOADED)
+    for _, tooltip in ipairs(tooltips) do
+        ZO_PreHook(GAMEPAD_TOOLTIPS:GetTooltip(tooltip), "AddPoisonInfo", Tooltip_AddPoisonInfo_Before)
+    end
+end)

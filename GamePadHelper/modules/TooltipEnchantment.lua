@@ -13,18 +13,15 @@ local function Tooltip_AddEnchant_Before(self, itemLink, enchantDiffMode, equipS
     local quality = decodedItemLink.enchantQuality
     local qualityColor = GetItemQualityColor(decodedItemLink.enchantQuality)
 
-    -- add enchantment name colored by quality
-    local headerText = qualityColor:Colorize(enchantHeader:gsub(" Enchantment", ""))
+    local headerText = qualityColor:Colorize(enchantHeader)
 
-    -- add level requirement
     headerText = string.format(
       "%s (%s %s)",
       headerText,
-      decodedItemLink.enchantChampionLevel > 0 and "CP" or "LEVEL",
+      decodedItemLink.enchantChampionLevel > 0 and "CP" or GetString(SI_GPH_TOOLTIPENCHANTMENT_LEVEL),
       COLOR_WHITE:Colorize(tostring(decodedItemLink.enchantChampionLevel > 0 and decodedItemLink.enchantChampionLevel or decodedItemLink.enchantLevel))
     )
 
-    -- add enchantment description
     local bodyColor =
       enchantDiffMode == ZO_ENCHANT_DIFF_ADD and GAMEPAD_TOOLTIP_COLOR_ABILITY_UPGRADE or
       enchantDiffMode == ZO_ENCHANT_DIFF_REMOVE and GAMEPAD_TOOLTIP_COLOR_FAILED or
@@ -32,7 +29,6 @@ local function Tooltip_AddEnchant_Before(self, itemLink, enchantDiffMode, equipS
       GENERAL_COLOR_OFF_WHITE
     local bodyText = enchantDescription:gsub("\n\n", " "):gsub("\n", " ")
 
-    -- add poison status
     if enchantDiffMode == ZO_ENCHANT_DIFF_NONE and IsItemAffectedByPairedPoison(equipSlot) then
       bodyText = string.format(
         "%s %s",
@@ -41,14 +37,8 @@ local function Tooltip_AddEnchant_Before(self, itemLink, enchantDiffMode, equipS
       )
     end
 
-    -- insert the lines into the section
     enchantSection:AddLine(headerText, self:GetStyle("bodyHeader"))
     enchantSection:AddLine(bodyText, self:GetStyle("bodyDescription"))
-    -- {
-    --   fontFace = "$(GAMEPAD_LIGHT_FONT)",
-    --   fontSize = "$(GP_27)",
-    --   fontColorField = bodyColor,
-    -- }
   end
   self:AddSection(enchantSection)
 
@@ -64,6 +54,10 @@ local tooltips = {
   GAMEPAD_RIGHT_TOOLTIP
 }
 
-for index, tooltip in ipairs(tooltips) do
-  ZO_PreHook(GAMEPAD_TOOLTIPS:GetTooltip(tooltip), "AddEnchant", Tooltip_AddEnchant_Before)
-end
+EVENT_MANAGER:RegisterForEvent("TooltipEnchantment", EVENT_ADD_ON_LOADED, function(_, name)
+    if name ~= "GamePadHelper" then return end
+    EVENT_MANAGER:UnregisterForEvent("TooltipEnchantment", EVENT_ADD_ON_LOADED)
+    for _, tooltip in ipairs(tooltips) do
+        ZO_PreHook(GAMEPAD_TOOLTIPS:GetTooltip(tooltip), "AddEnchant", Tooltip_AddEnchant_Before)
+    end
+end)

@@ -81,6 +81,15 @@ local DEFAULT_DATA = {
     PinHelper_u26_dwemergear_incomplete = true,
     PinHelper_u26_nord_boat_complete = false,
     PinHelper_u26_nord_boat_incomplete = true,
+    PinHelper_adventurezone_complete = false,
+    PinHelper_adventurezone_incomplete = true,
+    PinHelper_endlessdungeon_complete = false,
+    PinHelper_endlessdungeon_incomplete = true,
+    PinHelper_imperial_city_complete = false,
+    PinHelper_imperial_city_incomplete = true,
+    PinHelper_mushromtower_complete = false,
+    PinHelper_mushromtower_incomplete = true,
+    PinHelper_shrine_incomplete = true,
     PinHelper_unknown = true,
     PinHelper_wayshrine_complete = false,
     PinHelper_wayshrine_incomplete = true,
@@ -159,6 +168,15 @@ local DEFAULT_DATA = {
     PinHelper_u26_dwemergear_incomplete = false,
     PinHelper_u26_nord_boat_complete = false,
     PinHelper_u26_nord_boat_incomplete = false,
+    PinHelper_adventurezone_complete = false,
+    PinHelper_adventurezone_incomplete = false,
+    PinHelper_endlessdungeon_complete = false,
+    PinHelper_endlessdungeon_incomplete = false,
+    PinHelper_imperial_city_complete = false,
+    PinHelper_imperial_city_incomplete = false,
+    PinHelper_mushromtower_complete = false,
+    PinHelper_mushromtower_incomplete = false,
+    PinHelper_shrine_incomplete = false,
     PinHelper_unknown = false,
     PinHelper_wayshrine_complete = true,
     PinHelper_wayshrine_incomplete = false,
@@ -433,9 +451,7 @@ local function OnAddOnLoaded(event, name)
     local poiCategoryID = GetPOICategoryID(pinType)
     local poiCategory = poiCategories[poiCategoryID] or poiCategories.unknown
     local isComplete = string.match(pinType, "^PinHelper_.+_incomplete$") == nil
-    local poiCategoryIcon = isComplete
-      and poiCategory.completeIcons[1]
-      or poiCategory.incompleteIcons[1]
+    local poiCategoryIcon = LibPOI:GetCategoryIcon(poiCategory.id, isComplete)
     local isTeleportable = GetIsTeleportableLocation(poiCategory.id)
     local poiCategoryNameSuffix = isTeleportable
       and "Undiscovered"

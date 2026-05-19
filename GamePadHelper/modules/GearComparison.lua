@@ -26,5 +26,9 @@ local function GamepadInventory_UpdateRightTooltip_After(self, list, selectedDat
   end
 end
 
-ZO_PreHook(GAMEPAD_INVENTORY, "SwitchActiveList", GamepadInventory_SwitchActiveList_Before)
-ZO_PostHook(GAMEPAD_INVENTORY, "UpdateRightTooltip", GamepadInventory_UpdateRightTooltip_After)
+EVENT_MANAGER:RegisterForEvent("GearComparison", EVENT_ADD_ON_LOADED, function(_, name)
+    if name ~= "GamePadHelper" then return end
+    EVENT_MANAGER:UnregisterForEvent("GearComparison", EVENT_ADD_ON_LOADED)
+    ZO_PreHook(GAMEPAD_INVENTORY, "SwitchActiveList", GamepadInventory_SwitchActiveList_Before)
+    ZO_PostHook(GAMEPAD_INVENTORY, "UpdateRightTooltip", GamepadInventory_UpdateRightTooltip_After)
+end)

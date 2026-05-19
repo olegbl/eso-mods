@@ -45,13 +45,27 @@ end
 
 -- Safe wrapper functions for market price providers (TTC, TSC, etc.)
 local function SafeFormatNumber(number, decimal)
-    if TamrielTradeCentre and TamrielTradeCentre.FormatNumber then
-        local success, result = pcall(TamrielTradeCentre.FormatNumber, TamrielTradeCentre, number or 0, decimal or 0)
-        if success then
+    local ttc = rawget(_G, "TamrielTradeCentre")
+    if type(ttc) == "table" and type(ttc.FormatNumber) == "function" then
+        local success, result = pcall(ttc.FormatNumber, ttc, number or 0, decimal or 0)
+        if success and type(result) == "string" and result ~= "" then
             return result
         end
     end
-    return tostring(number or 0)
+
+    local n = zo_floor((tonumber(number) or 0) + 0.5)
+
+    if type(ZO_LocalizeDecimalNumber) == "function" then
+      return zo_strformat("<<1>>", ZO_LocalizeDecimalNumber(n))
+    end
+    if type(ZO_CommaDelimitNumber) == "function" then
+      return zo_strformat("<<1>>", ZO_CommaDelimitNumber(n))
+    end
+    if type(FormatIntegerWithDigitGrouping) == "function" then
+      return zo_strformat("<<1>>", FormatIntegerWithDigitGrouping(n))
+    end
+
+    return tostring(n)
 end
 
 local function NormalizePriceInfo(result)
@@ -168,7 +182,7 @@ local function getPriceSummary(gameValue, gameMaxValue, ttcValue, suffix, suppre
        "%s %s %s %s",
        PRICE_ICON,
        COLOR_GAME:Colorize(gameValueText),
-       COLOR_DETAILS:Colorize("(No Market Data)"),
+       COLOR_DETAILS:Colorize(GetString(SI_GPH_TOOLTIPPRICE_NO_MARKET)),
        suffix or ""
      ))
    else
@@ -187,7 +201,7 @@ local function getPriceBreakdown(priceInfo, suffix)
    local hasCounts = (priceInfo.AmountCount or 0) > 0
    local countText = hasCounts and amount or "-"
    local stackText = hasCounts and priceInfo.EntryCount ~= priceInfo.AmountCount
-     and string.format(" (%s stacks)", entries)
+     and zo_strformat(SI_GPH_TOOLTIPPRICE_STACKS, entries)
      or ""
    return COLOR_DETAILS:Colorize(string.format(
      "%s %s - %s %s %s %s%s",
@@ -340,7 +354,7 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
     addedAny = true
   end
   if hasValue and stackSize > 1 then
-    section:AddLine(getPriceSummary(getStackPrice(gamePrice, stackSize), getStackPrice(gameMaxPrice, stackSize), getStackPrice(displayTtcPrice, stackSize), string.format("(stack of %s)", stackSize), suppressNoDataLabel))
+    section:AddLine(getPriceSummary(getStackPrice(gamePrice, stackSize), getStackPrice(gameMaxPrice, stackSize), getStackPrice(displayTtcPrice, stackSize), zo_strformat(SI_GPH_TOOLTIPPRICE_STACK_OF, stackSize), suppressNoDataLabel))
     addedAny = true
   end
   if hasAmount then
@@ -348,7 +362,7 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
     addedAny = true
   end
   if productHasValue then
-    section:AddLine(getPriceSummary(gameProductPrice, gameProductPrice, productIsBound and 0 or ttcProductPrice, "(product)", productIsBound))
+    section:AddLine(getPriceSummary(gameProductPrice, gameProductPrice, productIsBound and 0 or ttcProductPrice, GetString(SI_GPH_TOOLTIPPRICE_PRODUCT), productIsBound))
     addedAny = true
   end
   if productHasAmount then
@@ -752,14 +766,14 @@ local function AddCraftingPriceTooltip(hookObject, toolTipControl, functionName,
             PRICE_ICON,
             COLOR_GAME:Colorize(matGameText),
             COLOR_TTC:Colorize(matCostText),
-            " (materials)"
+            GetString(SI_GPH_TOOLTIPPRICE_MATERIALS)
           )))
         else
           section:AddLine(COLOR_TITLE:Colorize(string.format(
             "%s %s %s",
             PRICE_ICON,
             COLOR_GAME:Colorize(matGameText),
-            COLOR_DETAILS:Colorize("(game materials)")
+            COLOR_DETAILS:Colorize(GetString(SI_GPH_TOOLTIPPRICE_GAME_MATERIALS))
           )))
         end
       end
@@ -786,6 +800,9 @@ local craftingHooksDone = {}
 
 -- Initialize crafting panel hooks
 local function InitializeCraftingHooks()
+  if not craftingHooksDone.keyboard then
+    craftingHooksDone.keyboard = true
+
   -- Hook into Smithing Improvement Panel
   if ZO_SmithingTopLevelImprovementPanelResultTooltip then
     AddCraftingPriceTooltip(
@@ -849,6 +866,8 @@ local function InitializeCraftingHooks()
       return GetAlchemyMaterialCost()
     end)
   end
+
+  end -- craftingHooksDone.keyboard
 
   -- Gamepad hooks (run once only since class tables are always present)
   if not craftingHooksDone.gamepad then

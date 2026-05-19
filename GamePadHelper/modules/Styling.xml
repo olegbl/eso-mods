@@ -1,0 +1,5 @@
+<GuiXml>
+    <Controls>
+        <Label name="GPH_OverviewBulletLabel" font="ZoFontGamepadCondensed34" virtual="true"/>
+    </Controls>
+</GuiXml>

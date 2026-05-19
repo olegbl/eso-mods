@@ -1,14 +1,14 @@
-﻿local function GetSlotName(equipSlot)
+local function GetSlotName(equipSlot)
     if equipSlot == EQUIP_SLOT_MAIN_HAND then
-        return "main hand"
+        return GetString(SI_GPH_AUTOCHARGE_MAIN_HAND)
     elseif equipSlot == EQUIP_SLOT_OFF_HAND then
-        return "off hand"
+        return GetString(SI_GPH_AUTOCHARGE_OFF_HAND)
     elseif equipSlot == EQUIP_SLOT_BACKUP_MAIN then
-        return "backup main hand"
+        return GetString(SI_GPH_AUTOCHARGE_BACKUP_MAIN)
     elseif equipSlot == EQUIP_SLOT_BACKUP_OFF then
-        return "backup off hand"
+        return GetString(SI_GPH_AUTOCHARGE_BACKUP_OFF)
     else
-        return "unknown slot"
+        return GetString(SI_GPH_AUTOCHARGE_UNKNOWN_SLOT)
     end
 end
 
@@ -18,7 +18,7 @@ local function FindSoulGem()
     local bestBagId, bestSlotIndex = nil, nil
 
     local bagId = BAG_BACKPACK
-    for slotIndex = 1, GetBagSize(bagId) do
+    for slotIndex = 0, GetBagSize(bagId) - 1 do
         local itemLink = GetItemLink(bagId, slotIndex)
         if itemLink and itemLink ~= "" then
             local itemType = GetItemLinkItemType(itemLink)
@@ -38,25 +38,36 @@ local function FindSoulGem()
     return bestBagId, bestSlotIndex
 end
 
+local WEAPON_SLOTS = {
+    EQUIP_SLOT_MAIN_HAND,
+    EQUIP_SLOT_OFF_HAND,
+    EQUIP_SLOT_BACKUP_MAIN,
+    EQUIP_SLOT_BACKUP_OFF,
+}
+
 local function AutoCharge()
     local savedVars = _G["GamePadHelper_SavedVars"]
     if not savedVars or not savedVars.autoChargeEnabled then
         return
     end
 
-    -- Check all equipped weapons for charge (main + backup)
-    for equipSlot = EQUIP_SLOT_MAIN_HAND, EQUIP_SLOT_BACKUP_OFF do
+    for _, equipSlot in ipairs(WEAPON_SLOTS) do
         local charges, maxCharges = GetChargeInfoForItem(BAG_WORN, equipSlot)
         if charges and maxCharges and maxCharges > 0 then
             local chargePercentage = (charges / maxCharges) * 100
-            -- Only charge if below 25%
-            if chargePercentage < 25 then
+            local threshold = savedVars.autoChargeThreshold or 25
+            if chargePercentage < threshold then
                 local gemBagId, gemSlotIndex = FindSoulGem()
                 if gemBagId and gemSlotIndex then
                     ChargeItemWithSoulGem(BAG_WORN, equipSlot, gemBagId, gemSlotIndex)
-                    local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_SMALL_TEXT)
-                    messageParams:SetText(GetSlotName(equipSlot) .. " charged (" .. string.format("%.0f", chargePercentage) .. "% → 100%)")
-                    CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
+                    local slotName = GetSlotName(equipSlot)
+                    zo_callLater(function()
+                        local newCharges, newMaxCharges = GetChargeInfoForItem(BAG_WORN, equipSlot)
+                        local newPercentage = (newMaxCharges and newMaxCharges > 0) and (newCharges / newMaxCharges * 100) or 0
+                        local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_SMALL_TEXT)
+                        messageParams:SetText(zo_strformat(SI_GPH_AUTOCHARGE_CHARGED, slotName, string.format("%.0f", newPercentage)))
+                        CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
+                    end, 200)
                 end
             end
         end

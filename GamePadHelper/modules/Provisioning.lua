@@ -2,11 +2,11 @@
 -- Adds a filter option to hide low-level recipes (under CP160) in the provisioning interface
 
 local showLowLevelFilter = {
-    filterName = "Hide Low Level Recipes",
-    filterTooltip = "Hides Recipes under CP160",
+    filterName = GetString(SI_GPH_PROVISIONING_HIDE_LOW_LEVEL),
+    filterTooltip = GetString(SI_GPH_PROVISIONING_HIDE_LOW_LEVEL_TOOLTIP),
 }
 
-local function HideRecipies(recipeList)
+local function HideRecipes(recipeList)
     local sv = _G["GamePadHelper_SavedVars"]
     if not sv or not sv.showLowLevelRecipes then
         return false
@@ -70,7 +70,7 @@ local function OnAddonLoaded(event, name)
         showLowLevelFilter.checked = sv.showLowLevelRecipes
     end
 
-    ZO_PreHook(GAMEPAD_PROVISIONER.recipeList, "Commit", HideRecipies)
+    ZO_PreHook(GAMEPAD_PROVISIONER.recipeList, "Commit", HideRecipes)
     ZO_PostHook(GAMEPAD_PROVISIONER, "SaveFilters", SaveOptions)
     ZO_PreHook(GAMEPAD_PROVISIONER, "ShowOptionsMenu", HookOptions)
 end

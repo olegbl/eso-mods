@@ -1,19 +1,23 @@
 ## Title: |c3399FFGamePadHelper|r
 ## APIVersion: 101049
-## Version: 1.06.5
-## AddOnVersion: 10605
+## Version: 1.06.7
+## AddOnVersion: 10607
 ## Author: olegbl, quelron
-## Description: |c3399FFGamePadHelper|r is a collection of miscellaneous mods that improve and enhance the UI for gamepads. Price data provided by Tamriel Savings Co when available. 
+## Description: |c3399FFGamePadHelper|r is a collection of miscellaneous mods that improve and enhance the UI for gamepads. Price data provided by Tamriel Savings Co when available.
 ## SavedVariables: GamePadHelperSavedVars
-## DependsOn: LibCovetousCountess>=1.02 LibItemLinkDecoder>=1.02 LibTraitResearch>=1.03 LibMultiIcon>=1.02
+## DependsOn: LibCovetousCountess>=102 LibItemLinkDecoder>=102 LibTraitResearch>=103 LibMultiIcon>=102
 ## OptionalDependsOn: TamrielTradeCentre BeamMeUp LibPriceCache TSCPriceDataAPIXBNA TSCPriceDataAPIPSNA TSCPriceDataAPIXBEU TSCPriceDataAPIPSEU
+
+lang/common.lua
+lang/$(language).lua
 
 GamePadHelper.lua
 Settings.lua
 modules/Provisioning.lua
 modules/TooltipPrice.lua
 modules/TooltipFont.lua
-modules/Teleporter.lua
+modules/MapTeleporter.lua
+modules/Styling.xml
 modules/Overview.lua
 modules/InventoryCovetousCountess.lua
 modules/InventoryTrait.lua
@@ -27,3 +31,5 @@ modules/DungeonFinder.lua
 modules/AutoEye.lua
 modules/AutoCharge.lua
 modules/AutoRepair.lua
+modules/MapSearch.xml
+modules/MapSearch.lua

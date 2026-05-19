@@ -1,15 +1,24 @@
 -- DungeonFinder
 -- Enhanced dungeon finder with pledge quest highlighting
 
+local NAVIGATION_MODE_ENTRY_LIST = 3
+
+local function NormalizeText(value)
+    value = zo_strlower(value or "")
+    value = value:gsub("[%p]", " ")
+    value = value:gsub("%s+", " ")
+    return zo_strtrim(value)
+end
+
 local function FindPledgeQuestForDungeon(dungeonLocation)
     for i = 1, MAX_JOURNAL_QUESTS do
         if IsValidQuestIndex(i) then
-            local questName = GetJournalQuestName(i)
-            local dungeonRegex = string.gsub(dungeonLocation.rawName, "-", ".")
-            dungeonRegex = string.gsub(dungeonRegex, "The ", "T?h?e? ?")
-            dungeonRegex = string.gsub(dungeonRegex, "Caverns ", "C?a?v?e?r?n?s? ?")
-            if string.match(questName, dungeonRegex) then
-                if not string.match(dungeonLocation.rawName, " I$") or not string.match(questName, "II") then
+            local questName = zo_strformat("<<1>>", GetJournalQuestName(i) or "")
+            local rawName   = zo_strformat("<<1>>", dungeonLocation.rawName or "")
+            local dungeonName = NormalizeText(rawName)
+            local normalizedQuestName = NormalizeText(questName)
+            if dungeonName ~= "" and normalizedQuestName:find(dungeonName, 1, true) then
+                if not string.match(rawName, " I$") or not string.match(questName, "II") then
                     return questName
                 end
             end
@@ -22,7 +31,7 @@ local function ShowPledgeDungeons()
     local savedVars = _G["GamePadHelper_SavedVars"]
     if not savedVars or not savedVars.dungeonFinderEnabled then return end
 
-    if not DUNGEON_FINDER_GAMEPAD:IsShowing() or DUNGEON_FINDER_GAMEPAD.navigationMode ~= 3 then
+    if not DUNGEON_FINDER_GAMEPAD:IsShowing() or DUNGEON_FINDER_GAMEPAD.navigationMode ~= NAVIGATION_MODE_ENTRY_LIST then
         return false
     end
 

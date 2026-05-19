@@ -5,5 +5,6 @@
 ## Author: olegbl
 ## Description: APIs for interacting with points of interest.
 ## Version: 1.02
+## SavedVariables: LibPOIDumpVars
 
 LibPOI.lua

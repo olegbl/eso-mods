@@ -10,7 +10,7 @@ local function AutoRepairStore()
     if cost > 0 and CanStoreRepair() then
         RepairAll()
         local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_SMALL_TEXT)
-        messageParams:SetText("Equipment repaired for " .. ZO_CommaDelimitNumber(cost) .. " " .. PRICE_ICON)
+        messageParams:SetText(zo_strformat(SI_GPH_AUTOREPAIR_DONE, ZO_CommaDelimitNumber(cost), PRICE_ICON))
         CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
     end
 end

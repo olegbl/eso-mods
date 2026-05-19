@@ -1,11 +1,10 @@
 local GPH_PANEL_ID = 9106
-local GPH_SYSTEM_ID = 9106
-local GPH_CATEGORY_NAME = "|c3399FFGPH|r Settings"
+local GPH_CATEGORY_NAME = GetString(SI_GPH_SETTINGS_CATEGORY)
 local GPH_RELOAD_DIALOG = "GPH_RELOADUI_CONFIRM"
 local gphLootReloadPending = false
 local gphExitHookRegistered = false
 local gphBackOverrideActive = false
-local TRAIT_COLOR_LEGEND = "\n\nTrait color meaning:\n|c2DC50EGreen|r: Only copy with this trait you have access\n|cFFFF00Yellow|r: Another copy with the same trait exists in your inventory\n|cFF4444Red|r: Another copy with the same trait exists in your bank\n|cFFFFFFWhite|r: Equipped item uses ESO's default magnifying glass icon; details are shown in the tooltip"
+local TRAIT_COLOR_LEGEND = GetString(SI_GPH_TRAIT_COLOR_LEGEND)
 
 local function GetSavedVars()
     return _G["GamePadHelper_SavedVars"]
@@ -33,7 +32,7 @@ end
 local function BuildCheckbox(text, tooltip, key)
     return {
         panel = GPH_PANEL_ID,
-        system = GPH_SYSTEM_ID,
+        system = GPH_PANEL_ID,
         controlType = OPTIONS_CHECKBOX,
         text = text,
         gamepadTextOverride = text,
@@ -53,12 +52,13 @@ end
 local function BuildCheckboxCustom(text, tooltip, getFunc, setFunc, header, disabledFunc)
     return {
         panel = GPH_PANEL_ID,
-        system = GPH_SYSTEM_ID,
+        system = GPH_PANEL_ID,
         controlType = OPTIONS_CHECKBOX,
         text = text,
         gamepadTextOverride = text,
         header = header,
         disabled = disabledFunc,
+        gamepadIsEnabledCallback = disabledFunc and function() return not disabledFunc() end or nil,
         tooltipText = tooltip,
         gamepadCustomTooltipFunction = function(tooltipControl)
             GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, tooltip)
@@ -72,10 +72,10 @@ local function BuildCheckboxCustom(text, tooltip, getFunc, setFunc, header, disa
     }
 end
 
-local function BuildSlider(text, tooltip, minValue, maxValue, stepValue, getFunc, setFunc, header, disabledFunc)
+local function BuildSlider(text, tooltip, minValue, maxValue, stepValue, defaultValue, getFunc, setFunc, header, disabledFunc)
     return {
         panel = GPH_PANEL_ID,
-        system = GPH_SYSTEM_ID,
+        system = GPH_PANEL_ID,
         controlType = OPTIONS_SLIDER,
         text = text,
         gamepadTextOverride = text,
@@ -87,7 +87,7 @@ local function BuildSlider(text, tooltip, minValue, maxValue, stepValue, getFunc
         showValue = true,
         showValueMin = minValue,
         showValueMax = maxValue,
-        default = 350,
+        default = defaultValue,
         valueFormat = "%d",
         gamepadValueStepPercent = ((stepValue and stepValue > 0) and ((stepValue / (maxValue - minValue)) * 100)) or nil,
         gamepadCustomTooltipFunction = function(tooltipControl)
@@ -105,7 +105,7 @@ end
 local function BuildInvoke(text, tooltip, callback)
     return {
         panel = GPH_PANEL_ID,
-        system = GPH_SYSTEM_ID,
+        system = GPH_PANEL_ID,
         controlType = OPTIONS_INVOKE_CALLBACK,
         text = text,
         gamepadTextOverride = text,
@@ -126,7 +126,7 @@ local function ShowReloadPrompt(onConfirm, onCancel)
     elseif ESO_Dialogs["LIBGAMEPAD_RELOADUI_CONFIRM"] then
         ZO_Dialogs_ShowGamepadDialog("LIBGAMEPAD_RELOADUI_CONFIRM")
     else
-        ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, "Reload UI required.")
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, GetString(SI_GPH_RELOAD_REQUIRED_SHORT))
         if onCancel then
             onCancel()
         end
@@ -145,8 +145,8 @@ local function EnsureReloadDialog()
     -- Dedicated confirmation used by both "Reload UI" button and deferred loot changes.
     ESO_Dialogs[GPH_RELOAD_DIALOG] = {
         gamepadInfo = { dialogType = GAMEPAD_DIALOGS.BASIC },
-        title = { text = "Reload UI Required" },
-        mainText = { text = "Changes require a UI reload. Reload now?" },
+        title = { text = SI_GPH_RELOAD_TITLE },
+        mainText = { text = SI_GPH_RELOAD_BODY },
         buttons = {
             {
                 text = SI_DIALOG_CONFIRM,
@@ -183,57 +183,69 @@ local function BuildSettingsData()
         data[#data + 1] = row
     end
 
-    add(BuildInvoke("Reload UI", "Reloads the interface to apply all changes.", function()
+    add(BuildInvoke(GetString(SI_GPH_SETTING_RELOAD_UI_NAME), GetString(SI_GPH_SETTING_RELOAD_UI_TOOLTIP), function()
         ShowReloadPrompt()
     end))
 
-    add(BuildCheckboxCustom("Fishing Module", "Enable controller vibration feedback, 'Reel in!' alerts, and automatic bait selection by water type.", function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_FISHING_MODULE_NAME), GetString(SI_GPH_SETTING_FISHING_MODULE_TOOLTIP), function()
         return GetBoolSetting("fishingEnabled", false)
     end, function(v)
         SetSetting("fishingEnabled", v)
-    end, function()
-        return "Fishing"
-    end))
+    end, GetString(SI_GPH_SETTINGS_HEADER_FISHING)))
 
-    add(BuildCheckbox("Alternative Baits", "Fall back to alternative baits.", "fishingAlternativeBaits"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_ALTERNATIVE_BAITS_NAME), GetString(SI_GPH_SETTING_ALTERNATIVE_BAITS_TOOLTIP), "fishingAlternativeBaits"))
 
-    add(BuildCheckboxCustom("Auto Repair", "Automatically repair all equipped items when you open a merchant store.", function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_AUTO_REPAIR_NAME), GetString(SI_GPH_SETTING_AUTO_REPAIR_TOOLTIP), function()
         return GetBoolSetting("autoRepairEnabled", false)
     end, function(v)
         SetSetting("autoRepairEnabled", v)
-    end, function()
-        return "Automation"
+    end, GetString(SI_GPH_SETTINGS_HEADER_AUTOMATION)))
+
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_AUTO_CHARGE_NAME), GetString(SI_GPH_SETTING_AUTO_CHARGE_TOOLTIP), "autoChargeEnabled"))
+    add(BuildSlider(GetString(SI_GPH_SETTING_AUTO_CHARGE_THRESHOLD_NAME), GetString(SI_GPH_SETTING_AUTO_CHARGE_THRESHOLD_TOOLTIP), 5, 95, 5, 25, function()
+        local sv = GetSavedVars()
+        return (sv and sv.autoChargeThreshold) or 25
+    end, function(v)
+        SetSetting("autoChargeThreshold", tonumber(v) or 25)
+    end, nil, function()
+        return not GetBoolSetting("autoChargeEnabled", false)
+    end))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_ANTIQUARIAN_EYE_NAME), GetString(SI_GPH_SETTING_ANTIQUARIAN_EYE_TOOLTIP), "antiquariansEyeEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_TELEPORTER_NAME), GetString(SI_GPH_SETTING_TELEPORTER_TOOLTIP), "teleporterEnabled"))
+
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_MAP_SEARCH_SET_DESTINATION_NAME), GetString(SI_GPH_SETTING_MAP_SEARCH_SET_DESTINATION_TOOLTIP), function()
+        return GetBoolSetting("mapSearchSetDestination", true)
+    end, function(v)
+        SetSetting("mapSearchSetDestination", v)
+    end, GetString(SI_GPH_SETTINGS_HEADER_MAP_SEARCH)))
+
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_MAP_SEARCH_ANNOUNCE_NAME), GetString(SI_GPH_SETTING_MAP_SEARCH_ANNOUNCE_TOOLTIP), function()
+        return GetBoolSetting("mapSearchNarratePostTeleport", true)
+    end, function(v)
+        SetSetting("mapSearchNarratePostTeleport", v)
     end))
 
-    add(BuildCheckbox("Auto Weapon Charge", "Automatically recharge weapons.", "autoChargeEnabled"))
-    add(BuildCheckbox("Antiquarian's Eye", "Automatically activate the Eye.", "antiquariansEyeEnabled"))
-    add(BuildCheckbox("Teleporter", "Enable teleport functionality.", "teleporterEnabled"))
-
-    add(BuildCheckboxCustom("Dungeon Finder Enhancement", "Show pledge quest names inside the dungeon finder.", function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_DUNGEON_FINDER_NAME), GetString(SI_GPH_SETTING_DUNGEON_FINDER_TOOLTIP), function()
         return GetBoolSetting("dungeonFinderEnabled", false)
     end, function(v)
         SetSetting("dungeonFinderEnabled", v)
-    end, function()
-        return "UI Enhancements"
-    end))
+    end, GetString(SI_GPH_SETTINGS_HEADER_UI_ENHANCEMENTS)))
 
-    add(BuildCheckbox("Hide Low Level Recipes", "Hide recipes under CP160 in the provisioning panel.", "showLowLevelRecipes"))
+    add(BuildCheckbox(GetString(SI_GPH_PROVISIONING_HIDE_LOW_LEVEL), GetString(SI_GPH_PROVISIONING_HIDE_LOW_LEVEL_TOOLTIP), "showLowLevelRecipes"))
 
-    add(BuildCheckboxCustom("Tooltip Traits", "Show enhanced trait information with research icons in item tooltips." .. TRAIT_COLOR_LEGEND, function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_TOOLTIP) .. TRAIT_COLOR_LEGEND, function()
         return GetBoolSetting("tooltipTraitEnabled", false)
     end, function(v)
         SetSetting("tooltipTraitEnabled", v)
-    end, function()
-        return "Tooltips & UI"
-    end))
+    end, GetString(SI_GPH_SETTINGS_HEADER_TOOLTIPS_UI)))
 
-    add(BuildCheckbox("Tooltip Price", "Show item price information (including market addon data when available) in item tooltips.", "tooltipPriceEnabled"))
-    add(BuildCheckbox("Gear Comparison", "Show gear stat comparisons.", "gearComparisonEnabled"))
-    add(BuildCheckbox("Inventory Traits", "Show item traits in inventory." .. TRAIT_COLOR_LEGEND, "inventoryTraitEnabled"))
-    add(BuildCheckbox("Inventory Covetous Countess", "Highlight Covetous Countess items in inventory.", "inventoryCovetousCountessEnabled"))
-    add(BuildCheckbox("Overview Panel", "Enable character overview enhancements.", "overviewEnabled"))
-    add(BuildCheckbox("Tooltip Poison Info", "Show poison information in tooltips.", "tooltipPoisonEnabled"))
-    add(BuildCheckboxCustom("Tooltip Font Changes", "Apply font size changes to tooltips.", function()
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_PRICE_NAME), GetString(SI_GPH_SETTING_TOOLTIP_PRICE_TOOLTIP), "tooltipPriceEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_GEAR_COMPARISON_NAME), GetString(SI_GPH_SETTING_GEAR_COMPARISON_TOOLTIP), "gearComparisonEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME), GetString(SI_GPH_SETTING_INVENTORY_TRAITS_TOOLTIP) .. TRAIT_COLOR_LEGEND, "inventoryTraitEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_NAME), GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_TOOLTIP), "inventoryCovetousCountessEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_OVERVIEW_NAME), GetString(SI_GPH_SETTING_OVERVIEW_TOOLTIP), "overviewEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_POISON_NAME), GetString(SI_GPH_SETTING_TOOLTIP_POISON_TOOLTIP), "tooltipPoisonEnabled"))
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_FONT_NAME), GetString(SI_GPH_SETTING_TOOLTIP_FONT_TOOLTIP), function()
         return GetBoolSetting("tooltipFontEnabled", false)
     end, function(v)
         SetSetting("tooltipFontEnabled", v)
@@ -247,21 +259,19 @@ local function BuildSettingsData()
             end
         end
     end))
-    add(BuildCheckbox("Tooltip Enchantments", "Show enchantment information in tooltips.", "tooltipEnchantmentEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_ENCHANTMENTS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_ENCHANTMENTS_TOOLTIP), "tooltipEnchantmentEnabled"))
 
-    add(BuildCheckboxCustom("Enable Loot Offset", "Shift the loot history panel upward so it does not overlap the chat box.\n\n|cFFAA00Reload UI required after changing this setting.|r", function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_LOOT_OFFSET_NAME), GetString(SI_GPH_SETTING_LOOT_OFFSET_TOOLTIP), function()
         return GetBoolSetting("lootOffsetEnabled", false)
     end, function(v)
         SetSetting("lootOffsetEnabled", v)
         MarkLootReloadPending()
-    end, function()
-        return "Loot"
-    end, function()
+    end, GetString(SI_GPH_SETTINGS_HEADER_LOOT), function()
         return IsConsoleUI and IsConsoleUI()
     end))
 
     -- UI shows -350..350, but saved value stays compatible with loot module (0..700 where 350 is midpoint).
-    add(BuildSlider("Loot Offset Amount", "Adjust loot panel offset from -350 to +350.\n\nInternal midpoint is 350 (shown here as 0).\n|cFFAA00Reload UI required after changing this setting.|r", -350, 350, 10, function()
+    add(BuildSlider(GetString(SI_GPH_SETTING_LOOT_OFFSET_AMOUNT_NAME), GetString(SI_GPH_SETTING_LOOT_OFFSET_AMOUNT_TOOLTIP), -350, 350, 10, 0, function()
         local sv = GetSavedVars()
         local internalValue = (sv and sv.lootOffset) or 350
         return internalValue - 350
@@ -285,12 +295,12 @@ local function RegisterSharedOptions(settingsData)
     end
 
     local shared = {
-        [GPH_SYSTEM_ID] = {},
+        [GPH_PANEL_ID] = {},
     }
 
     for _, optionData in ipairs(settingsData) do
         local copy = ZO_ShallowTableCopy(optionData)
-        shared[GPH_SYSTEM_ID][optionData.settingId] = copy
+        shared[GPH_PANEL_ID][optionData.settingId] = copy
     end
 
     ZO_SharedOptions.AddTableToPanel(GPH_PANEL_ID, shared)
@@ -338,7 +348,7 @@ local function HookInvokeCallback()
     -- OPTIONS_INVOKE_CALLBACK rows in custom systems need explicit routing in gamepad options.
     ZO_PreHook("ZO_Options_InvokeCallback", function(control)
         local data = control and control.data
-        if data and data.system == GPH_SYSTEM_ID and data.panel == GPH_PANEL_ID and data.callback then
+        if data and data.system == GPH_PANEL_ID and data.panel == GPH_PANEL_ID and data.callback then
             data.callback(control)
             return true
         end
@@ -383,11 +393,15 @@ local function InitializeGamepadSettings()
     EnsureReloadDialog()
     HookInvokeCallback()
 
+    local tryRegisterAttempts = 0
     local function TryRegister()
         if RegisterCategory() then
             return
         end
-        zo_callLater(TryRegister, 1000)
+        tryRegisterAttempts = tryRegisterAttempts + 1
+        if tryRegisterAttempts < 10 then
+            zo_callLater(TryRegister, 1000)
+        end
     end
 
     TryRegister()

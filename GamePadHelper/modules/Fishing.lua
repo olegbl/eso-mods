@@ -21,96 +21,61 @@ local BAIT_SALTWATER_WORMS_ITEMID = 42869
 local BAIT_SALTWATER_CHUB     = 7
 local BAIT_SALTWATER_CHUB_ITEMID  = 42875
 
+local LAKE_HOLE      = { reg = BAIT_LAKE_GUTS,       regId = BAIT_LAKE_GUTS_ITEMID,       alt = BAIT_LAKE_MINNOW,    altId = BAIT_LAKE_MINNOW_ITEMID }
+local SALTWATER_HOLE = { reg = BAIT_SALTWATER_WORMS, regId = BAIT_SALTWATER_WORMS_ITEMID, alt = BAIT_SALTWATER_CHUB, altId = BAIT_SALTWATER_CHUB_ITEMID }
+local FOUL_HOLE      = { reg = BAIT_FOUL_CRAWLERS,   regId = BAIT_FOUL_CRAWLERS_ITEMID,   alt = BAIT_FOUL_ROE,       altId = BAIT_FOUL_ROE_ITEMID }
+local RIVER_HOLE     = { reg = BAIT_RIVER_INSECT,    regId = BAIT_RIVER_INSECT_ITEMID,    alt = BAIT_RIVER_SHAD,     altId = BAIT_RIVER_SHAD_ITEMID }
+
+-- List of {keyword, data} pairs; matched via case-insensitive substring search
+-- against the interactable name the game returns, so minor wording differences
+-- between the addon strings and actual game strings don't break matching.
+local FISHING_HOLES = {}
+
+local function AddFishingHoleName(name, data)
+    if name and name ~= "" then
+        table.insert(FISHING_HOLES, { keyword = zo_strlower(name), data = data })
+    end
+end
+
+AddFishingHoleName(GetString(SI_GPH_FISHING_HOLE_LAKE),      LAKE_HOLE)
+AddFishingHoleName(GetString(SI_GPH_FISHING_HOLE_SALTWATER), SALTWATER_HOLE)
+AddFishingHoleName(GetString(SI_GPH_FISHING_HOLE_FOUL),      FOUL_HOLE)
+AddFishingHoleName(GetString(SI_GPH_FISHING_HOLE_RIVER),     RIVER_HOLE)
+
+-- English fallback covers clients whose API still returns the English name.
+AddFishingHoleName("Lake Fishing Hole",      LAKE_HOLE)
+AddFishingHoleName("Saltwater Fishing Hole", SALTWATER_HOLE)
+AddFishingHoleName("Foul Fishing Hole",      FOUL_HOLE)
+AddFishingHoleName("River Fishing Hole",     RIVER_HOLE)
+
 local setBait = true
 
 local function GetItemQuantity(itemId)
-    local icon, qnt = GetItemInfo(BAG_VIRTUAL, itemId)
-    local icon, qnt2 = GetItemInfo(BAG_BACKPACK, itemId)
+    local _, qnt  = GetItemInfo(BAG_VIRTUAL, itemId)
+    local _, qnt2 = GetItemInfo(BAG_BACKPACK, itemId)
     if HasCraftBagAccess() then return (qnt + qnt2) else return qnt2 end
 end
 
 local function SelectFishingBait(interactableName)
     local savedVars = _G["GamePadHelper_SavedVars"]
-    if not savedVars or not savedVars.fishingEnabled or not savedVars.fishingAlternativeBaits then
-        return
+    if not savedVars or not savedVars.fishingEnabled then return end
+
+    local nameLower = zo_strlower(interactableName)
+    local hole = nil
+    for _, entry in ipairs(FISHING_HOLES) do
+        if nameLower:find(entry.keyword, 1, true) then
+            hole = entry.data
+            break
+        end
     end
-    if interactableName == "Lake Fishing Hole" then
-        local regularBaitQuantity = GetItemQuantity(BAIT_LAKE_GUTS_ITEMID)
-        local alternativeBaitQuantity = GetItemQuantity(BAIT_LAKE_MINNOW_ITEMID)
+    if not hole then return end
 
-        if savedVars.fishingAlternativeBaits then
-            if alternativeBaitQuantity > 0 then
-                SetFishingLure(BAIT_LAKE_MINNOW)
-            else
-                SetFishingLure(BAIT_LAKE_GUTS)
-            end
-        else
-            if regularBaitQuantity > 0 then
-                SetFishingLure(BAIT_LAKE_GUTS)
-            else
-                SetFishingLure(BAIT_LAKE_MINNOW)
-            end
-        end
-
-        setBait = false
-    elseif interactableName == "Saltwater Fishing Hole" then
-        local regularBaitQuantity = GetItemQuantity(BAIT_SALTWATER_WORMS_ITEMID)
-        local alternativeBaitQuantity = GetItemQuantity(BAIT_SALTWATER_CHUB_ITEMID)
-
-        if savedVars.fishingAlternativeBaits then
-            if alternativeBaitQuantity > 0 then
-                SetFishingLure(BAIT_SALTWATER_CHUB)
-            else
-                SetFishingLure(BAIT_SALTWATER_WORMS)
-            end
-        else
-            if regularBaitQuantity > 0 then
-                SetFishingLure(BAIT_SALTWATER_WORMS)
-            else
-                SetFishingLure(BAIT_SALTWATER_CHUB)
-            end
-        end
-
-        setBait = false
-    elseif interactableName == "Foul Fishing Hole" then
-        local regularBaitQuantity = GetItemQuantity(BAIT_FOUL_CRAWLERS_ITEMID)
-        local alternativeBaitQuantity = GetItemQuantity(BAIT_FOUL_ROE_ITEMID)
-
-        if savedVars.fishingAlternativeBaits then
-            if alternativeBaitQuantity > 0 then
-                SetFishingLure(BAIT_FOUL_ROE)
-            else
-                SetFishingLure(BAIT_FOUL_CRAWLERS)
-            end
-        else
-            if regularBaitQuantity > 0 then
-                SetFishingLure(BAIT_FOUL_CRAWLERS)
-            else
-                SetFishingLure(BAIT_FOUL_ROE)
-            end
-        end
-
-        setBait = false
-    elseif interactableName == "River Fishing Hole" then
-        local regularBaitQuantity = GetItemQuantity(BAIT_RIVER_INSECT_ITEMID)
-        local alternativeBaitQuantity = GetItemQuantity(BAIT_RIVER_SHAD_ITEMID)
-
-        if savedVars.fishingAlternativeBaits then
-            if alternativeBaitQuantity > 0 then
-                SetFishingLure(BAIT_RIVER_SHAD)
-            else
-                SetFishingLure(BAIT_RIVER_INSECT)
-            end
-        else
-            if regularBaitQuantity > 0 then
-                SetFishingLure(BAIT_RIVER_INSECT)
-            else
-                SetFishingLure(BAIT_RIVER_SHAD)
-            end
-        end
-
-        setBait = false
+    if savedVars.fishingAlternativeBaits and GetItemQuantity(hole.altId) > 0 then
+        SetFishingLure(hole.alt)
+    else
+        SetFishingLure(hole.reg)
     end
+    setBait = false
 end
 
 local function startVibration2()
@@ -141,7 +106,7 @@ local function onSlotUpdate(event, bagId, slotIndex, isNew)
         local action = GetGameCameraInteractableActionInfo()
         if action == GetString(SI_GAMECAMERAACTIONTYPE17) then
             local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_MAJOR_TEXT, SOUNDS.BOOK_ACQUIRED)
-            messageParams:SetText("|t32:32:/esoui/art/tutorial/gamepad/achievement_categoryicon_fishing.dds|t Reel in!")
+            messageParams:SetText(GetString(SI_GPH_FISHING_REEL_IN))
             CENTER_SCREEN_ANNOUNCE:AddMessageWithParams(messageParams)
         end
     else

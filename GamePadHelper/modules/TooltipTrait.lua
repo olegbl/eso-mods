@@ -57,7 +57,7 @@ local function OnAddonLoaded(event, name)
                 end
                 
                 if extraData and extraData.bagId == BAG_WORN then
-                    title = string.format("%s %s", title, COLOR_WORN:Colorize("(Equipped)"))
+                    title = string.format("%s %s", title, COLOR_WORN:Colorize(GetString(SI_GPH_TOOLTIP_EQUIPPED)))
                 end
 
                 traitSection:AddLine(title, self:GetStyle("bodyHeader"), additionalTooltipStyle)

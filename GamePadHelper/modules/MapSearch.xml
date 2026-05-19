@@ -1,0 +1,58 @@
+<GuiXml>
+    <Controls>
+        <TopLevelControl name="GPH_MapSearch_Gamepad" hidden="true">
+            <Controls>
+                <Control name="$(parent)Main" inherits="ZO_WorldMapInfoContent_Gamepad">
+                    <Controls>
+                        <Control name="$(parent)SearchBar">
+                            <Anchor point="TOPLEFT" offsetX="0" offsetY="20"/>
+                            <Anchor point="TOPRIGHT" offsetX="0" offsetY="20"/>
+                            <Dimensions y="56"/>
+                            <Controls>
+                                <Backdrop name="$(parent)Border" inherits="ZO_GamepadGreyOutlineThin">
+                                    <AnchorFill/>
+                                </Backdrop>
+                                <Texture name="$(parent)BG" color="444444" alpha="0.5" hidden="true">
+                                    <AnchorFill/>
+                                </Texture>
+                                <Backdrop name="$(parent)Highlight" inherits="ZO_GamepadWhiteOutlineHighlight" tier="HIGH" layer="OVERLAY" blendMode="ADD" hidden="true">
+                                    <AnchorFill/>
+                                </Backdrop>
+                                <Texture name="$(parent)Icon" textureFile="EsoUI/Art/Miscellaneous/Gamepad/gp_icon_search_64.dds" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_DISABLED">
+                                    <Dimensions x="48" y="48"/>
+                                    <Anchor point="LEFT" offsetX="6"/>
+                                </Texture>
+                                <EditBox name="$(parent)Edit" maxInputCharacters="50" inherits="ZO_DefaultEditForBackdrop_Gamepad">
+                                    <Anchor point="LEFT" relativeTo="$(parent)Icon" relativePoint="RIGHT" offsetX="8"/>
+                                    <Anchor point="RIGHT" offsetX="-8"/>
+                                    <OnEffectivelyShown>
+                                        GPH_MapSearch_OnShown(self)
+                                    </OnEffectivelyShown>
+                                    <OnTextChanged>
+                                        GPH_MapSearch_OnTextChanged(self:GetText())
+                                    </OnTextChanged>
+                                    <OnFocusGained>
+                                        GPH_MapSearch_OnSearchFocused(true)
+                                    </OnFocusGained>
+                                    <OnFocusLost>
+                                        GPH_MapSearch_OnSearchFocused(false)
+                                    </OnFocusLost>
+                                    <OnEnter>
+                                        GPH_MapSearch_SelectCurrent()
+                                    </OnEnter>
+                                    <OnEscape>
+                                        self:LoseFocus()
+                                    </OnEscape>
+                                </EditBox>
+                            </Controls>
+                        </Control>
+                        <Control name="$(parent)List" inherits="ZO_VerticalParametricScrollListTemplate">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)SearchBar" relativePoint="BOTTOMLEFT" offsetY="4"/>
+                            <Anchor point="BOTTOMRIGHT"/>
+                        </Control>
+                    </Controls>
+                </Control>
+            </Controls>
+        </TopLevelControl>
+    </Controls>
+</GuiXml>

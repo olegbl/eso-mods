@@ -156,10 +156,7 @@ local function ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before(self,
   dataType.setupFunction = ZO_SharedGamepadEntry_OnSetup
 end
 
--- Only register hooks if we're not in craft bag tab
-if not IsInCraftBagTab() then
-  ZO_PreHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_Before)
-  ZO_PostHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_After)
-  ZO_PreHook(ZO_ParametricScrollList, "GetSetupFunctionForDataIndex", ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before)
-end
+ZO_PreHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_Before)
+ZO_PostHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_After)
+ZO_PreHook(ZO_ParametricScrollList, "GetSetupFunctionForDataIndex", ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before)
 

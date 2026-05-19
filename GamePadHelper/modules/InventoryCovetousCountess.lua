@@ -38,13 +38,10 @@ local function SharedGamepadEntry_OnSetup_After(control, data, ...)
       local success, result1, result2 = pcall(LibCovetousCountess.IsItemUseful, LibCovetousCountess, itemLink)
       if success then
           isUsefulForActiveQuest, isUsefulForQuest = result1, result2
-      else
-          d("[GamePadHelper] Error calling LibCovetousCountess:IsItemUseful: " .. tostring(result1))
       end
   end
 
-  -- sometimes MultiIcon is not initialized property for some reason
-  -- TODO: WTF?
+  -- sometimes MultiIcon is not initialized properly for some reason
   if not statusIndicator.SetIconColor then
     ZO_MultiIcon_Initialize(statusIndicator)
   end

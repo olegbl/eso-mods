@@ -46,11 +46,10 @@ end
 _G["TooltipFont_Apply"] = ApplyFontChanges
 _G["TooltipFont_Revert"] = RevertFontChanges
 
-CaptureOriginals()
-
 EVENT_MANAGER:RegisterForEvent("TooltipFont", EVENT_ADD_ON_LOADED, function(event, name)
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("TooltipFont", EVENT_ADD_ON_LOADED)
+    CaptureOriginals()
     local sv = _G["GamePadHelper_SavedVars"]
     if sv and sv.tooltipFontEnabled then
         ApplyFontChanges()

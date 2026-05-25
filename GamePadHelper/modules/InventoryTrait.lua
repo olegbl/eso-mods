@@ -3,9 +3,8 @@
 -- GetPlatformTraitInformationIcon is a PC-only alias; ZO_GetPlatformTraitInformationIcon is the base function
 local _GetTraitIcon = ZO_GetPlatformTraitInformationIcon or GetPlatformTraitInformationIcon
 
--- TODO: when inventory is updated, rows don't necessarily re-render
--- so while local state is correct, the rendered state can be stale
--- selecting / unselecting item refreshes whole list - should mimic
+local REFRESH_NAMESPACE = "GPH_InventoryTrait_Refresh"
+local refreshPending = false
 
 local function IsInCraftBagTab()
   if GAMEPAD_INVENTORY and GAMEPAD_INVENTORY.header then
@@ -39,6 +38,45 @@ local function GetItemLinkFromData(data)
     itemLink = GetLootItemLink(data.lootId)
   end
   return itemLink, bagId, slotIndex
+end
+
+local function RefreshList(list)
+  if not list or not list.RefreshVisible then return false end
+
+  local selectedIndex = list.GetSelectedIndex and list:GetSelectedIndex() or nil
+  if selectedIndex and selectedIndex > 0 and list.SetSelectedIndex then
+    list:SetSelectedIndex(selectedIndex, true)
+  end
+  list:RefreshVisible()
+  return true
+end
+
+local function RefreshVisibleInventoryRows()
+  local sv = _G["GamePadHelper_SavedVars"]
+  if not sv or not sv.inventoryTraitEnabled then return end
+  if IsInCraftBagTab() then return end
+  if not GAMEPAD_INVENTORY then return end
+
+  local refreshed = false
+  refreshed = RefreshList(GAMEPAD_INVENTORY.activeList) or refreshed
+  refreshed = RefreshList(GAMEPAD_INVENTORY.itemList) or refreshed
+  refreshed = RefreshList(GAMEPAD_INVENTORY.list) or refreshed
+  refreshed = RefreshList(GAMEPAD_INVENTORY.currentList) or refreshed
+
+  if not refreshed and GAMEPAD_INVENTORY.RefreshList then
+    GAMEPAD_INVENTORY:RefreshList()
+  end
+end
+
+local function QueueInventoryRowsRefresh()
+  local sv = _G["GamePadHelper_SavedVars"]
+  if not sv or not sv.inventoryTraitEnabled or refreshPending then return end
+
+  refreshPending = true
+  zo_callLater(function()
+    refreshPending = false
+    RefreshVisibleInventoryRows()
+  end, 100)
 end
 
 local function ZO_SharedGamepadEntry_OnSetup_Before(self, data, ...)
@@ -159,4 +197,18 @@ end
 ZO_PreHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_Before)
 ZO_PostHook("ZO_SharedGamepadEntry_OnSetup", ZO_SharedGamepadEntry_OnSetup_After)
 ZO_PreHook(ZO_ParametricScrollList, "GetSetupFunctionForDataIndex", ZO_ParametricScrollList_GetSetupFunctionForDataIndex_Before)
+
+EVENT_MANAGER:RegisterForEvent(REFRESH_NAMESPACE, EVENT_PLAYER_ACTIVATED, function()
+  EVENT_MANAGER:UnregisterForEvent(REFRESH_NAMESPACE, EVENT_PLAYER_ACTIVATED)
+  local function RegisterRefreshEvent(suffix, eventCode)
+    if eventCode then
+      EVENT_MANAGER:RegisterForEvent(REFRESH_NAMESPACE .. suffix, eventCode, QueueInventoryRowsRefresh)
+    end
+  end
+
+  RegisterRefreshEvent("_SlotUpdate", EVENT_INVENTORY_SINGLE_SLOT_UPDATE)
+  RegisterRefreshEvent("_FullUpdate", EVENT_INVENTORY_FULL_UPDATE)
+  RegisterRefreshEvent("_ResearchStarted", EVENT_SMITHING_TRAIT_RESEARCH_STARTED)
+  RegisterRefreshEvent("_ResearchCompleted", EVENT_SMITHING_TRAIT_RESEARCH_COMPLETED)
+end)
 

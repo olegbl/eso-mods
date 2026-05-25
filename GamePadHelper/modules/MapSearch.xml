@@ -4,9 +4,47 @@
             <Controls>
                 <Control name="$(parent)Main" inherits="ZO_WorldMapInfoContent_Gamepad">
                     <Controls>
+                        <Control name="$(parent)RecallRow">
+                            <Anchor point="TOPLEFT" offsetX="0" offsetY="22"/>
+                            <Anchor point="TOPRIGHT" offsetX="0" offsetY="22"/>
+                            <Dimensions y="28"/>
+                            <Controls>
+                                <Label name="$(parent)RecallCostTitle" font="ZoFontGamepad42" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL">
+                                    <Anchor point="LEFT" offsetX="8"/>
+                                </Label>
+                                <Label name="$(parent)RecallCostValue" font="ZoFontGamepad42" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL">
+                                    <Anchor point="RIGHT" offsetX="-8"/>
+                                </Label>
+                            </Controls>
+                        </Control>
+                        <Control name="$(parent)Tabs">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)RecallRow" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="20"/>
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)RecallRow" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="20"/>
+                            <Dimensions y="46"/>
+                            <Controls>
+                                <Label name="$(parent)Previous" font="ZoFontGamepad34" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" horizontalAlignment="LEFT" wrapMode="ELLIPSIS">
+                                    <Anchor point="LEFT" offsetX="8"/>
+                                    <Dimensions x="210" y="46"/>
+                                </Label>
+                                <Label name="$(parent)Next" font="ZoFontGamepad34" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" horizontalAlignment="RIGHT" wrapMode="ELLIPSIS">
+                                    <Anchor point="RIGHT" offsetX="-8"/>
+                                    <Dimensions x="210" y="46"/>
+                                </Label>
+                                <Label name="$(parent)Selected" font="ZoFontGamepad34" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" horizontalAlignment="CENTER" wrapMode="ELLIPSIS">
+                                    <Anchor point="LEFT" relativeTo="$(parent)Previous" relativePoint="RIGHT" offsetX="8"/>
+                                    <Anchor point="RIGHT" relativeTo="$(parent)Next" relativePoint="LEFT" offsetX="-8"/>
+                                    <Dimensions y="46"/>
+                                </Label>
+                            </Controls>
+                        </Control>
+                        <Label name="$(parent)TabTitle" font="ZoFontGamepad42" color="EAA643" horizontalAlignment="CENTER" wrapMode="ELLIPSIS">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Tabs" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="20"/>
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)Tabs" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="20"/>
+                            <Dimensions y="42"/>
+                        </Label>
                         <Control name="$(parent)SearchBar">
-                            <Anchor point="TOPLEFT" offsetX="0" offsetY="20"/>
-                            <Anchor point="TOPRIGHT" offsetX="0" offsetY="20"/>
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)TabTitle" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="18"/>
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)TabTitle" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="18"/>
                             <Dimensions y="56"/>
                             <Controls>
                                 <Backdrop name="$(parent)Border" inherits="ZO_GamepadGreyOutlineThin">

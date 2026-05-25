@@ -2,9 +2,23 @@
 local _ChatSystem = KEYBOARD_CHAT_SYSTEM or CHAT_SYSTEM
 
 local MAP_NAME_TO_ZONE_ID = {}
+local mapSearchSuppressingTeleport = false
 
 local function CleanName(s)
     return (s and s ~= "") and zo_strformat("<<C:1>>", s) or (s or "")
+end
+
+local function NormalizeName(s)
+    s = zo_strlower(CleanName(s))
+    s = s:gsub("[%p]", " ")
+    s = s:gsub("%s+", " ")
+    return zo_strtrim(s)
+end
+
+local function AddMapZoneLookup(name, zoneId)
+    if not name or name == "" or not zoneId or zoneId == 0 then return end
+    MAP_NAME_TO_ZONE_ID[CleanName(name)] = zoneId
+    MAP_NAME_TO_ZONE_ID[NormalizeName(name)] = zoneId
 end
 
 local function GetNormalizedMousePositionToMap()
@@ -20,8 +34,52 @@ local function PopulateMapNameToZoneIdMapping()
     for mapIndex = 1, GetNumMaps() do
         local mapName, mapType, mapContentType, zoneIndex, description = GetMapInfoByIndex(mapIndex)
         local zoneId = GetZoneId(zoneIndex)
-        MAP_NAME_TO_ZONE_ID[CleanName(mapName)] = zoneId
+        if zoneId and zoneId ~= 0 then
+            AddMapZoneLookup(mapName, zoneId)
+            AddMapZoneLookup(GetZoneNameById(zoneId), zoneId)
+        end
     end
+end
+
+local function GetZoneIdFromCandidate(candidate)
+    if type(candidate) ~= "table" then return nil end
+    if candidate.zoneId and candidate.zoneId ~= 0 then
+        return candidate.zoneId, candidate.name
+    end
+    if candidate.zoneIndex and candidate.zoneIndex ~= 0 then
+        local zoneId = GetZoneId(candidate.zoneIndex)
+        if zoneId and zoneId ~= 0 then
+            return zoneId, candidate.name
+        end
+    end
+    if candidate.nodeIndex then
+        local zoneIndex = GetFastTravelNodePOIIndicies(candidate.nodeIndex)
+        if zoneIndex and zoneIndex ~= 0 then
+            local zoneId = GetZoneId(zoneIndex)
+            if zoneId and zoneId ~= 0 then
+                return zoneId, candidate.name
+            end
+        end
+    end
+    return nil
+end
+
+local function GetFallbackZoneId()
+    local saved = _G["GamePadHelperSavedVars"]
+    local zoneId, name = GetZoneIdFromCandidate(saved and saved.lastSelectedPOI)
+    if zoneId then return zoneId, name end
+
+    if GetCurrentMapZoneIndex then
+        local zoneIndex = GetCurrentMapZoneIndex()
+        if zoneIndex and zoneIndex ~= 0 then
+            zoneId = GetZoneId(zoneIndex)
+            if zoneId and zoneId ~= 0 then
+                return zoneId, GetZoneNameById(zoneId)
+            end
+        end
+    end
+
+    return nil
 end
 
 local function FindJumpablePlayerInZone(zoneId)
@@ -91,7 +149,14 @@ local function CreateTeleportCallback()
     end
 
     local cleanLocation = CleanName(locationName)
-    local zoneId = MAP_NAME_TO_ZONE_ID[cleanLocation]
+    local zoneId = MAP_NAME_TO_ZONE_ID[cleanLocation] or MAP_NAME_TO_ZONE_ID[NormalizeName(locationName)]
+    if not zoneId then
+        local fallbackName
+        zoneId, fallbackName = GetFallbackZoneId()
+        if zoneId then
+            cleanLocation = CleanName(fallbackName)
+        end
+    end
     if not zoneId then
         ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, zo_strformat(SI_GPH_TELEPORT_NO_ZONE_DATA, cleanLocation))
         return
@@ -114,14 +179,25 @@ end
 local KEYBOARD_KEYBIND_STRIP_DESCRIPTOR = nil
 local GAMEPAD_KEYBIND_STRIP_DESCRIPTOR = nil
 local CHAT_KEYBIND_STRIP_DESCRIPTOR = nil
+
+local function IsMapSearchTeleportSuppressed()
+    if mapSearchSuppressingTeleport then return true end
+    local isMapSearchShowing = _G["GamePadHelper_MapSearch_IsShowing"]
+    return type(isMapSearchShowing) == "function" and isMapSearchShowing() == true
+end
+
 local function PopulateKeybindStripDescriptor()
     local keybind = {
         name = GetString(SI_GPH_TELEPORT),
         keybind = "UI_SHORTCUT_QUINARY",
         enabled = function()
-            return CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player") and BMU and BMU.createTable
+            return not IsMapSearchTeleportSuppressed()
+                and CanLeaveCurrentLocationViaTeleport()
+                and not IsUnitDead("player")
+                and BMU
+                and BMU.createTable
         end,
-        visible = function() return true end,
+        visible = function() return not IsMapSearchTeleportSuppressed() end,
         callback = CreateTeleportCallback,
     }
 
@@ -134,6 +210,7 @@ local function OnWorldMapSceneShow()
     if not sv or not sv.teleporterEnabled then return end
     KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
     KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
+    if IsMapSearchTeleportSuppressed() then return end
 
     if IsInGamepadPreferredMode() then
         KEYBIND_STRIP:AddKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
@@ -156,8 +233,25 @@ local function OnWorldMapSceneStateChange(oldState, newState)
 end
 
 local function OnWorldMapChanged(event, zoneName, subZoneName, newSubzone, zoneId, subZoneId)
+    if IsMapSearchTeleportSuppressed() then return end
     KEYBIND_STRIP:UpdateKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
     KEYBIND_STRIP:UpdateKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
+end
+
+_G["GamePadHelper_MapTeleporter_SetSuppressed"] = function(suppressed)
+    mapSearchSuppressingTeleport = suppressed == true
+    if not KEYBIND_STRIP then return end
+
+    KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
+    KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
+
+    if not mapSearchSuppressingTeleport then
+        if GAMEPAD_WORLD_MAP_SCENE and GAMEPAD_WORLD_MAP_SCENE:IsShowing() then
+            OnWorldMapSceneShow()
+        elseif WORLD_MAP_SCENE and WORLD_MAP_SCENE:IsShowing() then
+            OnWorldMapSceneShow()
+        end
+    end
 end
 
 local function IsFriendJumpable()

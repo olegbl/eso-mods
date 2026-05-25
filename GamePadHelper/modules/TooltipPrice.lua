@@ -9,6 +9,41 @@ local PRICE_ICON = ZO_Currency_GetGamepadFormattedCurrencyIcon(CURT_MONEY, 24, t
 local AMOUNT_ICON = zo_iconFormatInheritColor("/esoui/art/inventory/gamepad/gp_inventory_icon_all.dds", 24, 24)
 
 local cachedTscApi = nil
+local PRICE_CACHE_TTL_MS = 60000
+local priceInfoCache = {}
+
+local SUPPRESS_EXTERNAL_PRICE_PATTERNS = {
+  "tsc",
+  "tamriel savings",
+  "price fetcher",
+  "no price data",
+  "bound item",
+  "exact avg:",
+  "exact range:",
+  "item avg:",
+  "item range:",
+  "item avg",
+  "item range",
+  "common price range",
+  "legacy avg",
+  "average price",
+  "avg price",
+  "price range",
+}
+
+local function GetNowMs()
+  if GetGameTimeMilliseconds then
+    return GetGameTimeMilliseconds()
+  end
+  if GetFrameTimeMilliseconds then
+    return GetFrameTimeMilliseconds()
+  end
+  if GetTimeStamp then
+    return GetTimeStamp() * 1000
+  end
+  return 0
+end
+
 local function GetTSCApi()
   if cachedTscApi ~= nil then
     return cachedTscApi or nil
@@ -91,20 +126,31 @@ local function ToNumber(value)
 end
 
 local function SafeGetPriceInfo(itemLink)
+    if type(itemLink) ~= "string" or itemLink == "" then
+      return {}
+    end
+
+    local nowMs = GetNowMs()
+    local cached = priceInfoCache[itemLink]
+    if cached and (nowMs - cached.timeMs) < PRICE_CACHE_TTL_MS then
+      return cached.value
+    end
+
+    local value = nil
     if TamrielTradeCentrePrice and TamrielTradeCentrePrice.GetPriceInfo then
         local success, result = pcall(TamrielTradeCentrePrice.GetPriceInfo, TamrielTradeCentrePrice, itemLink)
         if success then
-            return NormalizePriceInfo(result)
+            value = NormalizePriceInfo(result)
         end
     end
-    if LibPriceCache and LibPriceCache.GetPrice then
+    if not value and LibPriceCache and LibPriceCache.GetPrice then
       local success, result = pcall(LibPriceCache.GetPrice, itemLink)
       if success and result and result > 0 then
-        return NormalizePriceInfo({ Avg = result, SuggestedPrice = result })
+        value = NormalizePriceInfo({ Avg = result, SuggestedPrice = result })
       end
     end
     local tscApi = GetTSCApi()
-    if tscApi and type(tscApi.GetItemData) == "function" then
+    if not value and tscApi and type(tscApi.GetItemData) == "function" then
       local success, itemData = pcall(function()
         return tscApi:GetItemData(itemLink)
       end)
@@ -129,7 +175,7 @@ local function SafeGetPriceInfo(itemLink)
         if avgPrice and avgPrice > 0 then
           local minPrice = type(itemData) == "table" and (ToNumber(itemData.commonMin) or ToNumber(itemData.minPrice) or ToNumber(itemData.Min) or ToNumber(itemData.min) or ToNumber(itemData.legacyMin)) or nil
           local maxPrice = type(itemData) == "table" and (ToNumber(itemData.commonMax) or ToNumber(itemData.maxPrice) or ToNumber(itemData.Max) or ToNumber(itemData.max) or ToNumber(itemData.legacyMax)) or nil
-          return NormalizePriceInfo({
+          value = NormalizePriceInfo({
             Avg = avgPrice,
             SuggestedPrice = avgPrice,
             Min = minPrice,
@@ -138,7 +184,10 @@ local function SafeGetPriceInfo(itemLink)
         end
       end
     end
-    return {}
+
+    value = value or {}
+    priceInfoCache[itemLink] = { value = value, timeMs = nowMs }
+    return value
 end
 
 local function HasMarketProvider()
@@ -391,25 +440,7 @@ end
 local function ShouldSuppressExternalPriceLine(lineText)
   if type(lineText) ~= "string" then return false end
   local lower = string.lower(lineText)
-  local suppressPatterns = {
-    "tsc",
-    "tamriel savings",
-    "price fetcher",
-    "no price data",
-    "bound item",
-    "exact avg:",
-    "exact range:",
-    "item avg:",
-    "item range:",
-    "item avg",
-    "item range",
-    "common price range",
-    "legacy avg",
-    "average price",
-    "avg price",
-    "price range",
-  }
-  for _, pattern in ipairs(suppressPatterns) do
+  for _, pattern in ipairs(SUPPRESS_EXTERNAL_PRICE_PATTERNS) do
     if string.find(lower, pattern, 1, true) then
       return true
     end

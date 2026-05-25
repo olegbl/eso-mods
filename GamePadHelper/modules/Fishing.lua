@@ -94,6 +94,10 @@ local function onSlotUpdate(event, bagId, slotIndex, isNew)
         return
     end
 
+    if GetItemType(bagId, slotIndex) ~= ITEMTYPE_LURE then
+        return
+    end
+
     local lure = GetFishingLure()
     local cnt = 0
     if lure then
@@ -101,7 +105,7 @@ local function onSlotUpdate(event, bagId, slotIndex, isNew)
     else
         cnt = 0
     end
-    if (not isNew and (GetItemType(bagId, slotIndex) == ITEMTYPE_LURE) and (cnt0 - cnt == 1)) then
+    if (not isNew and (cnt0 - cnt == 1)) then
         startVibration()
         local action = GetGameCameraInteractableActionInfo()
         if action == GetString(SI_GAMECAMERAACTIONTYPE17) then

@@ -1,40 +1,40 @@
 ﻿local function Tooltip_AddPoisonInfo_Before(self, itemLink, equipSlot)
-  local sv = _G["GamePadHelper_SavedVars"]
-  if not sv or not sv.tooltipPoisonEnabled then return end
-  local hasPoison, poisonCount, poisonHeader, poisonItemLink = GetItemPairedPoisonInfo(equipSlot)
-  if hasPoison then
-    local poisonQuality = GetItemLinkDisplayQuality(poisonItemLink)
-    local poisonQualityColor = GetItemQualityColor(poisonQuality)
+    local sv = _G["GamePadHelper_SavedVars"]
+    if not sv or not sv.tooltipPoisonEnabled then return end
+    local hasPoison, poisonCount, poisonHeader, poisonItemLink = GetItemPairedPoisonInfo(equipSlot)
+    if hasPoison then
+        local poisonQuality = GetItemLinkDisplayQuality(poisonItemLink)
+        local poisonQualityColor = GetItemQualityColor(poisonQuality)
 
-    local poisonNameString = poisonQualityColor:Colorize(poisonHeader)
-    local poisonCountString = tostring(poisonCount)
+        local poisonNameString = poisonQualityColor:Colorize(poisonHeader)
+        local poisonCountString = tostring(poisonCount)
 
-    local equippedPoisonSection = self:AcquireSection(self:GetStyle("equippedPoisonSection"))
+        local equippedPoisonSection = self:AcquireSection(self:GetStyle("equippedPoisonSection"))
 
-    equippedPoisonSection:AddLine(
-      string.format(
-        "%s (%s)",
-        poisonNameString,
-        poisonCountString
-      ),
-      self:GetStyle("bodyHeader")
-    )
+        equippedPoisonSection:AddLine(
+            string.format(
+                "%s (%s)",
+                poisonNameString,
+                poisonCountString
+            ),
+            self:GetStyle("bodyHeader")
+        )
 
-    self:AddSection(equippedPoisonSection)
+        self:AddSection(equippedPoisonSection)
 
-    self:AddOnUseAbility(poisonItemLink)
-  end
+        self:AddOnUseAbility(poisonItemLink)
+    end
 
-  return true
+    return true
 end
 
 local tooltips = {
-  GAMEPAD_LEFT_DIALOG_TOOLTIP,
-  GAMEPAD_LEFT_TOOLTIP,
-  GAMEPAD_MOVABLE_TOOLTIP,
-  GAMEPAD_QUAD1_TOOLTIP,
-  GAMEPAD_QUAD3_TOOLTIP,
-  GAMEPAD_RIGHT_TOOLTIP
+    GAMEPAD_LEFT_DIALOG_TOOLTIP,
+    GAMEPAD_LEFT_TOOLTIP,
+    GAMEPAD_MOVABLE_TOOLTIP,
+    GAMEPAD_QUAD1_TOOLTIP,
+    GAMEPAD_QUAD3_TOOLTIP,
+    GAMEPAD_RIGHT_TOOLTIP
 }
 
 EVENT_MANAGER:RegisterForEvent("TooltipPoison", EVENT_ADD_ON_LOADED, function(_, name)

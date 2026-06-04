@@ -31,10 +31,10 @@ Open settings from:
 - **Gear Comparison:** side-by-side item stat comparison panels.
 - **Provisioning Filter:** hides low-level recipes below CP160.
 - **Fishing:** controller vibration, reel alert, automatic bait selection, and fallback bait.
-- **Teleporter:** BeamMeUp integration for map and chat jump helpers.
-- **Map Search:** search wayshrines, zones, houses, and points of interest from the gamepad world map, with separate Search, Bookmarks, Recent, Houses, and Zones tabs plus zone quest/map/lead counts and wayshrine guild trader hints.
+- **Teleporter:** world map hotkey to teleport to the hovered zone — prefers free travel via a group member, friend, or guild member in the zone, otherwise uses the nearest wayshrine. Also adds chat context menu jump options for friends, guild members, and group members.
+- **Map Search:** search wayshrines, zones, houses, points of interest, city services (guild traders, guild halls, banks), daily quest givers, and travel service NPCs (ferry, caravan, silt strider with destinations) from the gamepad world map. Separate tabs for Search, Bookmarks, Recent, Houses, and Zones. Zone quest/map/lead counts, wayshrine and trader POI guild names, crafted set bonuses in right-side tooltip. Teleports to the correct city wayshrine for city service and daily quest results.
 - **Dungeon Finder:** shows pledge quest names in the Dungeon Finder list.
-- **Overview Panel:** root menu overview with quest details, daily reminders, daily writ tracking, companion rapport dailies, research, surveys, treasure maps, and antiquity leads. Task status refreshes when relevant data changes and at the daily reset.
+- **Overview Panel:** two-column root menu overview. Left panel shows active quest details (toggle independently). Right panel shows daily reminders as titled sections with icons: Time (local + server, each toggleable), Horse Training (per-skill progress), Maps (antiquity leads, treasure maps, surveys), Crafting (master writs, daily writ status, trait research), and Companion (XP bar, rapport gradient bar, daily activities). Completed writs can be hidden.
 - **Loot Offset:** moves the loot history panel upward so it does not overlap chat. Requires UI reload after toggling.
 - **Auto Charge:** recharges equipped weapons after combat. Default threshold: 25%.
 - **Auto Repair:** repairs equipped items at merchants when repair is available.
@@ -50,7 +50,6 @@ Open settings from:
 ## Optional Integrations
 
 - **TamrielTradeCentre:** optional PC market price source.
-- **BeamMeUp:** enables Teleporter functionality.
 - **LibPriceCache:** optional price cache source.
 - **TSCPriceDataAPIXBNA, TSCPriceDataAPIPSNA, TSCPriceDataAPIXBEU, TSCPriceDataAPIPSEU:** optional console price data packages.
 

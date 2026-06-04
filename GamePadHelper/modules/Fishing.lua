@@ -140,21 +140,23 @@ local function OnAddonLoaded(event, name)
     EVENT_MANAGER:RegisterForEvent("Fishing", EVENT_FISHING_LURE_CLEARED, onLureCleared)
     EVENT_MANAGER:RegisterForEvent("Fishing", EVENT_FISHING_LURE_SET, onLureSet)
 
-    ZO_PreHook(ZO_Reticle, "TryHandlingInteraction", function(interactionPossible, currentFrameTimeSeconds)
-        local savedVars = _G["GamePadHelper_SavedVars"]
-        if not savedVars or not savedVars.fishingEnabled then
-            return
-        end
-
-        if interactionPossible then
-            local action, interactableName, interactionBlocked, isOwned, additionalInteractInfo, context, contextLink, isCriminalInteract = GetGameCameraInteractableActionInfo()
-            if additionalInteractInfo == ADDITIONAL_INTERACT_INFO_FISHING_NODE and setBait then
-                SelectFishingBait(interactableName)
+    if ZO_Reticle then
+        ZO_PreHook(ZO_Reticle, "TryHandlingInteraction", function(interactionPossible, currentFrameTimeSeconds)
+            local savedVars = _G["GamePadHelper_SavedVars"]
+            if not savedVars or not savedVars.fishingEnabled then
+                return
             end
-        else
-            setBait = true
-        end
-    end)
+
+            if interactionPossible then
+                local action, interactableName, interactionBlocked, isOwned, additionalInteractInfo, context, contextLink, isCriminalInteract = GetGameCameraInteractableActionInfo()
+                if additionalInteractInfo == ADDITIONAL_INTERACT_INFO_FISHING_NODE and setBait then
+                    SelectFishingBait(interactableName)
+                end
+            else
+                setBait = true
+            end
+        end)
+    end
 
     local lure = GetFishingLure()
     if lure then

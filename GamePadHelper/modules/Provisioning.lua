@@ -12,28 +12,51 @@ local function HideRecipes(recipeList)
         return false
     end
 
-    local hiddenCount = 0
-    local i = 1
-    while i < recipeList:GetNumEntries() do
+    -- Pass 1: mark low-level recipes for removal
+    local toRemove = {}
+    for i = 1, recipeList:GetNumEntries() do
         local recipe = recipeList:GetEntryData(i):GetDataSource()
         if recipe then
             local itemLink = GetRecipeResultItemLink(recipe.recipeListIndex, recipe.recipeIndex)
             local hasAbility, abilityHeader, abilityDescription, cooldown, hasScaling, minLevel, maxLevel, isChampionPoints, remainingCooldown = GetItemLinkOnUseAbilityInfo(itemLink)
             if hasScaling and maxLevel < 160 then
-                local template = recipeList.templateList[i]
-                local recipeData = recipeList.dataList[i]
-                if template == "ZO_GamepadItemSubEntryTemplateWithHeader" and
-                        i + 1 <= recipeList:GetNumEntries() and
-                        not recipeList.dataList[i + 1].header then
-                    recipeList.dataList[i + 1].header = recipeData.header
-                    recipeList.templateList[i + 1] = template
-                end
-                recipeList:RemoveEntry(template, recipeData)
-                hiddenCount = hiddenCount + 1
-                i = i - 1
+                toRemove[i] = true
             end
         end
-        i = i + 1
+    end
+
+    -- Pass 2: remove entries in reverse to preserve indices
+    for i = recipeList:GetNumEntries(), 1, -1 do
+        if toRemove[i] then
+            local template = recipeList.templateList[i]
+            local recipeData = recipeList.dataList[i]
+            recipeList:RemoveEntry(template, recipeData)
+        end
+    end
+
+    -- Pass 3: remove orphaned headers (header with no visible entries before next header or end of list)
+    local i = 1
+    while i <= recipeList:GetNumEntries() do
+        local template = recipeList.templateList[i]
+        if template == "ZO_GamepadItemSubEntryTemplateWithHeader" then
+            if i == recipeList:GetNumEntries() then
+                -- Last entry is a header with no following content
+                local recipeData = recipeList.dataList[i]
+                recipeList:RemoveEntry(template, recipeData)
+            else
+                local nextData = recipeList.dataList[i + 1]
+                local nextTemplate = recipeList.templateList[i + 1]
+                -- Check if next entry is also a header → this one has no visible content
+                if nextData and nextData.header and nextTemplate == "ZO_GamepadItemSubEntryTemplateWithHeader" then
+                    local recipeData = recipeList.dataList[i]
+                    recipeList:RemoveEntry(template, recipeData)
+                else
+                    i = i + 1
+                end
+            end
+        else
+            i = i + 1
+        end
     end
 
     return false
@@ -70,9 +93,13 @@ local function OnAddonLoaded(event, name)
         showLowLevelFilter.checked = sv.showLowLevelRecipes
     end
 
-    ZO_PreHook(GAMEPAD_PROVISIONER.recipeList, "Commit", HideRecipes)
-    ZO_PostHook(GAMEPAD_PROVISIONER, "SaveFilters", SaveOptions)
-    ZO_PreHook(GAMEPAD_PROVISIONER, "ShowOptionsMenu", HookOptions)
+    if GAMEPAD_PROVISIONER then
+        if GAMEPAD_PROVISIONER.recipeList then
+            ZO_PreHook(GAMEPAD_PROVISIONER.recipeList, "Commit", HideRecipes)
+        end
+        ZO_PostHook(GAMEPAD_PROVISIONER, "SaveFilters", SaveOptions)
+        ZO_PreHook(GAMEPAD_PROVISIONER, "ShowOptionsMenu", HookOptions)
+    end
 end
 
 EVENT_MANAGER:RegisterForEvent("Provisioning", EVENT_ADD_ON_LOADED, OnAddonLoaded)

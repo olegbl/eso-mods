@@ -1,6 +1,6 @@
 # GamePadHelper
 
-**Version:** 1.06.10 · **Authors:** olegbl, quelron · **API:** 101049
+**Version:** 1.06.12 · **Authors:** olegbl, quelron · **API:** 101049
 
 A collection of UI improvements and quality-of-life enhancements for Elder Scrolls Online, designed only for gamepad and console UI. Every feature can be toggled individually from the in-game settings panel.
 
@@ -8,23 +8,25 @@ Price data provided by [**Tamriel Savings Co Price Fetcher**](https://tamrielsav
 
 ---
 
-## What's New in 1.06.10
+## What's New in 1.06.12
 
-- **Menu performance improvements** - reduced repeated scanning in Overview, Tooltip Price, Map Search, Dungeon Finder, and Fishing.
-- **Overview optimization** - task summaries now cache expensive inventory, antiquity, crafting, writ, and companion checks, refresh when relevant game data changes, and schedule an update at the daily reset.
-- **No-quest overview fix** - the Tasks panel now still appears when a character has no active quest, while the Quest panel stays hidden.
-- **Map Search tabs** - Search, Bookmarks, Recent, Houses, and Zones are now split into controller-friendly tabs.
-- **Map Search details** - zone rows can show quest, survey, treasure map, and antiquity lead counts; wayshrines can show nearby guild trader counts.
-- **Map Search teleport fix** - Map Search owns its teleport keybind while the GPH Search tab is open, so the separate world-map teleporter no longer intercepts it.
-- **Tooltip Price optimization** - repeated price lookups are cached briefly and external price-line filtering is lighter.
-- **Map Search responsiveness** - duplicate searches and recall-cost scans are reduced.
+- **Overview tasks redesign** — the daily reminders panel is completely rebuilt. Each category (Time, Horse Training, Maps, Crafting, Companion) now renders as a titled section with a divider header and matching icon instead of a plain text block.
+- **Horse training detail** — when training is available, the panel now shows individual riding skill progress (Speed, Carrying Capacity, Stamina) with icons and current/max values.
+- **Maps section** — antiquity leads, treasure maps, and surveys each have inline item icons. Survey maps moved here from the old crafting counter.
+- **Companion panel redesign** — now displays the companion's XP progress bar, rapport gradient bar, rapport level, and rapport description, in addition to the best daily activities list.
+- **Quest panel toggle** — the quest left panel now has its own toggle, independent of the tasks panel. Show either, both, or neither.
+- **Local time toggle** — the local clock can now be toggled on or off independently from server time.
+- **Hide completed daily writs** — completed daily writ entries can now be hidden from the crafting section.
+- **Quest panel visual update** — the quest title now uses a divider header with the tracked-quest icon. Section order updated: Hints first, then active tasks, optional steps, completed tasks.
+- **Inventory Trait fix** — trait icons now appear more reliably during inventory navigation using a multi-pass refresh (50 / 200 / 500 ms).
+- **Settings reorganized** — grouped into labeled sections: Automation, Fishing, Map Search, Overview, Tooltips and UI, Loot. Utility actions moved to the bottom.
 
 ---
 
 ## Table of Contents
 
 - [Installation](#installation)
-- [What's New in 1.06.10](#whats-new-in-10610)
+- [What's New in 1.06.12](#whats-new-in-10612)
 - [Settings](#settings)
 - [Features](#features)
   - [Fishing](#fishing)
@@ -110,10 +112,8 @@ Automatically slots and activates the **Antiquarian's Eye** collectible when you
 
 Two teleport improvements:
 
-- **World Map hotkey** — while hovering a zone on the world map, a new hotkey lets you instantly ask BeamMeUp to teleport to that zone using the best available method. Especially useful on gamepad where BeamMeUp's normal interface is hard to reach.
+- **World Map hotkey** — while hovering a zone on the world map, a new hotkey lets you instantly teleport to that zone. Prioritizes free travel: jumps to a group member, friend, or guild member in the zone if one is available, otherwise falls back to the nearest discovered wayshrine.
 - **Chat "Jump to Player"** — adds jump options to the chat context menu for friends, guild members, and group members.
-
-> Requires **BeamMeUp** (optional) for the teleport functionality.
 
 ---
 
@@ -135,7 +135,12 @@ Adds a **GPH Search** tab to the Gamepad World Map info panel. Lets you search a
 - The Search tab starts empty until you type; saved and recent destinations live in their own tabs.
 - **Recent destinations** keeps the latest map targets available from its own tab.
 - **Zone details** can show quest, survey report, treasure map, and antiquity lead counts.
-- **Wayshrine details** can show nearby guild trader counts.
+- **Wayshrine and trader POI details** show nearby trader counts and your guild names occupying those kiosks.
+- **Crafting station details** show crafted set names, required trait counts, and full set bonuses in the right-side tooltip panel.
+- **Special crafting locations** exposed as map-location service pins, such as Eyevea and The Earth Forge, are included when available.
+- **City service pins** — searchable city-level services: guild traders, Mages/Fighters/Undaunted/Thieves Guild halls, banks, and other services. Teleports to the correct city wayshrine.
+- **Daily quest givers** — key daily quest NPCs across all zones are searchable by name or quest category (Mages Guild daily, Fighters Guild daily, Undaunted, Thieves Guild, zone boss/delve dailies, and more).
+- **Travel service NPCs** — ferry captains, caravan drivers, and silt strider operators are individual searchable entries showing their destination routes.
 
 - Fuzzy search with ranked results — exact prefix matches score highest.
 - Results grouped by category: **Wayshrines**, **Zones**, **Owned Houses**, **Unowned Houses**, and named POI types (Delve, Dungeon, World Boss, Crafting Station, Mundus Stone, etc.).
@@ -145,7 +150,7 @@ Adds a **GPH Search** tab to the Gamepad World Map info panel. Lets you search a
 - **Teleport to Nearest Wayshrine** fast-travels to the closest discovered wayshrine in the same zone as the selected result (or directly to the wayshrine/house if it is one).
 - **Tab memory** — reopening the map returns you to the GPH Search tab if that was the last tab you had open.
 - **Teleport announcement** — after arriving at the destination, a small on-screen message confirms the location name and reminds you to check the map for the destination pin.
-- Full **screen narration** support for gamepad accessibility — reads the name, category, ownership (houses), and discovery/lock status of each result.
+- Full **screen narration** support for gamepad accessibility — reads the name, category, ownership (houses), discovery/lock status, and crafted set details when available.
 
 ---
 
@@ -209,16 +214,18 @@ Shifts the **loot history panel** upward so it does not overlap the chat box. Th
 
 Adds a rich overview panel at the root menu with two columns:
 
-**Left — Quest Details**
+**Left — Quest Details** *(toggle: Quest Panel, default ON — independent of the right panel)*
 - Quest background, active step, tasks, completed tasks, optional steps, and hints.
-- Full **screen narration** support — all sections (tasks, completed, optional, hints) are read aloud on gamepad, not just the quest header.
+- Section order: Hints → Tasks → Optional → Completed.
+- Full **screen narration** support — all sections are read aloud on gamepad.
 
-**Right — Daily Reminders**
-- Horse training availability
-- Crafting research slots and researchable traits/items per craft
-- Surveys and writs counts
-- Antiquities scryable leads with expiration timers
-- Treasure map count
+**Right — Daily Reminders** *(toggle: Overview, default ON)*
+- Each category renders as a titled section with a divider header and icon.
+- **Time** — local and server time (each individually toggleable).
+- **Horse Training** — available notification with individual Speed, Carrying Capacity, and Stamina skill progress.
+- **Maps** — antiquity scryable leads (with expiration timer), treasure maps, and survey maps, each with inline icons.
+- **Crafting** — master writ count, daily writ status per profession (Done / In Progress / Not Done), trait research slots and researchable trait/item counts. Completed writs can be hidden.
+- **Companion** — companion name, XP bar, rapport gradient bar, rapport level and description, and best rapport-gaining daily activities with completion status.
 
 **Daily Crafting Writ Tracker**
 
@@ -231,11 +238,11 @@ When a companion is active, the right panel shows the companion's name, current 
 | Companion | Tracked Activities |
 |---|---|
 | Bastian | Mages Guild Daily |
-| Mirri | Fighters Guild Daily, Ald'ruhn Hunt Daily, Ald'ruhn Relic Daily |
+| Mirri | Fighters Guild Daily, Ashlander Hunt Daily, Ashlander Relic Daily |
 | Ember | Mages Guild Daily, Thieves Guild Heist, High Isle Delve Daily |
 | Isobel | Undaunted Daily, High Isle World Boss Daily |
 | Azandar | Necrom Delve Daily, Enchanter Writ |
-| Sharp-as-Night | Necrom World Boss Daily, Ald'ruhn Hunt Daily, Ald'ruhn Relic Daily |
+| Sharp-as-Night | Necrom World Boss Daily, Ashlander Hunt Daily, Ashlander Relic Daily |
 | Tanlorin | Fighters Guild Daily, Alchemy Writ |
 | Zerith-var | Northern Grahtwood Defence Force Daily, Tales of Tribute Daily |
 
@@ -304,7 +311,6 @@ These are not required to load the addon. Each one unlocks or enhances a specifi
 
 | Library / Addon | What it unlocks |
 |---|---|
-| [BeamMeUp](https://www.esoui.com/downloads/info2143-BeamMeUp-TeleporterFastTravel.html) | Powers the **Teleporter** feature — the world map zone hotkey and the chat "Jump to Player" options both call BeamMeUp to perform the actual travel. Without it the Teleporter feature does nothing. |
 | [TamrielTradeCentre](https://www.esoui.com/downloads/info1245-TamrielTradeCentre.html) | Optional market source for **Tooltip Price**. |
 | [Tamriel Savings Co Price Fetcher / TSC Price Data API](https://tamrielsavings.com/price-fetcher) (`TSCPriceDataAPIXBNA`, `TSCPriceDataAPIPSNA`, `TSCPriceDataAPIXBEU`, `TSCPriceDataAPIPSEU`) | Optional console market data source for **Tooltip Price**. |
 

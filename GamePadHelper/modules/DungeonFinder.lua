@@ -95,7 +95,9 @@ local function OnAddonLoaded(event, name)
     EVENT_MANAGER:UnregisterForEvent("DungeonFinder", EVENT_ADD_ON_LOADED)
     EVENT_MANAGER:RegisterForEvent("DungeonFinder_QuestAdded", EVENT_QUEST_ADDED, InvalidatePledgeQuestList)
     EVENT_MANAGER:RegisterForEvent("DungeonFinder_QuestRemoved", EVENT_QUEST_REMOVED, InvalidatePledgeQuestList)
-    ZO_PreHook(DUNGEON_FINDER_GAMEPAD.entryList, "Commit", ShowPledgeDungeons)
+    if DUNGEON_FINDER_GAMEPAD and DUNGEON_FINDER_GAMEPAD.entryList then
+        ZO_PreHook(DUNGEON_FINDER_GAMEPAD.entryList, "Commit", ShowPledgeDungeons)
+    end
 end
 
 EVENT_MANAGER:RegisterForEvent("DungeonFinder", EVENT_ADD_ON_LOADED, OnAddonLoaded)

@@ -2,7 +2,7 @@ local function UpdateLootHistoryOffset()
     local savedVars = _G["GamePadHelper_SavedVars"]
     if not savedVars then return end
 
-    local offset = savedVars.lootOffset
+    local offset = savedVars.lootOffset or 0
     local mainControl = ZO_LootHistoryControl_Gamepad
     if mainControl then
         mainControl:ClearAnchors()

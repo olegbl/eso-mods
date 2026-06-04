@@ -3,6 +3,24 @@ GPH_Overview.Quest = GPH_Overview.Quest or {}
 
 local Quest = GPH_Overview.Quest
 local activeBulletControls = {}
+local QUEST_HEADER_ICON = "|t48:48:EsoUI/Art/Journal/Gamepad/gp_trackedquesticon.dds|t"
+
+local function AddTitledDividerSection(tooltip, title, iconMarkup)
+  local dividerSection = tooltip:AcquireSection(tooltip:GetStyle("bodyHeader"))
+  local titleText = "|cDAA520" .. title .. "|r"
+  if iconMarkup and iconMarkup ~= "" then
+    titleText = iconMarkup .. " " .. titleText
+  end
+  dividerSection:AddLine(titleText, tooltip:GetStyle("title"))
+  dividerSection:AddTexture(ZO_GAMEPAD_HEADER_DIVIDER_TEXTURE, tooltip:GetStyle("dividerLine"))
+  tooltip:AddSection(dividerSection)
+end
+
+local function AddBlockSpacingSection(tooltip)
+  local spacerSection = tooltip:AcquireSection(tooltip:GetStyle("bodySection"))
+  spacerSection:AddLine(" ", tooltip:GetStyle("bodyDescription"))
+  tooltip:AddSection(spacerSection)
+end
 
 local function EnsureTooltipBulletList(tooltip, key, labelTemplate, secondaryBulletTemplate)
   tooltip.gphBulletLists = tooltip.gphBulletLists or {}
@@ -85,9 +103,7 @@ local function AddQuestStringLine(lines, value)
 end
 
 function ZO_Tooltip:LayoutGPHQuestOverviewTooltip(title, questName, backgroundText, activeStepText, taskLines, completedLines, optionalLines, hintLines)
-  local titleSection = self:AcquireSection(self:GetStyle("bodyHeader"))
-  titleSection:AddLine(title, self:GetStyle("title"))
-  self:AddSection(titleSection)
+  AddTitledDividerSection(self, title, QUEST_HEADER_ICON)
 
   local nameSection = self:AcquireSection(self:GetStyle("bodySection"))
   nameSection:AddLine("|cDAA520" .. questName .. "|r", self:GetStyle("bodyDescription"))
@@ -105,10 +121,11 @@ function ZO_Tooltip:LayoutGPHQuestOverviewTooltip(title, questName, backgroundTe
     self:AddSection(stepSection)
   end
 
-  AddBulletListSection(self, taskLines,      "|cDAA520" .. GetString(SI_GPH_OVERVIEW_TASKS_LABEL)     .. "|r", nil,       "gphTasks")
-  AddBulletListSection(self, completedLines, "|cDAA520" .. GetString(SI_GPH_OVERVIEW_COMPLETED_LABEL) .. "|r", "|c9D9D9D", "gphCompleted", "ZO_QuestJournal_CompletedTaskIcon_Gamepad")
-  AddBulletListSection(self, optionalLines,  "|cDAA520" .. GetString(SI_GPH_OVERVIEW_OPTIONAL_LABEL)  .. "|r", "|cAAAAAA", "gphOptional")
+  AddBlockSpacingSection(self)
   AddBulletListSection(self, hintLines,      "|cDAA520" .. GetString(SI_GPH_OVERVIEW_HINTS_LABEL)     .. "|r", "|cAAAAAA", "gphHints")
+  AddBulletListSection(self, taskLines,      "|cDAA520" .. GetString(SI_GPH_OVERVIEW_TASKS_LABEL)     .. "|r", nil,       "gphTasks")
+  AddBulletListSection(self, optionalLines,  "|cDAA520" .. GetString(SI_GPH_OVERVIEW_OPTIONAL_LABEL)  .. "|r", "|cAAAAAA", "gphOptional")
+  AddBulletListSection(self, completedLines, "|cDAA520" .. GetString(SI_GPH_OVERVIEW_COMPLETED_LABEL) .. "|r", "|c9D9D9D", "gphCompleted", "ZO_QuestJournal_CompletedTaskIcon_Gamepad")
 end
 
 function Quest.HideControls()
@@ -219,7 +236,7 @@ function Quest.ShowLeftTooltip(state)
 
   GAMEPAD_TOOLTIPS:LayoutGPHQuestOverviewTooltip(
     GAMEPAD_LEFT_TOOLTIP,
-    "|c57A64E" .. GetString(SI_GPH_OVERVIEW_QUEST) .. "|r",
+    GetString(SI_GPH_OVERVIEW_QUEST),
     zo_strformat("<<C:1>>", questName or ""),
     backgroundText or "",
     activeStepText or "",

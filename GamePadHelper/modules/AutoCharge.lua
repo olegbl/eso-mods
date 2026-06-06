@@ -13,24 +13,22 @@ local function GetSlotName(equipSlot)
 end
 
 local function FindSoulGem()
-    -- Find the best soul gem in inventory
-    local bestGem = nil
+    -- Find the best (highest-tier) filled soul gem in the backpack.
+    local bestTier = nil
     local bestBagId, bestSlotIndex = nil, nil
 
     local bagId = BAG_BACKPACK
     for slotIndex = 0, GetBagSize(bagId) - 1 do
         local itemLink = GetItemLink(bagId, slotIndex)
-        if itemLink and itemLink ~= "" then
-            local itemType = GetItemLinkItemType(itemLink)
-            if itemType == ITEMTYPE_SOUL_GEM then
-                local soulGemType, gemLevel, isFilledSoulGem = GetSoulGemInfo(bagId, slotIndex)
-                if isFilledSoulGem then
-                    if not bestGem or gemLevel > bestGem then
-                        bestGem = gemLevel
-                        bestBagId = bagId
-                        bestSlotIndex = slotIndex
-                    end
-                end
+        if itemLink and itemLink ~= "" and GetItemLinkItemType(itemLink) == ITEMTYPE_SOUL_GEM then
+            -- GetSoulGemItemInfo takes (bagId, slotIndex) and returns (tier, soulGemType).
+            -- (The old GetSoulGemInfo call is type/level-based and returned name/icon/count,
+            -- so the filled check and "best level" comparison never worked.)
+            local tier, soulGemType = GetSoulGemItemInfo(bagId, slotIndex)
+            if soulGemType == SOUL_GEM_TYPE_FILLED and (not bestTier or tier > bestTier) then
+                bestTier = tier
+                bestBagId = bagId
+                bestSlotIndex = slotIndex
             end
         end
     end

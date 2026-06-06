@@ -47,6 +47,8 @@ end
 
 local function MainLoop()
     if not _G["GamePadHelper_SavedVars"] or not _G["GamePadHelper_SavedVars"].antiquariansEyeEnabled then
+        -- If we swapped the Eye in earlier, restore the player's quickslot when disabled.
+        if eyeIsActive then UnslotEye() end
         return
     end
     if not IsCollectibleBlocked(ANTIQUARIANS_EYE_ID) then

@@ -96,7 +96,8 @@ local zoneQuestCounts = nil
 
 local cityServicesCache = nil  -- { locations=[], tradersByNodeIndex={} }, populated on first use
 local traderGuildMap    = nil  -- trader/guild tooltip data, built with city cache
-local CITY_SCAN_CACHE_VERSION = 14
+local CITY_SCAN_CACHE_VERSION = 15  -- bumped: on-disk cache is now compacted (interned icons, no aliases, rounded coords)
+local CITY_SCAN_BATCH = 12          -- maps scanned per frame during the background (chunked) pre-warm
 local clickableSubMapCache = nil
 local craftingPOIIndex = {}  -- "zoneId:pxKey:pyKey" -> poiIndex, built during PreScan
 
@@ -959,12 +960,20 @@ local function ScanCurrentMapLocations(scan)
     return traderCount
 end
 
-local function ScanCityServices()
+local function ScanCityServices(yielder)
     local originalMapId = GetCurrentMapId and GetCurrentMapId() or nil
     local locations = {}
     local tradersByNodeIndex = {}
     local seenCityMapIds = {}
     local seenLocations = {}
+
+    -- When a yielder is supplied (background pre-warm) the whole-game scan runs in
+    -- small batches, handing control back between frames so it never blows the console
+    -- per-frame execution budget. The map is restored to where it was at the start of
+    -- each batch before yielding, so an open world map never visibly jumps. With no
+    -- yielder this runs straight through exactly like before (synchronous fallback).
+    local batchStartMap = originalMapId
+    local sinceYield = 0
 
     for mapIndex = 1, GetNumMaps() do
         local mapName, mapType, _, zoneIndex = GetMapInfoByIndex(mapIndex)
@@ -1012,6 +1021,16 @@ local function ScanCityServices()
                 end
             end
         end
+
+        if yielder then
+            sinceYield = sinceYield + 1
+            if sinceYield >= CITY_SCAN_BATCH then
+                sinceYield = 0
+                if batchStartMap then SetMapToMapId(batchStartMap) end
+                yielder()
+                batchStartMap = GetCurrentMapId and GetCurrentMapId() or nil
+            end
+        end
     end
 
     for _, subMap in ipairs(GetClickableSubMaps()) do
@@ -1035,11 +1054,92 @@ local function ScanCityServices()
         end
     end
 
-    if originalMapId then SetMapToMapId(originalMapId) end
+    -- Restore the map to where it was at the start of the final batch (= scan start
+    -- for the synchronous path, since batchStartMap is never advanced without a yielder).
+    if batchStartMap then SetMapToMapId(batchStartMap) end
     return {
         locations = locations,
         tradersByNodeIndex = tradersByNodeIndex,
         version = CITY_SCAN_CACHE_VERSION,
+    }
+end
+
+-- --- Saved-cache compaction -------------------------------------------------
+-- The in-memory city cache stays "rich" (every consumer reads it unchanged). Only
+-- the on-disk copy is shrunk to keep the console autosave small: icon paths are
+-- interned into a shared list, the redundant `aliases` string is dropped (it is
+-- rebuilt from npcLines + category on load), and float coords are rounded.
+
+local function RoundCoord(v)
+    if type(v) ~= "number" then return v end
+    return math.floor(v * 10000 + 0.5) / 10000
+end
+
+local function BuildAliasesFromLines(name, category, npcLines)
+    local parts = {}
+    name = name or ""
+    if npcLines then
+        for _, line in ipairs(npcLines) do
+            if line and line ~= "" and line ~= name then parts[#parts + 1] = line end
+        end
+    end
+    if category and category ~= "" and category ~= name then parts[#parts + 1] = category end
+    return table.concat(parts, " ")
+end
+
+local function CompactCityScanForSave(cache)
+    if not cache or not cache.locations then return cache end
+
+    local iconList, iconIndex = {}, {}
+    local function internIcon(icon)
+        icon = icon or ""
+        local idx = iconIndex[icon]
+        if not idx then
+            iconList[#iconList + 1] = icon
+            idx = #iconList
+            iconIndex[icon] = idx
+        end
+        return idx
+    end
+
+    local outLocations = {}
+    for i = 1, #cache.locations do
+        local loc = cache.locations[i]
+        local copy = {}
+        for k, v in pairs(loc) do copy[k] = v end
+        copy.aliases = nil                          -- rebuilt on load
+        copy.icon = internIcon(loc.icon)            -- index into iconList
+        copy.destinationX = RoundCoord(loc.destinationX)
+        copy.destinationY = RoundCoord(loc.destinationY)
+        outLocations[i] = copy
+    end
+
+    return {
+        version = cache.version or CITY_SCAN_CACHE_VERSION,
+        locations = outLocations,
+        tradersByNodeIndex = cache.tradersByNodeIndex,
+        icons = iconList,
+    }
+end
+
+local function RehydrateCityScan(saved)
+    if not saved or not saved.locations then return nil end
+    local iconList = saved.icons or {}
+    local outLocations = {}
+    for i = 1, #saved.locations do
+        local loc = saved.locations[i]
+        local copy = {}
+        for k, v in pairs(loc) do copy[k] = v end
+        if type(copy.icon) == "number" then
+            copy.icon = iconList[copy.icon] or ""
+        end
+        copy.aliases = BuildAliasesFromLines(copy.name, copy.category, copy.npcLines)
+        outLocations[i] = copy
+    end
+    return {
+        version = saved.version or CITY_SCAN_CACHE_VERSION,
+        locations = outLocations,
+        tradersByNodeIndex = saved.tradersByNodeIndex,
     }
 end
 
@@ -1049,7 +1149,7 @@ local function LoadCityScanFromSavedVars()
         and mapData.cityScanCache.version == CITY_SCAN_CACHE_VERSION
         and mapData.cityScanCache.locations
         and mapData.cityScanCache.tradersByNodeIndex then
-        cityServicesCache = mapData.cityScanCache
+        cityServicesCache = RehydrateCityScan(mapData.cityScanCache)
     end
 end
 
@@ -1130,7 +1230,7 @@ local function GetCityServices()
         or not cityServicesCache.tradersByNodeIndex then
         cityServicesCache = ScanCityServices()
         if not _G["GamePadHelperMapData"] then _G["GamePadHelperMapData"] = {} end
-        _G["GamePadHelperMapData"].cityScanCache = cityServicesCache
+        _G["GamePadHelperMapData"].cityScanCache = CompactCityScanForSave(cityServicesCache)
     end
     if not traderGuildMap then
         traderGuildMap = BuildTraderOwnershipLookup()
@@ -1141,6 +1241,59 @@ end
 local function GetTraderOwnershipLookup()
     if not traderGuildMap then GetCityServices() end
     return traderGuildMap
+end
+
+local SCAN_PREWARM_UPDATE = "GamePadHelper_CityScanPrewarm"
+local cityScanPrewarmActive = false
+
+local function IsCityCacheReady()
+    return cityServicesCache
+        and cityServicesCache.version == CITY_SCAN_CACHE_VERSION
+        and cityServicesCache.locations
+        and cityServicesCache.tradersByNodeIndex
+end
+
+-- Build the city-services cache in the background, a few maps per frame, instead of
+-- one big synchronous scan. GetCityServices() still has the synchronous scan as a
+-- fallback, so a search that arrives before this finishes is never blocked.
+local function StartCityScanPrewarm(onComplete)
+    if cityScanPrewarmActive then return end
+    if IsCityCacheReady() then
+        if onComplete then onComplete() end
+        return
+    end
+
+    cityScanPrewarmActive = true
+    local co = coroutine.create(function()
+        return ScanCityServices(coroutine.yield)
+    end)
+
+    EVENT_MANAGER:RegisterForUpdate(SCAN_PREWARM_UPDATE, 0, function()
+        -- Something else (e.g. a search forcing a synchronous scan) finished first.
+        if IsCityCacheReady() then
+            EVENT_MANAGER:UnregisterForUpdate(SCAN_PREWARM_UPDATE)
+            cityScanPrewarmActive = false
+            return
+        end
+
+        local ok, result = coroutine.resume(co)
+        if not ok then
+            -- Scan errored: stop quietly; a later search falls back to a sync scan.
+            EVENT_MANAGER:UnregisterForUpdate(SCAN_PREWARM_UPDATE)
+            cityScanPrewarmActive = false
+            return
+        end
+
+        if coroutine.status(co) == "dead" then
+            EVENT_MANAGER:UnregisterForUpdate(SCAN_PREWARM_UPDATE)
+            cityScanPrewarmActive = false
+            cityServicesCache = result
+            if not _G["GamePadHelperMapData"] then _G["GamePadHelperMapData"] = {} end
+            _G["GamePadHelperMapData"].cityScanCache = CompactCityScanForSave(result)
+            traderGuildMap = BuildTraderOwnershipLookup()
+            if onComplete then onComplete() end
+        end
+    end)
 end
 
 local function GetOwnedGuildNamesForCandidate(c)
@@ -2740,9 +2893,19 @@ local function OnAddonLoaded(_, name)
         EVENT_MANAGER:UnregisterForEvent("MapSearch_PreScan", EVENT_PLAYER_ACTIVATED)
         if not scannedData then PreScan() end
         LoadCityScanFromSavedVars()
-        zo_callLater(function()
-            if not candidates then candidates = BuildCandidates() end
-        end, 3000)
+        if cityServicesCache then
+            -- Valid cache loaded from disk; just build the candidate list shortly.
+            zo_callLater(function()
+                if not candidates then candidates = BuildCandidates() end
+            end, 3000)
+        else
+            -- No saved cache (fresh account or version bump): build it in the
+            -- background (chunked) to stay under the console per-frame budget,
+            -- then build candidates from the ready cache.
+            StartCityScanPrewarm(function()
+                candidates = BuildCandidates()
+            end)
+        end
     end)
 
     EVENT_MANAGER:RegisterForEvent("MapSearch_RecallNodeReset", EVENT_PLAYER_ACTIVATED, function()
@@ -3008,7 +3171,10 @@ _G["GamePadHelper_ClearCityCache"] = function()
     local mapData = _G["GamePadHelperMapData"]
     if mapData then mapData.cityScanCache = nil end
     zo_callLater(function()
-        if not candidates then candidates = BuildCandidates() end
+        -- Rebuild the cache in the background, then refresh the candidate list.
+        StartCityScanPrewarm(function()
+            candidates = BuildCandidates()
+        end)
     end, 500)
 end
 

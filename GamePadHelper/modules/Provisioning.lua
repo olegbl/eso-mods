@@ -25,37 +25,36 @@ local function HideRecipes(recipeList)
         end
     end
 
-    -- Pass 2: remove entries in reverse to preserve indices
-    for i = recipeList:GetNumEntries(), 1, -1 do
-        if toRemove[i] then
-            local template = recipeList.templateList[i]
-            local recipeData = recipeList.dataList[i]
-            recipeList:RemoveEntry(template, recipeData)
+    local n = recipeList:GetNumEntries()
+
+    -- Pass 2: preserve category headings. The game attaches each group's header to
+    -- that group's first entry (data.header set, *WithHeader template). If that entry
+    -- is being removed, hand its header to the first surviving member of the SAME group
+    -- so the heading isn't lost. A forward pass with a "pending" header keeps the right
+    -- heading even when several whole groups are removed back-to-back.
+    -- (Identifying headers by data.header rather than a template-name literal is what
+    -- makes this work — the real template is "ZO_Provisioner_..." not the generic name.)
+    local pendingHeader, pendingTemplate = nil, nil
+    for i = 1, n do
+        local data = recipeList.dataList[i]
+        if data and data.header then
+            if toRemove[i] then
+                pendingHeader = data.header
+                pendingTemplate = recipeList.templateList[i]
+            else
+                pendingHeader, pendingTemplate = nil, nil
+            end
+        elseif data and not toRemove[i] and pendingHeader then
+            data.header = pendingHeader
+            recipeList.templateList[i] = pendingTemplate
+            pendingHeader, pendingTemplate = nil, nil
         end
     end
 
-    -- Pass 3: remove orphaned headers (header with no visible entries before next header or end of list)
-    local i = 1
-    while i <= recipeList:GetNumEntries() do
-        local template = recipeList.templateList[i]
-        if template == "ZO_GamepadItemSubEntryTemplateWithHeader" then
-            if i == recipeList:GetNumEntries() then
-                -- Last entry is a header with no following content
-                local recipeData = recipeList.dataList[i]
-                recipeList:RemoveEntry(template, recipeData)
-            else
-                local nextData = recipeList.dataList[i + 1]
-                local nextTemplate = recipeList.templateList[i + 1]
-                -- Check if next entry is also a header → this one has no visible content
-                if nextData and nextData.header and nextTemplate == "ZO_GamepadItemSubEntryTemplateWithHeader" then
-                    local recipeData = recipeList.dataList[i]
-                    recipeList:RemoveEntry(template, recipeData)
-                else
-                    i = i + 1
-                end
-            end
-        else
-            i = i + 1
+    -- Pass 3: remove marked entries in reverse so earlier indices stay valid
+    for i = n, 1, -1 do
+        if toRemove[i] then
+            recipeList:RemoveEntry(recipeList.templateList[i], recipeList.dataList[i])
         end
     end
 

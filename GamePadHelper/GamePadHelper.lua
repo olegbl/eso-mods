@@ -55,7 +55,6 @@ local defaults = {
     tooltipFontEnabled = true,
     tooltipEnchantmentEnabled = true,
     lastAnnouncedVersion = 0,
-    overviewDebug = {},
 }
 _G["GamePadHelper_Defaults"] = defaults
 

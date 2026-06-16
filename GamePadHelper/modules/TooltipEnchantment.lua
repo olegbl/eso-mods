@@ -11,7 +11,6 @@ local function Tooltip_AddEnchant_Before(self, itemLink, enchantDiffMode, equipS
 
     if hasEnchant and LibItemLinkDecoder then
         local decodedItemLink = LibItemLinkDecoder:Decode(itemLink)
-        local quality = decodedItemLink.enchantQuality
         local qualityColor = GetItemQualityColor(decodedItemLink.enchantQuality)
 
         local headerText = qualityColor:Colorize(enchantHeader)
@@ -23,11 +22,6 @@ local function Tooltip_AddEnchant_Before(self, itemLink, enchantDiffMode, equipS
             COLOR_WHITE:Colorize(tostring(decodedItemLink.enchantChampionLevel > 0 and decodedItemLink.enchantChampionLevel or decodedItemLink.enchantLevel))
         )
 
-        local bodyColor =
-            enchantDiffMode == ZO_ENCHANT_DIFF_ADD and GAMEPAD_TOOLTIP_COLOR_ABILITY_UPGRADE or
-            enchantDiffMode == ZO_ENCHANT_DIFF_REMOVE and GAMEPAD_TOOLTIP_COLOR_FAILED or
-            IsItemAffectedByPairedPoison(equipSlot) and GAMEPAD_TOOLTIP_COLOR_INACTIVE or
-            GENERAL_COLOR_OFF_WHITE
         local bodyText = enchantDescription:gsub("\n\n", " "):gsub("\n", " ")
 
         if enchantDiffMode == ZO_ENCHANT_DIFF_NONE and IsItemAffectedByPairedPoison(equipSlot) then

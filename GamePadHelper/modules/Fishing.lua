@@ -50,10 +50,24 @@ AddFishingHoleName("River Fishing Hole",     RIVER_HOLE)
 
 local setBait = true
 
+local function CountItemInBag(bagId, itemId)
+    local total = 0
+    for slotIndex = 0, GetBagSize(bagId) - 1 do
+        if GetItemId(bagId, slotIndex) == itemId then
+            total = total + GetSlotStackSize(bagId, slotIndex)
+        end
+    end
+    return total
+end
+
+-- GetItemInfo takes a slot index, not an item id, so the old lookup read the
+-- wrong slots and never returned a real bait count.
 local function GetItemQuantity(itemId)
-    local _, qnt  = GetItemInfo(BAG_VIRTUAL, itemId)
-    local _, qnt2 = GetItemInfo(BAG_BACKPACK, itemId)
-    if HasCraftBagAccess() then return (qnt + qnt2) else return qnt2 end
+    local total = CountItemInBag(BAG_BACKPACK, itemId)
+    if HasCraftBagAccess() then
+        total = total + CountItemInBag(BAG_VIRTUAL, itemId)
+    end
+    return total
 end
 
 local function SelectFishingBait(interactableName)

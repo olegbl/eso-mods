@@ -6,9 +6,13 @@ local showLowLevelFilter = {
     filterTooltip = GetString(SI_GPH_PROVISIONING_HIDE_LOW_LEVEL_TOOLTIP),
 }
 
+local function IsHideLowLevelEnabled()
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    return sv and sv.showLowLevelRecipes == true
+end
+
 local function HideRecipes(recipeList)
-    local sv = _G["GamePadHelper_SavedVars"]
-    if not sv or not sv.showLowLevelRecipes then
+    if not IsHideLowLevelEnabled() then
         return false
     end
 
@@ -62,43 +66,58 @@ local function HideRecipes(recipeList)
     return false
 end
 
-local function AddCustomOptions(dialog, dialogData)
-    local sv = _G["GamePadHelper_SavedVars"]
-    showLowLevelFilter.checked = sv and sv.showLowLevelRecipes
-    table.insert(dialogData.filters, showLowLevelFilter)
-end
+local function ToggleHideLowLevelRecipes()
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if not sv then
+        return
+    end
 
-local function SaveOptions()
-    local sv = _G["GamePadHelper_SavedVars"]
-    if not sv then return end
-    if sv.showLowLevelRecipes ~= showLowLevelFilter.checked then
-        sv.showLowLevelRecipes = showLowLevelFilter.checked
+    sv.showLowLevelRecipes = not sv.showLowLevelRecipes
+
+    if GAMEPAD_PROVISIONER then
         GAMEPAD_PROVISIONER:DirtyRecipeList()
+        if GAMEPAD_PROVISIONER.mainKeybindStripDescriptor then
+            KEYBIND_STRIP:UpdateKeybindButtonGroup(GAMEPAD_PROVISIONER.mainKeybindStripDescriptor)
+        end
     end
 end
 
-local function HookOptions()
-    if not GAMEPAD_PROVISIONER.craftingOptionsDialogGamepad then
-        GAMEPAD_PROVISIONER.craftingOptionsDialogGamepad = ZO_CraftingOptionsDialogGamepad:New()
-        ZO_PreHook(GAMEPAD_PROVISIONER.craftingOptionsDialogGamepad, "ShowOptionsDialog", AddCustomOptions)
+local function HookProvisioningKeybind()
+    if not GAMEPAD_PROVISIONER or not GAMEPAD_PROVISIONER.mainKeybindStripDescriptor or GAMEPAD_PROVISIONER.gphLowLevelKeybindAdded then
+        return
     end
+
+    table.insert(GAMEPAD_PROVISIONER.mainKeybindStripDescriptor,
+    {
+        name = function()
+            if IsHideLowLevelEnabled() then
+                return GetString(SI_GPH_PROVISIONING_SHOW_LOW_LEVEL)
+            end
+            return GetString(SI_GPH_PROVISIONING_HIDE_LOW_LEVEL)
+        end,
+        keybind = "UI_SHORTCUT_QUINARY",
+        gamepadOrder = 1015,
+        visible = function()
+            return GAMEPAD_PROVISIONER_CREATION_SCENE and GAMEPAD_PROVISIONER_CREATION_SCENE:IsShowing()
+                and not ZO_CraftingUtils_IsPerformingCraftProcess()
+        end,
+        callback = function()
+            ToggleHideLowLevelRecipes()
+        end,
+    })
+
+    GAMEPAD_PROVISIONER.gphLowLevelKeybindAdded = true
 end
 
 local function OnAddonLoaded(event, name)
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("Provisioning", EVENT_ADD_ON_LOADED)
 
-    local sv = _G["GamePadHelper_SavedVars"]
-    if sv then
-        showLowLevelFilter.checked = sv.showLowLevelRecipes
-    end
-
     if GAMEPAD_PROVISIONER then
+        HookProvisioningKeybind()
         if GAMEPAD_PROVISIONER.recipeList then
             ZO_PreHook(GAMEPAD_PROVISIONER.recipeList, "Commit", HideRecipes)
         end
-        ZO_PostHook(GAMEPAD_PROVISIONER, "SaveFilters", SaveOptions)
-        ZO_PreHook(GAMEPAD_PROVISIONER, "ShowOptionsMenu", HookOptions)
     end
 end
 

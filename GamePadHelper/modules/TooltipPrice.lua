@@ -1,4 +1,4 @@
-
+﻿
 local COLOR_GAME = ZO_ColorDef:New("FFFFFF")
 local COLOR_TTC = ZO_ColorDef:New("EECA2A")
 
@@ -10,7 +10,9 @@ local AMOUNT_ICON = zo_iconFormatInheritColor("/esoui/art/inventory/gamepad/gp_i
 
 local cachedTscApi = nil
 local PRICE_CACHE_TTL_MS = 60000
+local PRICE_CACHE_MAX_ENTRIES = 500
 local priceInfoCache = {}
+local priceCacheCount = 0
 
 local SUPPRESS_EXTERNAL_PRICE_PATTERNS = {
     "tsc",
@@ -46,7 +48,7 @@ end
 
 local function GetTSCApi()
     if cachedTscApi ~= nil then
-        return cachedTscApi or nil
+        return cachedTscApi
     end
 
     local function SafeGetGlobal(name)
@@ -186,6 +188,13 @@ local function SafeGetPriceInfo(itemLink)
         end
 
         value = value or {}
+        if not priceInfoCache[itemLink] then
+            priceCacheCount = priceCacheCount + 1
+            if priceCacheCount > PRICE_CACHE_MAX_ENTRIES then
+                priceInfoCache = {}
+                priceCacheCount = 1
+            end
+        end
         priceInfoCache[itemLink] = { value = value, timeMs = nowMs }
         return value
 end
@@ -299,7 +308,7 @@ local function FindLootValueByItemLink(itemLink)
 end
 
 local function Tooltip_LayoutItemWithStackCount_Before(self, itemLink, equipped, creatorName, forceFullDurability, previewValueToAdd, stackCount)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPriceEnabled then return end
 
     self.__gph_priceAdded = nil
@@ -311,7 +320,7 @@ local function Tooltip_LayoutItemWithStackCount_Before(self, itemLink, equipped,
 end
 
 local function Tooltip_LayoutBagItem_Before(self, bagId, slotIndex, showCombinedCount, extraData)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPriceEnabled then return end
     self.__gph_priceAdded = nil
     lastItemLink = GetItemLink(bagId, slotIndex)
@@ -322,7 +331,7 @@ local function Tooltip_LayoutBagItem_Before(self, bagId, slotIndex, showCombined
 end
 
 local function Tooltip_AddItemTitle_After(self, itemLink, name)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPriceEnabled then return end
     self.__gph_priceAdded = nil
     local stackSize = itemLink == lastItemLink and lastStackSize or 1
@@ -427,7 +436,7 @@ local function Tooltip_AddItemTitle_After(self, itemLink, name)
 end
 
 local function Tooltip_AddItemValue_Before(self, itemLink)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPriceEnabled then return end
     -- Only suppress ESO's default value line when we've already added our own.
     -- If we couldn't determine a price (e.g. stolen items with 0 merchant value),
@@ -449,7 +458,7 @@ local function ShouldSuppressExternalPriceLine(lineText)
 end
 
 local function Tooltip_AddLine_Before(self, lineText)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPriceEnabled then return end
     if ShouldSuppressExternalPriceLine(lineText) then
         return true
@@ -457,7 +466,7 @@ local function Tooltip_AddLine_Before(self, lineText)
 end
 
 local function TooltipSection_AddLine_Before(self, lineText)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPriceEnabled then return end
     if ShouldSuppressExternalPriceLine(lineText) then
         return true
@@ -698,7 +707,7 @@ end
 
 local function AddCraftingPriceTooltip(hookObject, toolTipControl, functionName, getItemLinkFunction, getMaterialCostFunction)
     ZO_PreHook(hookObject, functionName, function(...)
-        local sv = _G["GamePadHelper_SavedVars"]
+        local sv = _G["GamePadHelper_CharSavedVars"]
         if not sv or not sv.tooltipPriceEnabled then return end
         if not IsInGamepadPreferredMode() then return end
         local actualTooltipControl = toolTipControl
@@ -713,7 +722,7 @@ local function AddCraftingPriceTooltip(hookObject, toolTipControl, functionName,
     end)
 
     SecurePostHook(hookObject, functionName, function(...)
-        local sv = _G["GamePadHelper_SavedVars"]
+        local sv = _G["GamePadHelper_CharSavedVars"]
         if not sv or not sv.tooltipPriceEnabled then return end
         if not IsInGamepadPreferredMode() then return end
         local actualTooltipControl = toolTipControl
@@ -1012,12 +1021,3 @@ for _, sceneName in ipairs(craftingScenes) do
     end
 end
 
--- Try to register for main menu gamepad scene
-local mainMenuScene = SCENE_MANAGER:GetScene("mainMenuGamepad")
-if mainMenuScene then
-    mainMenuScene:RegisterCallback("StateChange", function(scene, oldState, newState)
-        if newState == SCENE_SHOWING then
-            InitializeCraftingHooks()
-        end
-    end)
-end

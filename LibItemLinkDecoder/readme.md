@@ -2,6 +2,8 @@
 
 [https://github.com/olegbl/eso-mods/tree/main/LibItemLinkDecoder](https://github.com/olegbl/eso-mods/tree/main/LibItemLinkDecoder)
 
+Authors: olegbl, quelron
+
 ## Description
 
 Given an item link, decodes it and converts it into an object that allows easy manipulation of various item link properties.

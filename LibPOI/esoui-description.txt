@@ -1,0 +1,42 @@
+[CENTER][SIZE="5"][COLOR="#3399FF"][B]LibPOI[/B][/COLOR][/SIZE]
+[B]Version 1.02[/B] | API 101032 | by olegbl[/CENTER]
+
+[CENTER]A helper library for Elder Scrolls Online that provides structured information for points of interest, including category, completion state, and descriptive details.[/CENTER]
+
+[SIZE="4"][COLOR="#3399FF"][B]What It Does[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Converts a zone POI into a category object with icon data.
+[*]Returns whether a POI is complete.
+[*]Returns descriptive text for a POI.
+[*]Includes extra description support for special POIs such as Mundus Stones and Crafting Stations.
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]API[/B][/COLOR][/SIZE]
+
+[CODE]
+local poiCategories = LibPOI:GetPOICategories()
+local poiCategory = LibPOI:GetPOICategory(zoneIndex, poiIndex)
+local isComplete = LibPOI:IsComplete(zoneIndex, poiIndex)
+local description = LibPOI:GetDescription(zoneIndex, poiIndex)
+
+poiCategory.id
+poiCategory.categoryName
+poiCategory.completeIcons[1]
+poiCategory.incompleteIcons[1]
+[/CODE]
+
+[SIZE="4"][COLOR="#3399FF"][B]Use Cases[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Map search addons
+[*]POI categorization
+[*]Crafting station and Mundus Stone detail lookups
+[*]Zone exploration helpers
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]Support[/B][/COLOR][/SIZE]
+
+This library is provided as-is, without warranty or support of any kind, express or implied.
+
+[URL="https://github.com/olegbl/eso-mods/tree/main/LibPOI"]LibPOI GitHub Repository[/URL]

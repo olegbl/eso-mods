@@ -1,8 +1,14 @@
-local ADDON_NAME = "LibMultiIcon"
-local ADDON_VERSION = 1.02
+﻿local ADDON_NAME = "LibMultiIcon"
+local ADDON_VERSION = 1.04
 
 -- Ensure ESO API compatibility
-if GetAPIVersion() < 101047 then return end
+if GetAPIVersion() >= 101049 then
+    EVENT_MANAGER:RegisterForEvent(ADDON_NAME .. "_Deprecated", EVENT_PLAYER_ACTIVATED, function()
+        EVENT_MANAGER:UnregisterForEvent(ADDON_NAME .. "_Deprecated", EVENT_PLAYER_ACTIVATED)
+        CHAT_SYSTEM:AddMessage("[LibMultiIcon] This library is deprecated and must not be enabled anymore! Please disable/delete it from your addons.")
+    end)
+    return
+end
 
 LibMultiIcon = {}
 
@@ -33,14 +39,40 @@ local function SetTexture(self, texture)
   end
 end
 
+local function ClearIcons(self)
+  self:Hide()
+  self.activeTexture = nil
+  if self.iconData ~= nil then
+    ZO_ClearNumericallyIndexedTable(self.iconData)
+  end
+  self.SetTextureWithoutColor(self, "")
+end
+
 local function RemoveIcon(self, iconTexture)
-  if self.iconTextures then
-    local previousIconTextures = self.iconTextures
-    self.iconTextures = {}
-    for _, texture in ipairs(previousIconTextures) do
-      if texture ~= iconTexture then
-        table.insert(self.iconTextures, texture)
+  local removedActiveTexture = self.activeTexture == iconTexture
+  if self.iconData then
+    local previousIconData = self.iconData
+    self.iconData = {}
+    for _, iconData in ipairs(previousIconData) do
+      if iconData.iconTexture ~= iconTexture then
+        table.insert(self.iconData, iconData)
       end
+    end
+  end
+
+  if removedActiveTexture then
+    local nextIconData = self.iconData and self.iconData[1] or nil
+    local nextTexture = nextIconData and nextIconData.iconTexture or nil
+    self.activeTexture = nextTexture
+    if nextTexture ~= nil then
+      self:SetTexture(nextTexture)
+      if nextIconData.iconTint ~= nil then
+        self:SetColor(nextIconData.iconTint:UnpackRGBA())
+      else
+        self:SetColor(1, 1, 1, 1)
+      end
+    else
+      self:SetTextureWithoutColor(self, "")
     end
   end
 end
@@ -70,6 +102,7 @@ local function MultiIcon_Initialize_After(self)
     self.SetColorWithoutIconColor = self.SetColor
     self.SetColor = SetColor
   end
+  self.ClearIcons = ClearIcons
   self.RemoveIcon = RemoveIcon
   self.SetIconColor = SetIconColor
   self.RemoveIconColor = RemoveIconColor

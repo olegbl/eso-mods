@@ -2,6 +2,8 @@
 
 [https://github.com/olegbl/eso-mods/tree/main/LibTraitResearch](https://github.com/olegbl/eso-mods/tree/main/LibTraitResearch)
 
+Authors: olegbl, quelron
+
 ## Description
 
 Given an item link, exposes information about the researchability of a trait on that item, including information about other items with the same trait available in various bags that the character has access to. Does not consider other characters in account.

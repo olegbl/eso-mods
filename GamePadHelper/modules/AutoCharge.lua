@@ -1,4 +1,4 @@
-local function GetSlotName(equipSlot)
+﻿local function GetSlotName(equipSlot)
     if equipSlot == EQUIP_SLOT_MAIN_HAND then
         return GetString(SI_GPH_AUTOCHARGE_MAIN_HAND)
     elseif equipSlot == EQUIP_SLOT_OFF_HAND then
@@ -12,30 +12,18 @@ local function GetSlotName(equipSlot)
     end
 end
 
-local function FindSoulGem()
-    -- Find the best soul gem in inventory
-    local bestGem = nil
-    local bestBagId, bestSlotIndex = nil, nil
+local function IsFilledSoulGem(bagId, slotIndex)
+    return IsItemSoulGem(SOUL_GEM_TYPE_FILLED, bagId, slotIndex)
+end
 
+local function FindSoulGem()
     local bagId = BAG_BACKPACK
     for slotIndex = 0, GetBagSize(bagId) - 1 do
-        local itemLink = GetItemLink(bagId, slotIndex)
-        if itemLink and itemLink ~= "" then
-            local itemType = GetItemLinkItemType(itemLink)
-            if itemType == ITEMTYPE_SOUL_GEM then
-                local soulGemType, gemLevel, isFilledSoulGem = GetSoulGemInfo(bagId, slotIndex)
-                if isFilledSoulGem then
-                    if not bestGem or gemLevel > bestGem then
-                        bestGem = gemLevel
-                        bestBagId = bagId
-                        bestSlotIndex = slotIndex
-                    end
-                end
-            end
+        if IsFilledSoulGem(bagId, slotIndex) and not IsItemFromCrownStore(bagId, slotIndex) then
+            return bagId, slotIndex
         end
     end
-
-    return bestBagId, bestSlotIndex
+    return nil, nil
 end
 
 local WEAPON_SLOTS = {
@@ -45,9 +33,18 @@ local WEAPON_SLOTS = {
     EQUIP_SLOT_BACKUP_OFF,
 }
 
+local WEAPON_SLOT_LOOKUP = {
+    [EQUIP_SLOT_MAIN_HAND] = true,
+    [EQUIP_SLOT_OFF_HAND] = true,
+    [EQUIP_SLOT_BACKUP_MAIN] = true,
+    [EQUIP_SLOT_BACKUP_OFF] = true,
+}
+
+local autoChargeQueued = false
+
 local function AutoCharge()
-    local savedVars = _G["GamePadHelper_SavedVars"]
-    if not savedVars or not savedVars.autoChargeEnabled then
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if not sv or not sv.autoChargeEnabled then
         return
     end
 
@@ -55,7 +52,7 @@ local function AutoCharge()
         local charges, maxCharges = GetChargeInfoForItem(BAG_WORN, equipSlot)
         if charges and maxCharges and maxCharges > 0 then
             local chargePercentage = (charges / maxCharges) * 100
-            local threshold = savedVars.autoChargeThreshold or 25
+            local threshold = sv.autoChargeThreshold or 25
             if chargePercentage < threshold then
                 local gemBagId, gemSlotIndex = FindSoulGem()
                 if gemBagId and gemSlotIndex then
@@ -74,10 +71,31 @@ local function AutoCharge()
     end
 end
 
-local function OnCombatStateChanged(event, inCombat)
-    -- Check for weapon charge when leaving combat
-    if not inCombat then
-        zo_callLater(AutoCharge, 1000)
+local function QueueAutoCharge()
+    if autoChargeQueued then
+        return
+    end
+
+    autoChargeQueued = true
+    zo_callLater(function()
+        autoChargeQueued = false
+        AutoCharge()
+    end, 0)
+end
+
+local function OnCombatStateChanged()
+    QueueAutoCharge()
+end
+
+local function OnActiveWeaponPairChanged()
+    QueueAutoCharge()
+end
+
+local function OnInventorySingleSlotUpdate(event, bagId, slotIndex)
+    if bagId == BAG_WORN and WEAPON_SLOT_LOOKUP[slotIndex] then
+        QueueAutoCharge()
+    elseif bagId == BAG_BACKPACK and IsFilledSoulGem(bagId, slotIndex) then
+        QueueAutoCharge()
     end
 end
 
@@ -85,6 +103,9 @@ local function OnAddonLoaded(event, name)
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("AutoCharge", EVENT_ADD_ON_LOADED)
     EVENT_MANAGER:RegisterForEvent("AutoCharge", EVENT_PLAYER_COMBAT_STATE, OnCombatStateChanged)
+    EVENT_MANAGER:RegisterForEvent("AutoCharge", EVENT_ACTIVE_WEAPON_PAIR_CHANGED, OnActiveWeaponPairChanged)
+    EVENT_MANAGER:RegisterForEvent("AutoCharge", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, OnInventorySingleSlotUpdate)
+    QueueAutoCharge()
 end
 
 EVENT_MANAGER:RegisterForEvent("AutoCharge", EVENT_ADD_ON_LOADED, OnAddonLoaded)

@@ -1,0 +1,13 @@
+LibTraitResearch is a helper library for Elder Scrolls Online that exposes research-trait state for an item link, including duplicate counts across accessible bags.
+
+It can:
+- detect whether an item's trait can currently be researched
+- return the overall icon color for that trait
+- return duplicate counts split between local bags and remote bags
+- distinguish inventory-accessible duplicates from bank-accessible duplicates
+
+Example API:
+- LibTraitResearch:GetItemLinkTraitResearchState(itemLink)
+- LibTraitResearch:Update()
+
+This library is intended for addon authors and is provided as-is.

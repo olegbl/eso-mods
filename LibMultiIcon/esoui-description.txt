@@ -1,0 +1,48 @@
+﻿[CENTER][SIZE="5"][COLOR="#3399FF"][B]LibMultiIcon[/B][/COLOR][/SIZE]
+[B]Version 1.04[/B] | API 101049 | by olegbl[/CENTER]
+
+[CENTER][COLOR="#FF6600"][B]⚠ This library is no longer actively developed. It will not be updated beyond API 101049.[/B][/COLOR][/CENTER]
+
+[CENTER]A small helper library for Elder Scrolls Online that extends [B]ZO_MultiIcon[/B] controls with per-icon colors and icon removal helpers.[/CENTER]
+
+[SIZE="4"][COLOR="#3399FF"][B]What It Does[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Adds per-icon tint support to [B]ZO_MultiIcon[/B] instances instead of sharing one color across all icons.
+[*]Adds helper methods directly to initialized multi-icon controls:
+[LIST]
+[*][B]SetIconColor(texture, r, g, b, a)[/B]
+[*][B]RemoveIconColor(texture)[/B]
+[*][B]RemoveIcon(texture)[/B]
+[/LIST]
+[*]Keeps icon tint stable even when ESO's icon animation swaps textures during multi-icon cycling.
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.03[/B][/COLOR][/SIZE]
+
+[LIST]
+[*][B]Updated for current ESO internals[/B] - icon removal now works with the modern [B]ZO_MultiIcon[/B] [B]iconData[/B] structure.
+[*][B]Active icon switching fix[/B] - removing the currently displayed icon now immediately switches to the next remaining icon.
+[*][B]Clear reset fix[/B] - clearing icons now also resets the active texture so reused controls do not keep stale icons.
+[*][B]Safe empty clear[/B] - texture clearing now uses an empty string instead of nil to avoid texture-set errors.
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]Example API[/B][/COLOR][/SIZE]
+
+[CODE]
+local multiIcon = control:GetNamedChild("TestMultiIcon")
+
+if not multiIcon:HasIcon(subIcon) then
+  multiIcon:Hide()
+  multiIcon:AddIcon(subIcon)
+  multiIcon:Show()
+end
+
+multiIcon:SetIconColor(subIcon, COLOR_OF_SUB_ICON:UnpackRGBA())
+[/CODE]
+
+[SIZE="4"][COLOR="#3399FF"][B]Support[/B][/COLOR][/SIZE]
+
+This library is provided as-is, without warranty or support of any kind, express or implied.
+
+[URL="https://github.com/olegbl/eso-mods/tree/main/LibMultiIcon"]LibMultiIcon GitHub Repository[/URL]

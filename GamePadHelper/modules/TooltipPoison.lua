@@ -1,5 +1,7 @@
-﻿local function Tooltip_AddPoisonInfo_Before(self, itemLink, equipSlot)
-    local sv = _G["GamePadHelper_SavedVars"]
+﻿local Utils = _G["GamePadHelper_Utils"]
+
+local function Tooltip_AddPoisonInfo_Before(self, itemLink, equipSlot)
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.tooltipPoisonEnabled then return end
     local hasPoison, poisonCount, poisonHeader, poisonItemLink = GetItemPairedPoisonInfo(equipSlot)
     if hasPoison then
@@ -28,19 +30,8 @@
     return true
 end
 
-local tooltips = {
-    GAMEPAD_LEFT_DIALOG_TOOLTIP,
-    GAMEPAD_LEFT_TOOLTIP,
-    GAMEPAD_MOVABLE_TOOLTIP,
-    GAMEPAD_QUAD1_TOOLTIP,
-    GAMEPAD_QUAD3_TOOLTIP,
-    GAMEPAD_RIGHT_TOOLTIP
-}
-
 EVENT_MANAGER:RegisterForEvent("TooltipPoison", EVENT_ADD_ON_LOADED, function(_, name)
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("TooltipPoison", EVENT_ADD_ON_LOADED)
-    for _, tooltip in ipairs(tooltips) do
-        ZO_PreHook(GAMEPAD_TOOLTIPS:GetTooltip(tooltip), "AddPoisonInfo", Tooltip_AddPoisonInfo_Before)
-    end
+    Utils.HookAllGamepadTooltips("pre", "AddPoisonInfo", Tooltip_AddPoisonInfo_Before)
 end)

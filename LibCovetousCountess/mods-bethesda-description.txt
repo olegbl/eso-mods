@@ -1,0 +1,28 @@
+LibCovetousCountess is a helper library for Elder Scrolls Online that determines whether a treasure item is useful for The Covetous Countess quest and whether it belongs to the Bursar of Tributes / Crow tribute groups.
+
+Authors: olegbl, quelron
+
+It can:
+- check whether a treasure is useful for the currently active quest step
+- check whether a treasure is useful for any Covetous Countess quest step
+- report Bursar / Crow treasure groups such as leisure, tributes, and respect
+- check whether a treasure is useful for the current active Bursar tribute group
+- identify The Covetous Countess by quest ID 5584, then use the active step to determine the current Countess treasure group
+- track quest-state information automatically for addon use
+
+What's new in 1.03:
+- Exact localized Countess tables
+- Separate Bursar / Crow tables
+- Bursar / Crow active-group detection by journal quest ID
+- Unified IsItemUseful(itemLink) source return
+- Optional detailed Countess and Bursar / Crow helper calls
+
+Example API:
+- LibCovetousCountess:IsItemUseful(itemLink)
+- returns: isUsefulForActiveQuest, isUsefulForAnyQuest, source
+- source: "countess", "crow", "both", or nil
+- optional detailed calls:
+- LibCovetousCountess:IsItemUsefulForCountess(itemLink)
+- LibCovetousCountess:IsItemUsefulForCrow(itemLink)
+
+This library is intended for addon authors and is provided as-is.

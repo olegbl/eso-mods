@@ -1,0 +1,16 @@
+⚠ This library is no longer actively developed. It will not be updated beyond API 101049.
+
+LibMultiIcon is a helper library for Elder Scrolls Online that extends ZO_MultiIcon controls with per-icon colors and icon removal helpers.
+
+Version 1.03 updates the library for current ESO internals:
+- icon removal now works with the modern ZO_MultiIcon iconData structure
+- removing the currently displayed icon immediately switches to the next remaining icon
+- clearing icons now resets the active texture so reused controls do not keep stale icons
+- texture clearing now uses an empty string instead of nil to avoid texture-set errors
+
+Added helper methods on initialized multi-icon controls:
+- SetIconColor(texture, r, g, b, a)
+- RemoveIconColor(texture)
+- RemoveIcon(texture)
+
+This library is intended for addon authors and is provided as-is.

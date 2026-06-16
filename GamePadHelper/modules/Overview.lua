@@ -1,4 +1,4 @@
-local Overview = {}
+﻿local Overview = {}
 
 GPH_Overview = GPH_Overview or {}
 
@@ -6,13 +6,21 @@ local State = GPH_Overview
 local Quest = State.Quest
 local Tasks = State.Tasks
 
--- On console GAMEPAD_CHAT_SYSTEM is absent; treat as faded so the full
--- GAMEPAD_RIGHT_TOOLTIP slot is used for the tasks panel.
-State.isChatFaded = (GAMEPAD_CHAT_SYSTEM == nil)
+local function IsGamepadOverviewAllowed()
+    local isConsole = _G["GamePadHelper_IsConsole"] and _G["GamePadHelper_IsConsole"]() or false
+    if isConsole then
+        return true
+    end
+
+    return IsInGamepadPreferredMode == nil or IsInGamepadPreferredMode()
+end
+
+State.isChatFaded = false
 State.deferredRefreshQueued = false
 State.questIndexOverride = nil
 State.keybindDescriptor = nil
 State.ownsLeftPanel = false
+State.whatsNewShownThisSession = false
 
 local function GetRightTooltip()
     return State.isChatFaded and GAMEPAD_RIGHT_TOOLTIP or GAMEPAD_QUAD3_TOOLTIP
@@ -23,13 +31,17 @@ local function IsAnyOverviewActive(sv)
 end
 
 local function ShowTooltips()
-    local sv = _G["GamePadHelper_SavedVars"]
-    if not sv or not IsAnyOverviewActive(sv) then return end
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if not sv or not IsAnyOverviewActive(sv) or not IsGamepadOverviewAllowed() then
+        HideTooltips()
+        return
+    end
 
     Quest.HideControls()
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_LEFT_TOOLTIP)
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD3_TOOLTIP)
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD_2_3_TOOLTIP)
 
     if sv.overviewQuestEnabled ~= false then
         State.ownsLeftPanel = Quest.ShowLeftTooltip(State)
@@ -46,6 +58,7 @@ local function HideTooltips()
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_LEFT_TOOLTIP)
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD3_TOOLTIP)
+    GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD_2_3_TOOLTIP)
     Quest.HideControls()
     State.ownsLeftPanel = false
 end
@@ -55,16 +68,16 @@ local function QueueOverviewRefresh()
     State.deferredRefreshQueued = true
     zo_callLater(function()
         State.deferredRefreshQueued = false
-        local sv = _G["GamePadHelper_SavedVars"]
-        if sv and IsAnyOverviewActive(sv) and SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+        local sv = _G["GamePadHelper_CharSavedVars"]
+        if sv and IsAnyOverviewActive(sv) and IsGamepadOverviewAllowed() and SCENE_MANAGER:IsShowing("mainMenuGamepad") then
             ShowTooltips()
         end
     end, 1)
 end
 
 local function RefreshOverviewIfVisible()
-    local sv = _G["GamePadHelper_SavedVars"]
-    if sv and IsAnyOverviewActive(sv) and SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if sv and IsAnyOverviewActive(sv) and IsGamepadOverviewAllowed() and SCENE_MANAGER:IsShowing("mainMenuGamepad") then
         ShowTooltips()
         QueueOverviewRefresh()
     end
@@ -77,7 +90,7 @@ local function ReapplyOverviewTooltipSoon()
         else
             State.ownsLeftPanel = false
         end
-        if State.keybindDescriptor then
+        if State.keybindDescriptor and IsGamepadOverviewAllowed() then
             KEYBIND_STRIP:UpdateKeybindButtonGroup(State.keybindDescriptor)
         end
     end, 1)
@@ -117,9 +130,13 @@ function Overview:Initialize()
     SCENE_MANAGER:RegisterCallback("SceneStateChanged", function(scene, oldState, newState)
         if scene:GetName() == "mainMenuGamepad" then
             if newState == SCENE_SHOWING then
-                ShowTooltips()
-                QueueOverviewRefresh()
-                if State.keybindDescriptor then
+                if IsGamepadOverviewAllowed() then
+                    ShowTooltips()
+                    QueueOverviewRefresh()
+                else
+                    HideTooltips()
+                end
+                if State.keybindDescriptor and IsGamepadOverviewAllowed() then
                     KEYBIND_STRIP:AddKeybindButtonGroup(State.keybindDescriptor)
                     KEYBIND_STRIP:UpdateKeybindButtonGroup(State.keybindDescriptor)
                 end
@@ -163,6 +180,21 @@ function Overview:Initialize()
         end
     end)
 
+    EVENT_MANAGER:RegisterForEvent("GPH_Overview_PreferredModeChanged", EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function(_, isGamepadPreferred)
+        local isConsole = _G["GamePadHelper_IsConsole"] and _G["GamePadHelper_IsConsole"]() or false
+        if isConsole or isGamepadPreferred then
+            RefreshOverviewIfVisible()
+            if State.keybindDescriptor and SCENE_MANAGER:IsShowing("mainMenuGamepad") then
+                KEYBIND_STRIP:UpdateKeybindButtonGroup(State.keybindDescriptor)
+            end
+        else
+            HideTooltips()
+            if State.keybindDescriptor then
+                KEYBIND_STRIP:RemoveKeybindButtonGroup(State.keybindDescriptor)
+            end
+        end
+    end)
+
     if FOCUSED_QUEST_TRACKER and FOCUSED_QUEST_TRACKER.ForceAssist then
         ZO_PostHook(FOCUSED_QUEST_TRACKER, "ForceAssist", function(_, questIndex)
             Quest.OnNativeQuestAssistChanged(State, questIndex, RefreshOverviewIfVisible)
@@ -172,7 +204,7 @@ function Overview:Initialize()
     if MAIN_MENU_GAMEPAD and MAIN_MENU_GAMEPAD.OnSelectionChanged then
         ZO_PostHook(MAIN_MENU_GAMEPAD, "OnSelectionChanged", function()
             ReapplyOverviewTooltipSoon()
-            if State.keybindDescriptor then
+            if State.keybindDescriptor and IsGamepadOverviewAllowed() then
                 KEYBIND_STRIP:UpdateKeybindButtonGroup(State.keybindDescriptor)
             end
         end)

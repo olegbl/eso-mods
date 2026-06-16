@@ -3,66 +3,66 @@
 A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI.
 
 Open settings from:
-**Options > GPH Settings**
+Options > GPH Settings
+
+## What's New in 1.06.16
+
+- Cyrodiil Map Search: Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep and the keep nearest to your group leader is listed first. Open Map Search at a Transitus Shrine to travel to a keep directly.
+- Group leader pin: the group leader pin on the Cyrodiil map is enlarged for better visibility and a navigation marker is placed at the leader's position when Map Search opens.
+
+## What's New in 1.06.15
+
+- Reset timer: daily reset countdown now shows HH:MM instead of HH:MM:SS.
+- Auto Charge fix: weapon charge threshold was referencing a stale variable; charging now triggers correctly at the configured threshold.
+- Countess and Bursar dual active: when both quests are active for the same item, the inventory icon now flashes between green and blue.
+
+## What's New in 1.06.14
+
+- API 101050 update: updated for the latest ESO patch.
+- Per-character settings: GamePadHelper settings and Map Search save data now store per character, while the shared bookmark pool remains available when enabled.
+- Trait indicator refresh: equipped researchable items now use a blue state, non-equipped items keep green/yellow/red duplicate logic, and tooltip trait explanations were refreshed to match.
+- Deconstruction trait legend: deconstruction screens now show a right-side icon legend for research, duplicate counts, ornate, and intricate markers.
+- Countess and Bursar split: The Covetous Countess and Bursar of Tributes now have separate inventory and tooltip toggles.
+- Shared quest icon styling: Countess and Bursar now use the same quest icon, with green for active Countess items and blue for active Bursar items.
+- Updated treasure checks: Countess and Bursar treasure detection now follows the updated LibCovetousCountess logic and active quest detection.
 
 ## Required Libraries
 
 - LibCovetousCountess
 - LibItemLinkDecoder
 - LibTraitResearch
-- LibMultiIcon
 
-## Highlights
-
-- Gamepad and console UI focused.
-- Each feature can be enabled or disabled individually.
-- Supports all 7 official ESO client languages: EN, DE, FR, ES, RU, JP, ZH.
-- Supports market price data when compatible price addons or data packages are installed.
+IMPORTANT: If you installed LibMultiIcon for older GamePadHelper builds, remove or disable it. GamePadHelper now includes its own private multi-icon helper.
 
 ## Main Features
 
-- **Tooltip Price:** cleaner item price display with supported market data.
-- **Tooltip Enchantment:** cleaner enchantment text.
-- **Tooltip Poison:** improved poison tooltip formatting.
-- **Tooltip Trait:** better trait visibility in tooltips.
-- **Tooltip Font:** cleaner item tooltip font for gamepad play.
-- **Inventory Traits:** research trait indicators in inventory.
-- **Inventory Covetous Countess:** highlights relevant Covetous Countess treasures.
-- **Gear Comparison:** side-by-side item stat comparison panels.
-- **Provisioning Filter:** hides low-level recipes below CP160.
-- **Fishing:** controller vibration, reel alert, automatic bait selection, and fallback bait.
-- **Teleporter:** world map hotkey to teleport to the hovered zone — prefers free travel via a group member, friend, or guild member in the zone, otherwise uses the nearest wayshrine. Also adds chat context menu jump options for friends, guild members, and group members.
-- **Map Search:** search wayshrines, zones, houses, points of interest, city services (guild traders, guild halls, banks), daily quest givers, and travel service NPCs (ferry, caravan, silt strider with destinations) from the gamepad world map. Separate tabs for Search, Bookmarks, Recent, Houses, and Zones. Zone quest/map/lead counts, wayshrine and trader POI guild names, crafted set bonuses in right-side tooltip. Teleports to the correct city wayshrine for city service and daily quest results.
-- **Dungeon Finder:** shows pledge quest names in the Dungeon Finder list.
-- **Overview Panel:** two-column root menu overview. Left panel shows active quest details (toggle independently). Right panel shows daily reminders as titled sections with icons: Time (local + server, each toggleable), Horse Training (per-skill progress), Maps (antiquity leads, treasure maps, surveys), Crafting (master writs, daily writ status, trait research), and Companion (XP bar, rapport gradient bar, daily activities). Completed writs can be hidden.
-- **Loot Offset:** moves the loot history panel upward so it does not overlap chat. Requires UI reload after toggling.
-- **Auto Charge:** recharges equipped weapons after combat. Default threshold: 25%.
-- **Auto Repair:** repairs equipped items at merchants when repair is available.
-- **Auto Eye:** automatically slots and activates Antiquarian's Eye when usable.
+- Overview Panel
+- Map Search
+- Teleporter
+- Dungeon Finder
+- Fishing
+- Auto Repair
+- Auto Weapon Charge (regular soul gems)
+- Antiquarian's Eye
+- Provisioning Filter
+- Gear Comparison
+- Loot Offset
+- Tooltip Price / Enchantment / Poison / Trait / Font
 
 ## Trait Icon Color Meaning
 
-- **Green:** only accessible copy with this trait; safe to research.
-- **Yellow:** another copy with the same trait exists in your inventory.
-- **Red:** another copy with the same trait exists in your bank.
-- **White:** equipped item uses ESO's default magnifying glass icon; trait details are shown in the tooltip.
+- Blue: equipped item with a researchable trait.
+- Green: only accessible copy with this trait.
+- Yellow: have duplicate in inventory.
+- Red: have duplicate in bank.
+- Deconstruction screens include a right-side legend panel for trait colors, duplicate counts, and ornate/intricate icons.
 
 ## Optional Integrations
 
-- **TamrielTradeCentre:** optional PC market price source.
-- **LibPriceCache:** optional price cache source.
-- **TSCPriceDataAPIXBNA, TSCPriceDataAPIPSNA, TSCPriceDataAPIXBEU, TSCPriceDataAPIPSEU:** optional console price data packages.
+Market prices are shown when supported sources are installed, including TamrielTradeCentre. Console price data provided by Tamriel Savings Co Price Fetcher / TSC Price Data API packages.
 
-## Price Data Attribution
-
-PC market data can use TamrielTradeCentre when installed:
-https://www.esoui.com/downloads/info1245-TamrielTradeCentre.html
-
-Console price data provided by Tamriel Savings Co Price Fetcher / TSC Price Data API packages when installed:
-https://tamrielsavings.com/price-fetcher
-
-## Notes
-
-- Optional integrations improve specific features but are not required for GamePadHelper to load.
-- If no supported market addon or price data package is installed, Tooltip Price still reformats basic price information.
-- This addon is provided as-is. Please report issues on the GamePadHelper project page.
+- TamrielTradeCentre
+- TSCPriceDataAPIXBNA
+- TSCPriceDataAPIPSNA
+- TSCPriceDataAPIXBEU
+- TSCPriceDataAPIPSEU

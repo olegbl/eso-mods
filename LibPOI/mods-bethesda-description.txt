@@ -1,0 +1,15 @@
+LibPOI is a helper library for Elder Scrolls Online that provides structured information for points of interest, including category, completion state, and descriptive details.
+
+It can:
+- convert a zone POI into a category object with icon data
+- return whether a POI is complete
+- return descriptive text for a POI
+- provide extra details for special POIs such as Mundus Stones and Crafting Stations
+
+Example API:
+- LibPOI:GetPOICategories()
+- LibPOI:GetPOICategory(zoneIndex, poiIndex)
+- LibPOI:IsComplete(zoneIndex, poiIndex)
+- LibPOI:GetDescription(zoneIndex, poiIndex)
+
+This library is intended for addon authors and is provided as-is.

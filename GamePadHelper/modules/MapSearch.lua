@@ -1408,6 +1408,109 @@ end
 
 local cyrodiilMainMapId = nil  -- captured when main Cyrodiil map is open, reused for sub-map panning
 
+local CAMP_PIN_TO_ALLIANCE = {
+    [MAP_PIN_TYPE_FORWARD_CAMP_ALDMERI_DOMINION]    = ALLIANCE_ALDMERI_DOMINION,
+    [MAP_PIN_TYPE_FORWARD_CAMP_DAGGERFALL_COVENANT] = ALLIANCE_DAGGERFALL_COVENANT,
+    [MAP_PIN_TYPE_FORWARD_CAMP_EBONHEART_PACT]      = ALLIANCE_EBONHEART_PACT,
+}
+
+
+local function BuildCyrodiilRespawnCandidates(list)
+    local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
+    local respawnNodes = {}
+
+    local seenKeepId = {}
+    for i = 1, GetNumKeeps() do
+        -- GetKeepKeysByIndex returns (keepId, bgContext); the same keepId appears once
+        -- per bgContext so we deduplicate to avoid listing the same keep twice.
+        local keepId = GetKeepKeysByIndex(i)
+        if keepId and not seenKeepId[keepId] and CanRespawnAtKeep(keepId) then
+            seenKeepId[keepId] = true
+            local _, normX, normY = GetKeepPinInfo(keepId, bgContext)
+            if normX and normY then
+                respawnNodes[#respawnNodes + 1] = {
+                    keepId = keepId, normX = normX, normY = normY, isCamp = false,
+                }
+            end
+        end
+    end
+
+    for i = 1, GetNumForwardCamps(bgContext) do
+        local pinType, normX, normY, _, useable = GetForwardCampPinInfo(bgContext, i)
+        if useable then
+            respawnNodes[#respawnNodes + 1] = {
+                keepId = -i, normX = normX, normY = normY,
+                isCamp = true, campIndex = i, campPinType = pinType,
+            }
+        end
+    end
+
+    if #respawnNodes == 0 then return end
+
+    local groupCounts, leaderNodeId = GetGroupCountsPerKeep(respawnNodes)
+
+    table.sort(respawnNodes, function(a, b)
+        local aIsLeader = (a.keepId == leaderNodeId)
+        local bIsLeader = (b.keepId == leaderNodeId)
+        if aIsLeader ~= bIsLeader then return aIsLeader end
+        local ac = groupCounts[a.keepId] or 0
+        local bc = groupCounts[b.keepId] or 0
+        if ac ~= bc then return ac > bc end
+        if a.isCamp ~= b.isCamp then return not a.isCamp end
+        if not a.isCamp then
+            return CleanName(GetKeepName(a.keepId)) < CleanName(GetKeepName(b.keepId))
+        end
+        return a.campIndex < b.campIndex
+    end)
+
+    for _, node in ipairs(respawnNodes) do
+        if node.isCamp then
+            local campPinData = ZO_MapPin and ZO_MapPin.PIN_DATA and ZO_MapPin.PIN_DATA[node.campPinType]
+            local name = GetString(SI_TOOLTIP_FORWARD_CAMP)
+            list[#list + 1] = {
+                name         = name,
+                searchName   = name:lower(),
+                type         = TYPE_CYRODIIL_KEEP,
+                icon         = campPinData and campPinData.texture,
+                keepId       = nil,
+                campIndex    = node.campIndex,
+                alliance     = CAMP_PIN_TO_ALLIANCE[node.campPinType],
+                groupCount   = groupCounts[node.keepId] or 0,
+                isLeaderKeep = (node.keepId == leaderNodeId),
+                normX        = node.normX,
+                normY        = node.normY,
+                cityMapId    = cyrodiilMainMapId,
+                known        = true,
+                isLocked     = false,
+                isRespawn    = true,
+                isCamp       = true,
+            }
+        else
+            local name    = CleanName(GetKeepName(node.keepId))
+            local pinType = GetKeepPinInfo(node.keepId, bgContext)
+            local pinData = ZO_MapPin and ZO_MapPin.PIN_DATA and ZO_MapPin.PIN_DATA[pinType]
+            list[#list + 1] = {
+                name         = name,
+                searchName   = name:lower(),
+                type         = TYPE_CYRODIIL_KEEP,
+                icon         = pinData and pinData.texture,
+                keepId       = node.keepId,
+                campIndex    = nil,
+                alliance     = GetKeepAlliance(node.keepId, bgContext),
+                groupCount   = groupCounts[node.keepId] or 0,
+                isLeaderKeep = (node.keepId == leaderNodeId),
+                normX        = node.normX,
+                normY        = node.normY,
+                cityMapId    = cyrodiilMainMapId,
+                known        = true,
+                isLocked     = false,
+                isRespawn    = true,
+                isCamp       = false,
+            }
+        end
+    end
+end
+
 local function BuildCyrodiilKeepCandidates(list)
     if not IsCyrodiilKeepSearchEnabled() then return end
     if not GetMapContentType or GetMapContentType() ~= MAP_CONTENT_AVA then return end
@@ -1417,7 +1520,13 @@ local function BuildCyrodiilKeepCandidates(list)
         cyrodiilMainMapId = GetCurrentMapId()
     end
 
-    local bgContext = BGQUERY_ASSIGNED_AND_LOCAL
+    -- In death-respawn mode, show respawnable keeps and forward camps instead of the travel network
+    if WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_AVA_RESPAWN) then
+        BuildCyrodiilRespawnCandidates(list)
+        return
+    end
+
+    local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
     local VALID_TYPES = {
         [KEEPTYPE_KEEP]        = true,
         [KEEPTYPE_OUTPOST]     = true,
@@ -2599,6 +2708,9 @@ local function BuildKeybindDescriptor()
                 local td = listObject and listObject:GetTargetData()
                 if td and td.candidate then
                     local c = td.candidate
+                    if c.type == TYPE_CYRODIIL_KEEP and c.isRespawn then
+                        return GetString(SI_GPH_CYRODIIL_REVIVE)
+                    end
                     if (c.type == TYPE_WAYSHRINE and c.known and not c.isLocked)
                     or c.type == TYPE_HOUSE_OWNED
                     or c.type == TYPE_CYRODIIL_KEEP then
@@ -2658,6 +2770,14 @@ local function BuildKeybindDescriptor()
                 end
 
                 if c.type == TYPE_CYRODIIL_KEEP then
+                    if c.isRespawn then
+                        if c.isCamp then
+                            RespawnAtForwardCamp(c.campIndex)
+                        else
+                            RespawnAtKeep(c.keepId)
+                        end
+                        return
+                    end
                     if WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_KEEP_TRAVEL) then
                         for i = 1, GetGroupSize() do
                             local tag = GetGroupUnitTagByIndex(i)
@@ -3137,6 +3257,23 @@ local function OnAddonLoaded(_, name)
     EVENT_MANAGER:RegisterForEvent("MapSearch_KeepNetworkUpdated", EVENT_FAST_TRAVEL_KEEP_NETWORK_UPDATED, function()
         candidates = nil
     end)
+    EVENT_MANAGER:RegisterForEvent("MapSearch_ForwardCampsUpdated", EVENT_FORWARD_CAMPS_UPDATED, function()
+        candidates = nil
+    end)
+
+    -- When the player clicks "Choose Revive Location" in Cyrodiil death screen,
+    -- MAP_MODE_AVA_RESPAWN is pushed BEFORE the world map shows. Hook this so that
+    -- if Map Search is already open we immediately rebuild with respawn candidates.
+    if ZO_WorldMap_ShowAvARespawns then
+        SecurePostHook("ZO_WorldMap_ShowAvARespawns", function()
+            candidates = nil
+            lastSearchTerm = nil
+            if IsFragmentShowing() then
+                RunSearch(currentTerm)
+                RebuildList()
+            end
+        end)
+    end
 
     -- Auto-capture crafting set trait data when player visits a crafting station
     local SMITHING_TYPES = {

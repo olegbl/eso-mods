@@ -1,7 +1,7 @@
 ## Title: |c3399FFGamePadHelper|r
 ## APIVersion: 101049 101050
-## Version: 1.06.15
-## AddOnVersion: 10615
+## Version: 1.06.17
+## AddOnVersion: 10617
 ## Author: olegbl, quelron
 ## Description: |c3399FFGamePadHelper|r improves ESO's gamepad and console UI with modular quality-of-life features. Market prices can use TamrielTradeCentre and Tamriel Savings Co Price Fetcher / TSC data when available.
 ## SavedVariables: GamePadHelperSavedVars GamePadHelperMapData

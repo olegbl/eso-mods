@@ -1,30 +1,23 @@
 # GamePadHelper
 
-A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI.
+A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI. Every feature can be toggled individually from Options > GPH Settings.
 
-Open settings from:
-Options > GPH Settings
+## Features
 
-## What's New in 1.06.16
-
-- Cyrodiil Map Search: Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep and the keep nearest to your group leader is listed first. Open Map Search at a Transitus Shrine to travel to a keep directly.
-- Group leader pin: the group leader pin on the Cyrodiil map is enlarged for better visibility and a navigation marker is placed at the leader's position when Map Search opens.
-
-## What's New in 1.06.15
-
-- Reset timer: daily reset countdown now shows HH:MM instead of HH:MM:SS.
-- Auto Charge fix: weapon charge threshold was referencing a stale variable; charging now triggers correctly at the configured threshold.
-- Countess and Bursar dual active: when both quests are active for the same item, the inventory icon now flashes between green and blue.
-
-## What's New in 1.06.14
-
-- API 101050 update: updated for the latest ESO patch.
-- Per-character settings: GamePadHelper settings and Map Search save data now store per character, while the shared bookmark pool remains available when enabled.
-- Trait indicator refresh: equipped researchable items now use a blue state, non-equipped items keep green/yellow/red duplicate logic, and tooltip trait explanations were refreshed to match.
-- Deconstruction trait legend: deconstruction screens now show a right-side icon legend for research, duplicate counts, ornate, and intricate markers.
-- Countess and Bursar split: The Covetous Countess and Bursar of Tributes now have separate inventory and tooltip toggles.
-- Shared quest icon styling: Countess and Bursar now use the same quest icon, with green for active Countess items and blue for active Bursar items.
-- Updated treasure checks: Countess and Bursar treasure detection now follows the updated LibCovetousCountess logic and active quest detection.
+- Overview Panel — two-column root menu with quest details and daily reminders.
+- Map Search — search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting stations. In Cyrodiil, shows accessible keeps with group proximity info. While dead, switches to revive mode and lists all revivable locations including forward camps.
+- Teleporter — world map hotkey to teleport to a hovered zone.
+- Dungeon Finder — shows pledge quest names in the finder list.
+- Fishing — vibration on bite, reel alert, automatic bait selection and fallback.
+- Auto Repair — repairs equipped gear at merchants automatically.
+- Auto Charge — recharges weapons in and out of combat using regular soul gems.
+- Antiquarian's Eye — auto-slots and activates the collectible when appropriate.
+- Provisioning Filter — hides low-level recipes below CP160.
+- Gear Comparison — side-by-side item stat comparison panels.
+- Loot Offset — moves the loot history panel up to avoid chat overlap.
+- Tooltip improvements — price, enchantment, poison, trait, and font.
+- Inventory Trait — research indicators (blue/green/yellow/red) with duplicate counts and deconstruction legend.
+- Inventory Countess and Bursar — highlights treasures for The Covetous Countess and Bursar of Tributes quests.
 
 ## Required Libraries
 
@@ -34,35 +27,6 @@ Options > GPH Settings
 
 IMPORTANT: If you installed LibMultiIcon for older GamePadHelper builds, remove or disable it. GamePadHelper now includes its own private multi-icon helper.
 
-## Main Features
-
-- Overview Panel
-- Map Search
-- Teleporter
-- Dungeon Finder
-- Fishing
-- Auto Repair
-- Auto Weapon Charge (regular soul gems)
-- Antiquarian's Eye
-- Provisioning Filter
-- Gear Comparison
-- Loot Offset
-- Tooltip Price / Enchantment / Poison / Trait / Font
-
-## Trait Icon Color Meaning
-
-- Blue: equipped item with a researchable trait.
-- Green: only accessible copy with this trait.
-- Yellow: have duplicate in inventory.
-- Red: have duplicate in bank.
-- Deconstruction screens include a right-side legend panel for trait colors, duplicate counts, and ornate/intricate icons.
-
 ## Optional Integrations
 
-Market prices are shown when supported sources are installed, including TamrielTradeCentre. Console price data provided by Tamriel Savings Co Price Fetcher / TSC Price Data API packages.
-
-- TamrielTradeCentre
-- TSCPriceDataAPIXBNA
-- TSCPriceDataAPIPSNA
-- TSCPriceDataAPIXBEU
-- TSCPriceDataAPIPSEU
+Market prices via TamrielTradeCentre (PC) or Tamriel Savings Co Price Fetcher / TSC Price Data API packages (console).

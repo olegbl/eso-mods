@@ -31,6 +31,7 @@ local strings = {
     SI_GPH_CYRODIIL_MEMBERS_NEARBY = "名成员在附近",
     SI_GPH_CYRODIIL_LEADER_NEARBY = "队长在这里",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "您必须在中转神龛处才能前往要塞。",
+    SI_GPH_CYRODIIL_REVIVE = "复活",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "赛罗第尔要塞搜索",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "在查看赛罗第尔地图时，在地图搜索中显示可访问的赛罗第尔要塞。",
 
@@ -294,7 +295,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t 贡品管理员|r – 激活组任务",
     SI_GPH_TOOLTIP_CROW_TITLE = "贡品管理员",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\n特质颜色含义：\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 已装备的可研究物品\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 唯一可用副本\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 背包中有重复\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 银行中有重复\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r：重复数量\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t 精巧\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t 华丽",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FF新内容|r\n\n• |cFFFF00API 101050 更新|r - 已适配最新的 ESO 补丁。\n\n• |cFFFF00按角色保存设置|r - GamePadHelper 设置和地图搜索保存数据现在按角色存储，启用时仍可使用共享书签池。\n\n• |cFFFF00特质指示器更新|r - 已装备的可研究物品现在使用蓝色状态，未装备物品保留绿色/黄色/红色重复逻辑，提示说明也已同步更新。\n\n• |cFFFF00拆解特质图例|r - 拆解界面右侧现在会显示研究、重复数量、精巧和华丽标记的图标图例。\n\n• |cFFFF00伯爵夫人与贡品管理员分离|r - 贪婪伯爵夫人和贡品管理员现在拥有独立的背包与提示框开关。\n\n• |cFFFF00共享任务图标样式|r - 伯爵夫人和贡品管理员现在使用相同的任务图标，伯爵夫人当前激活物品为绿色，贡品管理员当前激活物品为蓝色。\n\n• |cFFFF00更新后的宝物判断|r - 伯爵夫人与贡品管理员的宝物判断现在遵循更新后的 LibCovetousCountess 逻辑和当前任务检测。",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FF新内容|r\n\n• |cFFFF00塞罗迪尔复活|r - 在塞罗迪尔死亡后选择选择复活地点，地图搜索将列出所有可复活的地点，包括要塞、城镇、前哨和前线营地。选择一个条目并按复活即可在该处重生。\n\n• |cFFFF00地图搜索缓存|r - 改进缓存逻辑，防止加载和搜索时卡顿。感谢 Bazooper-blip 提供的修复。",
     SI_GPH_WHATS_NEW_CONFIRM = "知道了",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — 新功能",
 }

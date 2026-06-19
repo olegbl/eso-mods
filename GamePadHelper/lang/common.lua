@@ -30,6 +30,7 @@
     SI_GPH_CYRODIIL_MEMBERS_NEARBY = "members nearby",
     SI_GPH_CYRODIIL_LEADER_NEARBY = "Group leader is here",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "You must be at a Transitus Shrine to travel to a keep.",
+    SI_GPH_CYRODIIL_REVIVE = "Revive",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "Cyrodiil Keep Search",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "Show accessible Cyrodiil keeps in Map Search when viewing the Cyrodiil map.",
 
@@ -312,7 +313,7 @@
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t Bursar of Tributes|r – active group",
     SI_GPH_TOOLTIP_CROW_TITLE = "Bursar of Tributes",
     SI_GPH_TRAIT_COLOR_LEGEND = "|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Equipped researchable item\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Only accessible copy\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Have duplicate in inventory\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Have duplicate in bank\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r: Duplicate count\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t Intricate\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t Ornate",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FFWhat's New|r\n\n• |cFFFF00Cyrodiil Map Search|r - Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep entry and the keep nearest to your group leader is listed first with a green indicator. Open Map Search at a Transitus Shrine to select and travel to a keep directly.\n\n• |cFFFF00Group Leader Pin|r - the group leader pin on the Cyrodiil map is enlarged for better visibility. A navigation marker is automatically placed at the leader's position when Map Search opens.",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FFWhat's New|r\n\n• |cFFFF00Cyrodiil Revive|r - when you die in Cyrodiil and choose Select Revive Location, Map Search lists all revivable locations including keeps, towns, outposts, and forward camps. Select an entry and press Revive to respawn there directly.\n\n• |cFFFF00Map Search Cache|r - improved caching logic to prevent load and search hangs. Thanks to Bazooper-blip for the fix.",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — What's New",
 }
 

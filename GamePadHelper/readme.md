@@ -1,108 +1,69 @@
 # GamePadHelper
 
-**Version:** 1.06.16  
+**Version:** 1.06.17  
 **Authors:** olegbl, quelron  
 **API:** 101050
 
-GamePadHelper is a modular collection of quality-of-life improvements for Elder Scrolls Online, built specifically for gamepad and console UI.
-
-Price data can use supported sources such as TamrielTradeCentre and Tamriel Savings Co Price Fetcher / TSC data packages when available.
-
-## What's New in 1.06.16
-
-- **Cyrodiil Map Search** - Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep entry and the keep nearest to your group leader is listed first with a green indicator. Open Map Search at a Transitus Shrine to select and travel to a keep directly. Toggle via Settings → GPH Settings → Map Search → Cyrodiil Keep Search.
-- **Group leader pin** - the group leader pin on the Cyrodiil map is enlarged to 64×64 for better visibility. A navigation marker is automatically placed at the leader's last known position when Map Search opens.
-
-## What's New in 1.06.15
-
-- **Reset timer** - daily reset countdown now shows HH:MM instead of HH:MM:SS.
-- **Auto Charge fix** - weapon charge threshold was referencing a stale variable; charging now triggers correctly at the configured threshold.
-- **Countess and Bursar dual active** - when both quests are active for the same item, the inventory icon now flashes between green and blue.
-
-## What's New in 1.06.14
-
-- **API 101050 update** - updated for the latest ESO patch.
-- **Per-character settings** - GamePadHelper settings and Map Search state now save per character, while the shared bookmark pool remains available when enabled.
-- **Trait indicator refresh** - equipped researchable items now use a blue state, non-equipped items keep green/yellow/red duplicate logic, and tooltip trait explanations were refreshed to match.
-- **Deconstruction trait legend** - deconstruction screens now show a right-side icon legend for research, duplicate counts, ornate, and intricate markers.
-- **Countess and Bursar split** - The Covetous Countess and Bursar of Tributes now have separate inventory and tooltip toggles.
-- **Shared quest icon styling** - Countess and Bursar now use the same quest icon with unified green for any active quest item and white for useful-but-inactive items. Stolen treasure items cycle between the stolen icon and the quest icon.
-- **Quest-aware treasure checks** - Countess and Bursar treasure detection now follows the updated LibCovetousCountess logic and active quest detection.
+A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI. Every feature can be toggled individually from `Options > GPH Settings`.
 
 ## Installation
 
-1. Extract the addon into:
-
-   `Documents\Elder Scrolls Online\live\AddOns\GamePadHelper\`
-
+1. Extract into `Documents\Elder Scrolls Online\live\AddOns\GamePadHelper\`
 2. Install the required libraries listed below.
-3. IMPORTANT: If you previously installed **LibMultiIcon** for older GamePadHelper builds, remove or disable it. GamePadHelper now includes its own private multi-icon helper.
+3. If you previously installed **LibMultiIcon** for older builds, remove or disable it — GamePadHelper now includes its own private multi-icon helper.
 4. Enable **GamePadHelper** in the AddOn Manager.
 
-## Main Features
+## Features
 
-- **Overview Panel** - adds a two-column root menu overview with quest details on the left and daily reminders on the right.
-- **Map Search** - adds a gamepad search tab for wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and Cyrodiil keeps (when in Cyrodiil).
-- **Teleporter** - teleports to hovered zones from the world map and adds chat jump options.
-- **Dungeon Finder** - shows pledge quest names in the finder list.
-- **Fishing** - vibration, reel alert, automatic bait selection, and fallback bait support.
-- **Auto Repair** - repairs equipped gear at merchants.
-- **Auto Charge** - recharges weapons in and out of combat using regular soul gems.
-- **Antiquarian's Eye** - auto-slots and uses the collectible when appropriate.
-- **Provisioning Filter** - hides low-level recipes below CP160.
-- **Gear Comparison** - shows side-by-side item comparison panels.
-- **Loot Offset** - moves the loot history panel upward to avoid chat overlap.
+**Overview Panel** — adds a two-column root menu with quest details on the left and daily reminders (time, horse training, maps, crafting, companion) on the right.
 
-## Tooltip Features
+**Map Search** — gamepad search tab on the world map. Search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting set stations. Includes fuzzy ranking, bookmarks, recent destinations, map panning, and ping markers. In Cyrodiil, shows accessible keeps with group member counts and group leader highlighted. While dead in Cyrodiil, switches to revive mode — lists all revivable keeps, towns, outposts, and forward camps; select one and press Revive to respawn there directly.
 
-- **Tooltip Price** - cleaner price display with supported market data.
-- **Tooltip Enchantment** - cleaner enchantment formatting.
-- **Tooltip Poison** - cleaner poison formatting.
-- **Tooltip Trait** - improved trait visibility in tooltips.
-- **Tooltip Font** - cleaner tooltip font for gamepad.
+**Teleporter** — world map hotkey to teleport to a hovered zone, prioritising free travel via group/friend/guild members. Adds chat context menu jump options.
+
+**Dungeon Finder** — replaces dungeon names in the finder list with their matching pledge quest names.
+
+**Fishing** — controller vibration on bite, on-screen reel alert, automatic bait selection for all hole types, and fallback bait support.
+
+**Auto Repair** — automatically repairs equipped items when opening a merchant that offers repair for gold.
+
+**Auto Charge** — recharges equipped weapons in and out of combat using regular soul gems. Configurable charge threshold (default 25%).
+
+**Antiquarian's Eye** — auto-slots and activates the collectible when stationary and out of combat; unslots it when activation would be blocked.
+
+**Provisioning Filter** — adds a filter to hide recipes below CP160.
+
+**Gear Comparison** — shows currently equipped and new item stat panels side by side.
+
+**Loot Offset** — moves the loot history panel upward to avoid chat overlap.
+
+## Tooltip Improvements
+
+- **Tooltip Price** — cleaner price display with market data when a supported source is installed.
+- **Tooltip Enchantment** — reformatted enchantment lines.
+- **Tooltip Poison** — reformatted applied poison lines.
+- **Tooltip Trait** — improved trait visibility using the same color coding as Inventory Trait.
+- **Tooltip Font** — cleaner font for gamepad item tooltips.
 
 ## Inventory Features
 
-### Inventory Countess and Bursar
+**Inventory Countess and Bursar** — highlights treasures relevant to The Covetous Countess and Bursar of Tributes quests. Green = active Countess quest item, Blue = active Bursar quest item, White = useful but neither quest active. Stolen items cycle between stolen and quest icons. Flashes green and blue when useful for both active quests simultaneously.
 
-Highlights treasures relevant to **The Covetous Countess** and **Bursar of Tributes** quests.
+**Inventory Trait** — shows trait research indicators in inventory, bank, and deconstruction.
+- Blue — equipped item with a researchable trait.
+- Green — only accessible copy with this trait.
+- Yellow — have a duplicate in inventory.
+- Red — have a duplicate in bank.
 
-- **Green icon** - useful for the current active Countess or Bursar quest.
-- **White icon** - useful for some quest, but neither is currently active.
-- Stolen treasure items cycle between the stolen icon and the quest icon.
-
-### Inventory Trait
-
-Shows trait research indicators in inventory, bank, and deconstruction.
-
-- **Blue** - equipped item with a researchable trait.
-- **Green** - only accessible copy with this trait.
-- **Yellow** - have duplicate in inventory.
-- **Red** - have duplicate in bank.
-
-Duplicate counts are shown under non-equipped items where applicable. Locked items are excluded from duplicate counting.
-Deconstruction screens also show a right-side legend panel that explains research colors, sample duplicate counts, and ornate/intricate markers.
+Duplicate counts shown on non-equipped items. Deconstruction screens include a right-side legend for trait colors, duplicate counts, and ornate/intricate icons.
 
 ## Required Libraries
 
-- **LibCovetousCountess** - Countess and Bursar treasure-quest data.
-- **LibItemLinkDecoder** - raw item link decoding for Tooltip Enchantment.
-- **LibTraitResearch** - trait research data for Inventory Trait and Tooltip Trait.
+- **LibCovetousCountess** — Countess and Bursar treasure-quest data.
+- **LibItemLinkDecoder** — item link decoding for Tooltip Enchantment.
+- **LibTraitResearch** — trait research data for Inventory Trait and Tooltip Trait.
 
 ## Optional Integrations
 
-- **TamrielTradeCentre** - optional PC market price source.
-- **TSCPriceDataAPIXBNA**
-- **TSCPriceDataAPIPSNA**
-- **TSCPriceDataAPIXBEU**
-- **TSCPriceDataAPIPSEU**
-
-Console price data is provided by Tamriel Savings Co Price Fetcher / TSC packages when installed:
-
-https://tamrielsavings.com/price-fetcher
-
-## Notes
-
-- Every feature can be enabled or disabled individually from `Options > GPH Settings`.
-- Optional integrations improve specific features but are not required for GamePadHelper to load.
-- This addon is provided as-is. Please report issues on the GamePadHelper project page.
+- **TamrielTradeCentre** — PC market price source for Tooltip Price.
+- **TSCPriceDataAPIXBNA / PSNA / XBEU / PSEU** — console market price data via Tamriel Savings Co Price Fetcher (https://tamrielsavings.com/price-fetcher).

@@ -1,5 +1,5 @@
 [CENTER][SIZE="5"][COLOR="#3399FF"][B]GamePadHelper[/B][/COLOR][/SIZE]
-[B]Version 1.06.16[/B] | API 101050 | by olegbl, quelron[/CENTER]
+[B]Version 1.06.17[/B] | API 101050 | by olegbl, quelron[/CENTER]
 
 [CENTER]A collection of UI improvements and quality-of-life features for Elder Scrolls Online.
 Built only for gamepad and console UI.[/CENTER]
@@ -15,31 +15,18 @@ Built only for gamepad and console UI.[/CENTER]
 
 [COLOR="#FF4444"][B]Important:[/B] If you installed [B]LibMultiIcon[/B] for older GamePadHelper builds, remove or disable it. GamePadHelper now uses its own private multi-icon helper.[/COLOR]
 
+[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.17[/B][/COLOR][/SIZE]
+
+[LIST]
+[*][B]Cyrodiil revive in Map Search[/B] - when you die in Cyrodiil and choose "Select Revive Location", Map Search now lists all revivable locations including keeps, towns, outposts, and forward camps (player-placed tents). Each entry shows group member counts and the location nearest your group leader is listed first. Select an entry and press Revive to respawn there directly.
+[*][B]Map Search cache fix[/B] - improved Map Search caching logic to prevent load and search hangs. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the fix.
+[/LIST]
+
 [SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.16[/B][/COLOR][/SIZE]
 
 [LIST]
 [*][B]Cyrodiil Map Search[/B] - Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep entry and the keep nearest to your group leader is listed first with a green indicator. Open Map Search at a Transitus Shrine to select and travel to a keep directly. Toggle via Settings → GPH Settings → Map Search → Cyrodiil Keep Search.
 [*][B]Group leader pin[/B] - the group leader pin on the Cyrodiil map is enlarged to 64×64 for better visibility. A navigation marker is automatically placed at the leader's last known position when Map Search opens.
-[/LIST]
-
-[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.15[/B][/COLOR][/SIZE]
-
-[LIST]
-[*][B]Reset timer[/B] - daily reset countdown now shows HH:MM instead of HH:MM:SS.
-[*][B]Auto Charge fix[/B] - weapon charge threshold was referencing a stale variable; charging now triggers correctly at the configured threshold.
-[*][B]Countess and Bursar dual active[/B] - when both quests are active for the same item, the inventory icon now flashes between green and blue.
-[/LIST]
-
-[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.14[/B][/COLOR][/SIZE]
-
-[LIST]
-[*][B]API 101050 update[/B]: updated for the latest ESO patch.
-[*][B]Per-character settings[/B] - GamePadHelper settings and Map Search save data now store per character, while the shared bookmark pool remains available when enabled.
-[*][B]Trait indicator refresh[/B] - equipped researchable items now use a blue state, non-equipped items keep green/yellow/red duplicate logic, and tooltip trait explanations were refreshed to match.
-[*][B]Deconstruction trait legend[/B] - deconstruction screens now show a right-side icon legend for research, duplicate counts, ornate, and intricate markers.
-[*][B]Countess and Bursar split[/B] - Covetous Countess and Bursar of Tributes now have separate inventory and tooltip toggles.
-[*][B]Shared quest icon styling[/B] - Countess and Bursar now use the same quest icon, with green for active Countess items and blue for active Bursar items.
-[*][B]Updated treasure checks[/B] - Countess and Bursar treasure detection now follows the updated LibCovetousCountess logic and active quest detection.
 [/LIST]
 
 [SIZE="4"][COLOR="#3399FF"][B]Features[/B][/COLOR][/SIZE]
@@ -93,7 +80,7 @@ Built only for gamepad and console UI.[/CENTER]
 [*]City service pins are searchable: guild traders, Mages/Fighters/Undaunted/Thieves Guild halls, banks, and other services, with teleport to the correct city wayshrine.
 [*]Daily quest givers are searchable by name or quest category across all zones.
 [*]Travel service NPCs (ferry, caravan, silt strider) are individual searchable entries with destination routes.
-[*]Cyrodiil keeps, outposts, and border keeps are searchable when the Cyrodiil map is open, with group member counts and group leader keep highlighted.
+[*]Cyrodiil keeps, towns, outposts, and border keeps are searchable when the Cyrodiil map is open, with group member counts and group leader keep highlighted. While dead, shows all revivable locations including forward camps with a Revive action.
 [*]Includes fuzzy ranked results, per-character or account-wide bookmarks, map panning, ping markers, and nearest-wayshrine travel.
 [*]Supports gamepad screen narration for result name, category, ownership, discovery or lock status, and crafted set details when available.
 [*]Map pin: [B]Default ON[/B].

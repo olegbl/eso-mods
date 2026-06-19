@@ -31,6 +31,7 @@ local strings = {
     SI_GPH_CYRODIIL_MEMBERS_NEARBY = "人のメンバーが近くにいます",
     SI_GPH_CYRODIIL_LEADER_NEARBY = "グループリーダーがここにいます",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "砦に移動するには、トランジトゥス神殿にいる必要があります。",
+    SI_GPH_CYRODIIL_REVIVE = "蘇生",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "シロディール砦検索",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "シロディールマップを表示しているとき、マップ検索でアクセス可能なシロディールの砦を表示します。",
 
@@ -294,7 +295,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t 貢物徴収官|r – アクティブなグループ",
     SI_GPH_TOOLTIP_CROW_TITLE = "貢物徴収官",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\n特性色の意味:\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 装備中の研究可能アイテム\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r アクセス可能な唯一のコピー\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r インベントリに重複あり\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 銀行に重複あり\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r: 重複数\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t 精巧\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t 装飾",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FF新着情報|r\n\n• |cFFFF00API 101050 更新|r - 最新の ESO パッチ向けに更新されました。\n\n• |cFFFF00キャラクター別設定|r - GamePadHelper の設定とマップ検索の保存データはキャラクターごとに保存されるようになり、共有ブックマークプールは有効時に引き続き利用できます。\n\n• |cFFFF00特性インジケータ更新|r - 装備中の研究可能アイテムは青い状態になり、未装備アイテムは緑/黄/赤の重複ロジックを維持し、ツールチップ説明もそれに合わせて更新されました。\n\n• |cFFFF00解体画面の特性凡例|r - 解体画面の右側に、研究、重複数、精巧、装飾のアイコン凡例が表示されるようになりました。\n\n• |cFFFF00伯爵夫人と貢物徴収官の分離|r - 強欲な伯爵夫人と貢物徴収官に、インベントリ用とツールチップ用の個別トグルが追加されました。\n\n• |cFFFF00共通クエストアイコン|r - 伯爵夫人と貢物徴収官は同じクエストアイコンを使用し、伯爵夫人のアクティブ対象は緑、貢物徴収官のアクティブ対象は青で表示されます。\n\n• |cFFFF00更新された財宝判定|r - 伯爵夫人と貢物徴収官の財宝判定は、更新後の LibCovetousCountess ロジックとアクティブクエスト判定に従うようになりました。",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FF新着情報|r\n\n• |cFFFF00シロディール蘇生|r - シロディールで死亡し蘇生場所を選択を選ぶと、マップ検索に砦、町、前哨、フォワードキャンプを含むすべての蘇生可能な場所が表示されます。エントリを選択して蘇生を押すとそこで復活できます。\n\n• |cFFFF00マップ検索キャッシュ|r - キャッシュロジックを改善し、読み込みと検索時のハングを防止しました。修正してくれた Bazooper-blip に感謝します。",
     SI_GPH_WHATS_NEW_CONFIRM = "了解",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — 新機能",
 }

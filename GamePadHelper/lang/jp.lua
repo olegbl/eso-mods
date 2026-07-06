@@ -258,6 +258,7 @@ local strings = {
     SI_GPH_TELEPORT_NO_VALID_TARGET = "有効なテレポート可能なターゲットが選択されていません",
     SI_GPH_TELEPORT_NO_ZONE_DATA = "<<1>> のゾーン データがありません",
     SI_GPH_TELEPORT_PLAYER_UNREACHABLE = "<<1>> へのテレポートに失敗しました - プレイヤーはインスタンス内にいる可能性があります",
+    SI_GPH_TELEPORT_PLAYERS_UNREACHABLE = "<<1>>人のプレイヤーの誰にもテレポートできませんでした - インスタンス内にいる可能性があります",
     SI_GPH_TIME_DAY_SHORT = "<<1>>日",
     SI_GPH_TIME_HOUR_SHORT = "<<1>>時間",
     SI_GPH_TIME_MINUTE_SHORT = "<<1>>分",

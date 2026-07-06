@@ -4,6 +4,10 @@ local ANNOUNCE_VERSION = 10612
 -- Make ADDON_NAME globally accessible for submodules
 _G["ADDON_NAME"] = ADDON_NAME
 
+-- Shared namespace for cross-module APIs; must exist even if the API version
+-- check below aborts loading, since submodules attach to it at file scope
+GamePadHelper = {}
+
 -- Ensure ESO API compatibility
 if GetAPIVersion() < 101047 then
     d(zo_strformat(GetString(SI_GPH_API_TOO_OLD), ADDON_NAME, "101047"))
@@ -92,7 +96,8 @@ local function OnAddonLoaded(event, addonName)
     EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
     savedVars = ZO_SavedVars:NewAccountWide("GamePadHelperSavedVars", 1, nil, defaults)
-    _G["GamePadHelper_SavedVars"] = savedVars
+    GamePadHelper.SavedVars = savedVars
+    _G["GamePadHelper_SavedVars"] = savedVars -- legacy global, still read by older modules
 
     EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, function()
         EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)

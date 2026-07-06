@@ -258,6 +258,7 @@ local strings = {
     SI_GPH_TELEPORT_NO_VALID_TARGET = "Kein gültiges teleportierbares Ziel ausgewählt",
     SI_GPH_TELEPORT_NO_ZONE_DATA = "Keine Zonendaten für <<1>>",
     SI_GPH_TELEPORT_PLAYER_UNREACHABLE = "Teleport zu <<1>> fehlgeschlagen - Spieler befindet sich möglicherweise in einer Instanz",
+    SI_GPH_TELEPORT_PLAYERS_UNREACHABLE = "Teleport zu keinem der <<1>> Spieler möglich - sie befinden sich möglicherweise in Instanzen",
     SI_GPH_TIME_DAY_SHORT = "<<1>> T",
     SI_GPH_TIME_HOUR_SHORT = "<<1>> Std.",
     SI_GPH_TIME_MINUTE_SHORT = "<<1>> Min.",

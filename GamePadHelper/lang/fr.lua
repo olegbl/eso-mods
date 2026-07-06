@@ -260,6 +260,7 @@ local strings = {
     SI_GPH_TELEPORT_NO_VALID_TARGET = "Aucune cible téléportable valide sélectionnée",
     SI_GPH_TELEPORT_NO_ZONE_DATA = "Aucune donnée de zone pour <<1>>",
     SI_GPH_TELEPORT_PLAYER_UNREACHABLE = "Impossible de se téléporter vers <<1>> - le joueur est peut-être dans une instance",
+    SI_GPH_TELEPORT_PLAYERS_UNREACHABLE = "Impossible de se téléporter vers l'un des <<1>> joueurs - ils sont peut-être dans des instances",
     SI_GPH_TIME_DAY_SHORT = "<<1>>j",
     SI_GPH_TIME_HOUR_SHORT = "<<1>> h",
     SI_GPH_TIME_MINUTE_SHORT = "<<1>>min",

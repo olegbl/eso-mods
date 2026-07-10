@@ -1,5 +1,5 @@
 [CENTER][SIZE="5"][COLOR="#3399FF"][B]GamePadHelper[/B][/COLOR][/SIZE]
-[B]Version 1.06.12[/B] | API 101049 | by olegbl, quelron[/CENTER]
+[B]Version 1.06.17[/B] | API 101050 | by olegbl, quelron[/CENTER]
 
 [CENTER]A collection of UI improvements and quality-of-life features for Elder Scrolls Online.
 Built only for gamepad and console UI.[/CENTER]
@@ -13,19 +13,20 @@ Built only for gamepad and console UI.[/CENTER]
 [*][B]Market prices[/B] - price data is shown when supported sources are installed, including [URL="https://www.esoui.com/downloads/info1245-TamrielTradeCentre.html"]TamrielTradeCentre[/URL]. Console price data provided by [URL="https://tamrielsavings.com/price-fetcher"]Tamriel Savings Co Price Fetcher[/URL] / TSC Price Data API packages.
 [/LIST]
 
-[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.12[/B][/COLOR][/SIZE]
+[COLOR="#FF4444"][B]Important:[/B] If you installed [B]LibMultiIcon[/B] for older GamePadHelper builds, remove or disable it. GamePadHelper now uses its own private multi-icon helper.[/COLOR]
+
+[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.17[/B][/COLOR][/SIZE]
 
 [LIST]
-[*][B]Overview tasks redesign[/B] - the daily reminders panel is completely rebuilt. Each category (Time, Horse Training, Maps, Crafting, Companion) now renders as a titled section with a divider header and matching icon.
-[*][B]Horse training detail[/B] - when training is available, the panel shows individual riding skill progress (Speed, Carrying Capacity, Stamina) with icons and current/max values.
-[*][B]Maps section[/B] - antiquity leads, treasure maps, and surveys each have inline icons. Survey maps moved here from the old crafting counter.
-[*][B]Companion panel redesign[/B] - now shows companion XP progress bar, rapport gradient bar, rapport level, and rapport description in addition to daily activities.
-[*][B]Quest panel toggle[/B] - the quest left panel now has its own toggle, independent of the tasks panel. Show either, both, or neither.
-[*][B]Local time toggle[/B] - the local clock can now be toggled independently from server time.
-[*][B]Hide completed daily writs[/B] - completed writ entries can be hidden from the crafting section.
-[*][B]Quest panel visual update[/B] - quest title uses a divider header with tracked-quest icon. Section order: Hints, active tasks, optional steps, completed tasks.
-[*][B]Inventory Trait fix[/B] - icons appear more reliably during inventory navigation using a multi-pass refresh.
-[*][B]Settings reorganized[/B] - grouped into labeled sections: Automation, Fishing, Map Search, Overview, Tooltips and UI, Loot.
+[*][B]Cyrodiil revive in Map Search[/B] - when you die in Cyrodiil and choose "Select Revive Location", Map Search now lists all revivable locations including keeps, towns, outposts, and forward camps (player-placed tents). Each entry shows group member counts and the location nearest your group leader is listed first. Select an entry and press Revive to respawn there directly.
+[*][B]Map Search cache fix[/B] - improved Map Search caching logic to prevent load and search hangs. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the fix.
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.16[/B][/COLOR][/SIZE]
+
+[LIST]
+[*][B]Cyrodiil Map Search[/B] - Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep entry and the keep nearest to your group leader is listed first with a green indicator. Open Map Search at a Transitus Shrine to select and travel to a keep directly. Toggle via Settings → GPH Settings → Map Search → Cyrodiil Keep Search.
+[*][B]Group leader pin[/B] - the group leader pin on the Cyrodiil map is enlarged to 64×64 for better visibility. A navigation marker is automatically placed at the leader's last known position when Map Search opens.
 [/LIST]
 
 [SIZE="4"][COLOR="#3399FF"][B]Features[/B][/COLOR][/SIZE]
@@ -45,7 +46,8 @@ Built only for gamepad and console UI.[/CENTER]
 
 [B][COLOR="#DAA520"]Auto Weapon Charge[/COLOR][/B] [Default: ON]
 [LIST]
-[*]Automatically recharges equipped weapons after combat using the highest-level filled soul gem available.
+[*]Automatically recharges equipped weapons in and out of combat.
+[*]Uses regular soul gems.
 [*]Charge threshold: [B]Default 25%[/B].
 [/LIST]
 
@@ -78,6 +80,7 @@ Built only for gamepad and console UI.[/CENTER]
 [*]City service pins are searchable: guild traders, Mages/Fighters/Undaunted/Thieves Guild halls, banks, and other services, with teleport to the correct city wayshrine.
 [*]Daily quest givers are searchable by name or quest category across all zones.
 [*]Travel service NPCs (ferry, caravan, silt strider) are individual searchable entries with destination routes.
+[*]Cyrodiil keeps, towns, outposts, and border keeps are searchable when the Cyrodiil map is open, with group member counts and group leader keep highlighted. While dead, shows all revivable locations including forward camps with a Revive action.
 [*]Includes fuzzy ranked results, per-character or account-wide bookmarks, map panning, ping markers, and nearest-wayshrine travel.
 [*]Supports gamepad screen narration for result name, category, ownership, discovery or lock status, and crafted set details when available.
 [*]Map pin: [B]Default ON[/B].
@@ -96,21 +99,24 @@ Built only for gamepad and console UI.[/CENTER]
 [*]Shows currently equipped item and new item stat-change panels side by side.
 [/LIST]
 
-[B][COLOR="#DAA520"]Inventory Covetous Countess[/COLOR][/B] [Default: ON]
+[B][COLOR="#DAA520"]Inventory Countess and Bursar[/COLOR][/B] [Default: ON]
 [LIST]
-[*]Marks treasures useful for The Covetous Countess quest.
-[*]Green icon means useful for the current active quest step.
-[*]White icon means useful for the quest, but not the current active step.
+[*]Marks treasures useful for The Covetous Countess and Bursar of Tributes quests.
+[*][COLOR="#00FF00"]Green[/COLOR] icon means useful for the current active Countess quest.
+[*][COLOR="#3399FF"]Blue[/COLOR] icon means useful for the current active Bursar quest.
+[*]Flashes green and blue when useful for both active quests simultaneously.
+[*][COLOR="#FFFFFF"]White[/COLOR] icon means useful, but neither quest is currently active.
 [/LIST]
 
 [B][COLOR="#DAA520"]Inventory Trait[/COLOR][/B] [Default: ON]
 [LIST]
 [*]Shows an icon next to items whose trait can be researched by the current character.
-[*][COLOR="#00FF00"]Green[/COLOR] - only copy with this trait you have access to; safe to research.
-[*][COLOR="#FFFF00"]Yellow[/COLOR] - another copy with the same trait exists in your inventory.
-[*][COLOR="#FF0000"]Red[/COLOR] - another copy with the same trait exists in your bank.
-[*][COLOR="#FFFFFF"]White[/COLOR] - equipped item uses ESO's default magnifying glass icon; details are shown in the tooltip.
-[*]Displays duplicate counts and excludes locked items from duplicate counting.
+[*][COLOR="#3399FF"]Blue[/COLOR] - equipped item with a researchable trait.
+[*][COLOR="#00FF00"]Green[/COLOR] - only copy with this trait you have access.
+[*][COLOR="#FFFF00"]Yellow[/COLOR] - have duplicate in inventory.
+[*][COLOR="#FF0000"]Red[/COLOR] - have duplicate in bank.
+[*]Displays duplicate counts on non-equipped items and excludes locked items from duplicate counting.
+[*]Adds a right-side legend panel in deconstruction screens showing research colors, sample duplicate counts, and ornate/intricate icon meanings.
 [/LIST]
 
 [B][COLOR="#DAA520"]Loot Offset[/COLOR][/B] [Default: ON]
@@ -123,13 +129,8 @@ Built only for gamepad and console UI.[/CENTER]
 [B][COLOR="#DAA520"]Overview Panel[/COLOR][/B] [Default: ON]
 [LIST]
 [*]Adds a two-column root menu overview with quest details and daily reminders.
-[*]Left panel — quest details (toggle: [B]Quest Panel[/B], independent of right panel): background, active step, hints, tasks, optional steps, and completed tasks. Quest title uses a divider header with tracked-quest icon.
-[*]Right panel — daily reminders (toggle: [B]Overview[/B]): each category is a titled section with divider header and icon.
-[*][B]Time[/B] — local time and server time, each individually toggleable.
-[*][B]Horse Training[/B] — availability notice with per-skill progress (Speed, Carrying Capacity, Stamina) and current/max values.
-[*][B]Maps[/B] — antiquity scryable leads with expiration timers, treasure maps, and surveys. Each entry has an inline icon.
-[*][B]Crafting[/B] — master writ count, daily writ status per profession (Done/In Progress/Not Done), trait research slots and researchable item counts. Completed writs can be hidden.
-[*][B]Companion[/B] — companion XP bar, rapport gradient bar, rapport level and description, and best rapport-gaining daily activities.
+[*]Left panel - quest details (toggle: [B]Quest Panel[/B], independent of right panel): background, active step, hints, tasks, optional steps, and completed tasks.
+[*]Right panel - daily reminders (toggle: [B]Overview[/B]): Time, Horse Training, Maps, Crafting, and Companion sections with divider headers and icons.
 [/LIST]
 
 [B][COLOR="#DAA520"]Tooltip Improvements[/COLOR][/B]
@@ -137,7 +138,7 @@ Built only for gamepad and console UI.[/CENTER]
 [*][B]Tooltip Enchantment[/B] [Default: ON] - reformats enchantment information for readability.
 [*][B]Tooltip Font[/B] [Default: ON] - applies a cleaner item tooltip font for gamepad play.
 [*][B]Tooltip Poison[/B] [Default: ON] - reformats applied poison information.
-[*][B]Tooltip Price[/B] [Default: ON] - reformats price information and shows supported market pricing data. Console price data provided by [URL="https://tamrielsavings.com/price-fetcher"]Tamriel Savings Co Price Fetcher[/URL].
+[*][B]Tooltip Price[/B] [Default: ON] - reformats price information and shows supported market pricing data.
 [*][B]Tooltip Trait[/B] [Default: ON] - reformats trait information and uses the same research color coding as Inventory Trait.
 [/LIST]
 
@@ -154,11 +155,12 @@ Open the settings panel from:
 These must be installed for GamePadHelper to load:
 
 [LIST]
-[*][URL="https://www.esoui.com/downloads/info3266-LibCovetousCountess.html"]LibCovetousCountess[/URL] - quest-step data for Inventory Covetous Countess.
+[*][URL="https://www.esoui.com/downloads/info3266-LibCovetousCountess.html"]LibCovetousCountess[/URL] - Countess and Bursar treasure-quest data.
 [*][URL="https://www.esoui.com/downloads/info3265-LibItemLinkDecoder.html"]LibItemLinkDecoder[/URL] - item link decoding for Tooltip Enchantment.
 [*][URL="https://www.esoui.com/downloads/info3264-LibTraitResearch.html"]LibTraitResearch[/URL] - trait research data for Inventory Trait and Tooltip Trait.
-[*][URL="https://www.esoui.com/downloads/info3267-LibMultiIcon.html"]LibMultiIcon[/URL] - stacked inventory icon overlays.
 [/LIST]
+
+[COLOR="#FF4444"][B]Important:[/B] If you installed [B]LibMultiIcon[/B] for older GamePadHelper builds, remove or disable it. GamePadHelper now uses its own private multi-icon helper.[/COLOR]
 
 [SIZE="4"][COLOR="#3399FF"][B]Optional Dependencies[/B][/COLOR][/SIZE]
 
@@ -172,50 +174,3 @@ These must be installed for GamePadHelper to load:
 This addon is provided as-is, without warranty or support of any kind. Bug reports and contributions are welcome on GitHub:
 
 [URL="https://github.com/olegbl/eso-mods/tree/main/GamePadHelper"]GamePadHelper GitHub Repository[/URL]
-
-[SIZE="4"][COLOR="#3399FF"][B]Update Shortage[/B][/COLOR][/SIZE]
-
-1.06.12
-[LIST]
-[*][GamePadHelper] [OverviewTasks] Complete visual redesign — each category (Time, Horse, Maps, Crafting, Companion) now uses a titled section with divider header and icon.
-[*][GamePadHelper] [OverviewTasks] Horse training section now shows individual Speed, Carrying Capacity, and Stamina skill progress with icons.
-[*][GamePadHelper] [OverviewTasks] Maps section added — antiquity leads, treasure maps, and surveys with inline icons. Survey maps moved from crafting counter.
-[*][GamePadHelper] [OverviewTasks] Companion section now shows XP bar, rapport gradient bar, rapport level, and rapport description.
-[*][GamePadHelper] [OverviewTasks] Added Quest Panel toggle — independent of the Overview tasks toggle.
-[*][GamePadHelper] [OverviewTasks] Added Local Time toggle — independent of server time toggle.
-[*][GamePadHelper] [OverviewTasks] Added Hide Completed Daily Writs toggle.
-[*][GamePadHelper] [OverviewQuest] Quest title now uses divider header with tracked-quest icon. Section order: Hints, Tasks, Optional, Completed.
-[*][GamePadHelper] [InventoryTrait] Multi-pass refresh (50/200/500ms) for more reliable icon display. Removed broken pre-hooks.
-[*][GamePadHelper] [Settings] Reorganized into labeled sections: Automation, Fishing, Map Search, Overview, Tooltips and UI, Loot.
-[/LIST]
-
-1.06.11
-[LIST]
-[*][GamePadHelper] [MapSearch] Set bonuses for crafting stations now shown in right-side movable tooltip, no truncation at any screen text size.
-[*][GamePadHelper] [MapSearch] Wayshrines and guild trader POIs now show guild names occupying nearby kiosks.
-[*][GamePadHelper] [MapSearch] Ferry, caravan, and silt strider NPCs are now individual searchable entries with destination routes.
-[*][GamePadHelper] [OverviewTasks] Renamed Sharp-as-Night Ald'ruhn Hunt/Relic activity labels to Ashlander Hunt Daily / Ashlander Relic Daily across all languages.
-[*][GamePadHelper] [MapSearch] Added crafted set names, trait requirements, and localized set bonuses to crafting station results.
-[*][GamePadHelper] [MapSearch] Added support for special crafting locations (Eyevea, The Earth Forge) exposed as map-location service pins.
-[*][GamePadHelper] [MapSearch] Added searchable city service pins: guild traders, guild halls, banks, and other city services.
-[*][GamePadHelper] [MapSearch] Added searchable daily quest giver locations across all zones.
-[*][GamePadHelper] [MapSearch] Teleporting from city service and daily quest giver results now targets the correct city wayshrine.
-[*][GamePadHelper] [MapSearch] Improved crafted set bonus display and screen narration.
-[*][GamePadHelper] [MapTeleporter] World map zone teleport now includes friends for free travel alongside group and guild members.
-[*][GamePadHelper] [OverviewTasks] Fixed daily tracker not resetting at server reset; now uses server-aware day numbers and checks on login.
-[*][GamePadHelper] [OverviewTasks] Fixed survey reports and master writs not showing for some users.
-[/LIST]
-
-1.06.10
-[LIST]
-[*][GamePadHelper] [MapSearch] Added Search, Bookmarks, Recent, Houses, and Zones tabs.
-[*][GamePadHelper] [MapSearch] Added zone quest, survey, treasure map, and antiquity lead counts.
-[*][GamePadHelper] [MapSearch] Added wayshrine guild trader hints.
-[*][GamePadHelper] [MapSearch] Improved recall price caching and reduced duplicate searches.
-[*][GamePadHelper] [MapTeleporter] Fixed keybind conflict with Map Search.
-[*][GamePadHelper] [OverviewTasks] Added cache for inventory, quest, writ, antiquity, and companion scans.
-[*][GamePadHelper] [OverviewTasks] Added daily reset refresh handling.
-[*][GamePadHelper] [OverviewQuest] Improved no-active-quest behavior and quest switch logic.
-[*][GamePadHelper] [Fishing] Improved bait scan logic.
-[*][GamePadHelper] [DungeonFinder] Improved quest and dungeon list scan logic.
-[/LIST]

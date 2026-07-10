@@ -6,9 +6,11 @@ local gphLootReloadPending = false
 local gphExitHookRegistered = false
 local gphBackOverrideActive = false
 local TRAIT_COLOR_LEGEND = GetString(SI_GPH_TRAIT_COLOR_LEGEND)
+local COUNTESS_LEGEND = zo_strformat(SI_GPH_TREASURE_COLOR_LEGEND, GetString(SI_GPH_TREASURE_LEGEND_COUNTESS))
+local CROW_LEGEND = zo_strformat(SI_GPH_TREASURE_COLOR_LEGEND, GetString(SI_GPH_TREASURE_LEGEND_CROW))
 
 local function GetSavedVars()
-    return _G["GamePadHelper_SavedVars"]
+    return _G["GamePadHelper_CharSavedVars"]
 end
 
 local function GetBoolSetting(key, defaultValue)
@@ -56,11 +58,11 @@ end
 
 local function ResetSettingsToDefaults()
     local sv = GetSavedVars()
-    local defaults = _G["GamePadHelper_Defaults"]
+    local defaults = _G["GamePadHelper_CharDefaults"]
     if not (sv and defaults) then return end
 
     for key, value in pairs(defaults) do
-        if key ~= "lastAnnouncedVersion" and key ~= "overviewDebug" then
+        if key ~= "lastAnnouncedVersion" then
             sv[key] = CopyDefaultValue(value)
         end
     end
@@ -350,6 +352,13 @@ local function BuildSettingsData()
         end
     end))
 
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME), GetString(SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP), function()
+        return GetBoolSetting("cyrodiilKeepSearchEnabled", true)
+    end, function(v)
+        SetSetting("cyrodiilKeepSearchEnabled", v)
+    end, nil, mapSearchDisabled))
+
+
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TELEPORTER_NAME), GetString(SI_GPH_SETTING_TELEPORTER_TOOLTIP), "teleporterEnabled"))
 
     -- Overview
@@ -399,10 +408,10 @@ local function BuildSettingsData()
         SetSetting("overviewLocalTimeEnabled", v)
     end, nil, overviewDisabled))
 
-    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_OVERVIEW_SERVER_TIME_NAME), GetString(SI_GPH_SETTING_OVERVIEW_SERVER_TIME_TOOLTIP), function()
-        return GetBoolSetting("overviewServerTimeEnabled", true)
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_OVERVIEW_RESET_TIMER_NAME), GetString(SI_GPH_SETTING_OVERVIEW_RESET_TIMER_TOOLTIP), function()
+        return GetBoolSetting("overviewResetTimerEnabled", true)
     end, function(v)
-        SetSetting("overviewServerTimeEnabled", v)
+        SetSetting("overviewResetTimerEnabled", v)
     end, nil, overviewDisabled))
 
     add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_OVERVIEW_COMPANION_NAME), GetString(SI_GPH_SETTING_OVERVIEW_COMPANION_TOOLTIP), function()
@@ -412,7 +421,7 @@ local function BuildSettingsData()
     end, nil, overviewDisabled))
 
     -- Tooltips and UI
-    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_TOOLTIP) .. TRAIT_COLOR_LEGEND, function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_TOOLTIP) .. "\n\n" .. TRAIT_COLOR_LEGEND, function()
         return GetBoolSetting("tooltipTraitEnabled", false)
     end, function(v)
         SetSetting("tooltipTraitEnabled", v)
@@ -420,6 +429,16 @@ local function BuildSettingsData()
 
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_PRICE_NAME), GetString(SI_GPH_SETTING_TOOLTIP_PRICE_TOOLTIP), "tooltipPriceEnabled"))
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_POISON_NAME), GetString(SI_GPH_SETTING_TOOLTIP_POISON_TOOLTIP), "tooltipPoisonEnabled"))
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_COVETOUS_COUNTESS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_COVETOUS_COUNTESS_TOOLTIP) .. COUNTESS_LEGEND, function()
+        return GetBoolSetting("tooltipCovetousCountessEnabled", false)
+    end, function(v)
+        SetSetting("tooltipCovetousCountessEnabled", v)
+    end))
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_CROW_NAME), GetString(SI_GPH_SETTING_TOOLTIP_CROW_TOOLTIP) .. CROW_LEGEND, function()
+        return GetBoolSetting("tooltipCrowEnabled", false)
+    end, function(v)
+        SetSetting("tooltipCrowEnabled", v)
+    end))
     add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_FONT_NAME), GetString(SI_GPH_SETTING_TOOLTIP_FONT_TOOLTIP), function()
         return GetBoolSetting("tooltipFontEnabled", false)
     end, function(v)
@@ -432,8 +451,16 @@ local function BuildSettingsData()
     end))
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_ENCHANTMENTS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_ENCHANTMENTS_TOOLTIP), "tooltipEnchantmentEnabled"))
     add(BuildCheckbox(GetString(SI_GPH_SETTING_GEAR_COMPARISON_NAME), GetString(SI_GPH_SETTING_GEAR_COMPARISON_TOOLTIP), "gearComparisonEnabled"))
-    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME), GetString(SI_GPH_SETTING_INVENTORY_TRAITS_TOOLTIP) .. TRAIT_COLOR_LEGEND, "inventoryTraitEnabled"))
-    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_NAME), GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_TOOLTIP), "inventoryCovetousCountessEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME), GetString(SI_GPH_SETTING_INVENTORY_TRAITS_TOOLTIP) .. "\n\n" .. TRAIT_COLOR_LEGEND, "inventoryTraitEnabled"))
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_DECONSTRUCTION_TRAIT_LEGEND_NAME), GetString(SI_GPH_SETTING_DECONSTRUCTION_TRAIT_LEGEND_TOOLTIP), function()
+        return GetBoolSetting("inventoryTraitDeconstructionLegendEnabled", true)
+    end, function(v)
+        SetSetting("inventoryTraitDeconstructionLegendEnabled", v)
+    end, nil, function()
+        return not GetBoolSetting("inventoryTraitEnabled", true)
+    end))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_NAME), GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_TOOLTIP) .. COUNTESS_LEGEND, "inventoryCovetousCountessEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_CROW_NAME), GetString(SI_GPH_SETTING_INVENTORY_CROW_TOOLTIP) .. CROW_LEGEND, "inventoryCrowEnabled"))
     add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_DUNGEON_FINDER_NAME), GetString(SI_GPH_SETTING_DUNGEON_FINDER_TOOLTIP), function()
         return GetBoolSetting("dungeonFinderEnabled", false)
     end, function(v)
@@ -448,7 +475,7 @@ local function BuildSettingsData()
         SetSetting("lootOffsetEnabled", v)
         MarkLootReloadPending()
     end, GetString(SI_GPH_SETTINGS_HEADER_LOOT), function()
-        return IsConsoleUI and IsConsoleUI()
+        return IsConsoleUI()
     end))
 
     -- UI shows -350..350, but saved value stays compatible with loot module (0..700 where 350 is midpoint).
@@ -463,7 +490,7 @@ local function BuildSettingsData()
         MarkLootReloadPending()
     end, nil, function()
         local sv = GetSavedVars()
-        local isConsole = IsConsoleUI and IsConsoleUI()
+        local isConsole = IsConsoleUI()
         return isConsole or not (sv and sv.lootOffsetEnabled)
     end))
 
@@ -616,7 +643,7 @@ local function InitializeGamepadSettings()
 
 end
 
-EVENT_MANAGER:RegisterForEvent("Settings_Init", EVENT_PLAYER_ACTIVATED, function()
-    EVENT_MANAGER:UnregisterForEvent("Settings_Init", EVENT_PLAYER_ACTIVATED)
+EVENT_MANAGER:RegisterForEvent("GPH_Settings_Init", EVENT_PLAYER_ACTIVATED, function()
+    EVENT_MANAGER:UnregisterForEvent("GPH_Settings_Init", EVENT_PLAYER_ACTIVATED)
     InitializeGamepadSettings()
 end)

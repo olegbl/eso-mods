@@ -1,4 +1,4 @@
-local STYLE_NAMES = {"bodyDescription", "flavorText", "poisonCount", "prioritySellText"}
+﻿local STYLE_NAMES = {"bodyDescription", "flavorText", "poisonCount", "prioritySellText"}
 local NEW_FONT_SIZE = "$(GP_34)"
 
 local tooltips = {
@@ -50,7 +50,7 @@ EVENT_MANAGER:RegisterForEvent("TooltipFont", EVENT_ADD_ON_LOADED, function(even
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("TooltipFont", EVENT_ADD_ON_LOADED)
     CaptureOriginals()
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if sv and sv.tooltipFontEnabled then
         ApplyFontChanges()
     end

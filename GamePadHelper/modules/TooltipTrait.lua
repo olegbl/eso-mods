@@ -1,15 +1,15 @@
-local _GetTraitIcon = ZO_GetPlatformTraitInformationIcon or GetPlatformTraitInformationIcon
+﻿local _GetTraitIcon = _G["GamePadHelper_Utils"] and _G["GamePadHelper_Utils"].GetTraitIcon
 local RESEARCH_ICON = _GetTraitIcon and zo_iconFormatInheritColor(_GetTraitIcon(ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED), 32, 32)
 local BAG_ICON = zo_iconFormatInheritColor("esoui/art/tooltips/icon_bag.dds", 20, 20)
 local BANK_ICON = zo_iconFormatInheritColor("esoui/art/tooltips/icon_bank.dds", 20, 20)
-local COLOR_WORN = ZO_ColorDef:New("FFFFFF")
+local COLOR_WORN = ZO_ColorDef:New("3399FF")
 
 local function OnAddonLoaded(event, name)
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("TooltipTrait", EVENT_ADD_ON_LOADED)
 
     local function Tooltip_AddTrait_Before(self, itemLink, extraData)
-        local sv = _G["GamePadHelper_SavedVars"]
+        local sv = _G["GamePadHelper_CharSavedVars"]
         if not sv or not sv.tooltipTraitEnabled then return end
         local traitType, traitDescription = GetItemLinkTraitInfo(itemLink)
         if traitType ~= ITEM_TRAIT_TYPE_NONE and traitDescription ~= "" then
@@ -41,11 +41,15 @@ local function OnAddonLoaded(event, name)
                 end
 
                 if canBeResearched then
-                    local researchIcon = colorOverall:Colorize(RESEARCH_ICON)
-                    local duplicateRemoteText = colorRemote:Colorize(duplicateRemoteItems)
-                    local duplicateLocalText = colorLocal:Colorize(duplicateLocalItems)
+                    local isWornItem = extraData and extraData.bagId == BAG_WORN
+                    local researchColor = isWornItem and COLOR_WORN or colorOverall
+                    local researchIcon = researchColor:Colorize(RESEARCH_ICON)
+                    local duplicateRemoteText = colorRemote and colorRemote:Colorize(duplicateRemoteItems)
+                    local duplicateLocalText = colorLocal and colorLocal:Colorize(duplicateLocalItems)
 
-                    if duplicateRemoteItems > 0 and duplicateLocalItems > 0 then
+                    if isWornItem then
+                        title = string.format("%s (%s)", title, researchIcon)
+                    elseif duplicateRemoteItems > 0 and duplicateLocalItems > 0 then
                         title = string.format("%s (%s%s%s%s%s)", title, researchIcon, BANK_ICON, duplicateRemoteText, BAG_ICON, duplicateLocalText)
                     elseif duplicateRemoteItems > 0 then
                         title = string.format("%s (%s%s%s)", title, researchIcon, BANK_ICON, duplicateRemoteText)
@@ -69,18 +73,7 @@ local function OnAddonLoaded(event, name)
         return true
     end
 
-    local tooltips = {
-        GAMEPAD_LEFT_DIALOG_TOOLTIP,
-        GAMEPAD_LEFT_TOOLTIP,
-        GAMEPAD_MOVABLE_TOOLTIP,
-        GAMEPAD_QUAD1_TOOLTIP,
-        GAMEPAD_QUAD3_TOOLTIP,
-        GAMEPAD_RIGHT_TOOLTIP,
-    }
-
-    for index, tooltip in ipairs(tooltips) do
-        ZO_PreHook(GAMEPAD_TOOLTIPS:GetTooltip(tooltip), "AddTrait", Tooltip_AddTrait_Before)
-    end
+    _G["GamePadHelper_Utils"].HookAllGamepadTooltips("pre", "AddTrait", Tooltip_AddTrait_Before)
 end
 
 EVENT_MANAGER:RegisterForEvent("TooltipTrait", EVENT_ADD_ON_LOADED, OnAddonLoaded)

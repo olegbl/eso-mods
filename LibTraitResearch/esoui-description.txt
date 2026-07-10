@@ -1,0 +1,38 @@
+﻿[CENTER][SIZE="5"][COLOR="#3399FF"][B]LibTraitResearch[/B][/COLOR][/SIZE]
+[B]Version 1.05[/B] | API 101050 | by olegbl, quelron[/CENTER]
+
+[CENTER]A helper library for Elder Scrolls Online that exposes research-trait state for an item link, including duplicate counts across accessible bags.[/CENTER]
+
+[SIZE="4"][COLOR="#3399FF"][B]What It Does[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Checks whether an item's trait can currently be researched by the character.
+[*]Returns the overall icon color that should be used for that trait.
+[*]Returns duplicate counts split by local and remote bags.
+[*]Distinguishes inventory-accessible duplicates from bank-accessible duplicates.
+[*]Does not scan other characters on the account.
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]API[/B][/COLOR][/SIZE]
+
+[CODE]
+local canBeResearched, colorOverall, duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal =
+    LibTraitResearch:GetItemLinkTraitResearchState(itemLink)
+
+LibTraitResearch:Update()
+[/CODE]
+
+[SIZE="4"][COLOR="#3399FF"][B]Use Cases[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Inventory research icons
+[*]Tooltip trait summaries
+[*]Duplicate-count overlays for local and remote bags
+[*]Safe-to-research indicators
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]Support[/B][/COLOR][/SIZE]
+
+This library is provided as-is, without warranty or support of any kind, express or implied.
+
+[URL="https://github.com/olegbl/eso-mods/tree/main/LibTraitResearch"]LibTraitResearch GitHub Repository[/URL]

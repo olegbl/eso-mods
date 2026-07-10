@@ -1,68 +1,32 @@
 # GamePadHelper
 
-A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI.
+A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI. Every feature can be toggled individually from Options > GPH Settings.
 
-Open settings from:
-**Options > GPH Settings**
+## Features
+
+- Overview Panel — two-column root menu with quest details and daily reminders.
+- Map Search — search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting stations. In Cyrodiil, shows accessible keeps with group proximity info. While dead, switches to revive mode and lists all revivable locations including forward camps.
+- Teleporter — world map hotkey to teleport to a hovered zone.
+- Dungeon Finder — shows pledge quest names in the finder list.
+- Fishing — vibration on bite, reel alert, automatic bait selection and fallback.
+- Auto Repair — repairs equipped gear at merchants automatically.
+- Auto Charge — recharges weapons in and out of combat using regular soul gems.
+- Antiquarian's Eye — auto-slots and activates the collectible when appropriate.
+- Provisioning Filter — hides low-level recipes below CP160.
+- Gear Comparison — side-by-side item stat comparison panels.
+- Loot Offset — moves the loot history panel up to avoid chat overlap.
+- Tooltip improvements — price, enchantment, poison, trait, and font.
+- Inventory Trait — research indicators (blue/green/yellow/red) with duplicate counts and deconstruction legend.
+- Inventory Countess and Bursar — highlights treasures for The Covetous Countess and Bursar of Tributes quests.
 
 ## Required Libraries
 
 - LibCovetousCountess
 - LibItemLinkDecoder
 - LibTraitResearch
-- LibMultiIcon
 
-## Highlights
-
-- Gamepad and console UI focused.
-- Each feature can be enabled or disabled individually.
-- Supports all 7 official ESO client languages: EN, DE, FR, ES, RU, JP, ZH.
-- Supports market price data when compatible price addons or data packages are installed.
-
-## Main Features
-
-- **Tooltip Price:** cleaner item price display with supported market data.
-- **Tooltip Enchantment:** cleaner enchantment text.
-- **Tooltip Poison:** improved poison tooltip formatting.
-- **Tooltip Trait:** better trait visibility in tooltips.
-- **Tooltip Font:** cleaner item tooltip font for gamepad play.
-- **Inventory Traits:** research trait indicators in inventory.
-- **Inventory Covetous Countess:** highlights relevant Covetous Countess treasures.
-- **Gear Comparison:** side-by-side item stat comparison panels.
-- **Provisioning Filter:** hides low-level recipes below CP160.
-- **Fishing:** controller vibration, reel alert, automatic bait selection, and fallback bait.
-- **Teleporter:** world map hotkey to teleport to the hovered zone — prefers free travel via a group member, friend, or guild member in the zone, otherwise uses the nearest wayshrine. Also adds chat context menu jump options for friends, guild members, and group members.
-- **Map Search:** search wayshrines, zones, houses, points of interest, city services (guild traders, guild halls, banks), daily quest givers, and travel service NPCs (ferry, caravan, silt strider with destinations) from the gamepad world map. Separate tabs for Search, Bookmarks, Recent, Houses, and Zones. Zone quest/map/lead counts, wayshrine and trader POI guild names, crafted set bonuses in right-side tooltip. Teleports to the correct city wayshrine for city service and daily quest results.
-- **Dungeon Finder:** shows pledge quest names in the Dungeon Finder list.
-- **Overview Panel:** two-column root menu overview. Left panel shows active quest details (toggle independently). Right panel shows daily reminders as titled sections with icons: Time (local + server, each toggleable), Horse Training (per-skill progress), Maps (antiquity leads, treasure maps, surveys), Crafting (master writs, daily writ status, trait research), and Companion (XP bar, rapport gradient bar, daily activities). Completed writs can be hidden.
-- **Loot Offset:** moves the loot history panel upward so it does not overlap chat. Requires UI reload after toggling.
-- **Auto Charge:** recharges equipped weapons after combat. Default threshold: 25%.
-- **Auto Repair:** repairs equipped items at merchants when repair is available.
-- **Auto Eye:** automatically slots and activates Antiquarian's Eye when usable.
-
-## Trait Icon Color Meaning
-
-- **Green:** only accessible copy with this trait; safe to research.
-- **Yellow:** another copy with the same trait exists in your inventory.
-- **Red:** another copy with the same trait exists in your bank.
-- **White:** equipped item uses ESO's default magnifying glass icon; trait details are shown in the tooltip.
+IMPORTANT: If you installed LibMultiIcon for older GamePadHelper builds, remove or disable it. GamePadHelper now includes its own private multi-icon helper.
 
 ## Optional Integrations
 
-- **TamrielTradeCentre:** optional PC market price source.
-- **LibPriceCache:** optional price cache source.
-- **TSCPriceDataAPIXBNA, TSCPriceDataAPIPSNA, TSCPriceDataAPIXBEU, TSCPriceDataAPIPSEU:** optional console price data packages.
-
-## Price Data Attribution
-
-PC market data can use TamrielTradeCentre when installed:
-https://www.esoui.com/downloads/info1245-TamrielTradeCentre.html
-
-Console price data provided by Tamriel Savings Co Price Fetcher / TSC Price Data API packages when installed:
-https://tamrielsavings.com/price-fetcher
-
-## Notes
-
-- Optional integrations improve specific features but are not required for GamePadHelper to load.
-- If no supported market addon or price data package is installed, Tooltip Price still reformats basic price information.
-- This addon is provided as-is. Please report issues on the GamePadHelper project page.
+Market prices via TamrielTradeCentre (PC) or Tamriel Savings Co Price Fetcher / TSC Price Data API packages (console).

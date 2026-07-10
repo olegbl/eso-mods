@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- GPH Map Search Data
 -- Static search helpers that are not exposed reliably by ESO APIs.
 -- Source for daily quest giver names/locations:
@@ -11,298 +11,299 @@ GamePadHelper_MapSearchData = GamePadHelper_MapSearchData or {}
 
 local data = GamePadHelper_MapSearchData
 
+
 data.DAILY_QUEST_GIVERS = {
     {
         name = "Alvur Baren", -- https://en.uesp.net/wiki/Online:Alvur_Baren
         category = "Mages Guild Daily Quests",
         locations = {
-            { placeName = "Mages Guild", cityName = "Dreughside", zoneId = 19, cityMapId = 33, mapIndex = 4, x = 0.5832324028, y = 0.5112639666, alliance = 2 },
+            { placeName = "Mages Guild", cityName = "Dreughside", zoneId = 19, cityMapId = 33, x = 0.5832324028, y = 0.5112639666, alliance = 2 },
             { placeName = "Mages Guild", cityName = "Elden Root", zoneId = 383, cityMapId = 446, x = 0.8238251209, y = 0.4906557500, alliance = 1 },
-            { placeName = "Mages Guild", cityName = "Mournhold", zoneId = 57, cityMapId = 205, mapIndex = 10, x = 0.3622862101, y = 0.5867315531, alliance = 3 },
+            { placeName = "Mages Guild", cityName = "Mournhold", zoneId = 57, cityMapId = 205, x = 0.3622862101, y = 0.5867315531, alliance = 3 },
         },
     },
     {
         name = "Ardanir", -- https://en.uesp.net/wiki/Online:Ardanir
         category = "Wayward Guardian",
         locations = {
-            { placeName = "Markarth", cityName = "Markarth", zoneId = 1207, cityMapId = 1858, mapIndex = 42, x = 0.7097710967, y = 0.5098394156 },
+            { placeName = "Markarth", cityName = "Markarth", zoneId = 1207, cityMapId = 1858, x = 0.7097710967, y = 0.5098394156 },
         },
     },
     {
         name = "Arzorag", -- https://en.uesp.net/wiki/Online:Arzorag
         category = "Wrothgar World Boss Dailies",
         locations = {
-            { placeName = "Skalar's Hostel", cityName = "Orsinium", zoneId = 684, cityMapId = 895, mapIndex = 27, x = 0.3167660236, y = 0.2770044804 },
+            { placeName = "Skalar's Hostel", cityName = "Orsinium", zoneId = 684, cityMapId = 895, x = 0.3167660236, y = 0.2770044804 },
         },
     },
     {
         name = "Battlemaster Rivyn", -- https://en.uesp.net/wiki/Online:Battlemaster_Rivyn
         category = "Battlegrounds Missions",
         locations = {
-            { placeName = "Gladiator's Quarters", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, mapIndex = 32, x = 0.0890831128, y = 0.4126663506 },
-            { placeName = "Gladiator's Quarters", cityName = "Daggerfall", zoneId = 3, cityMapId = 63, mapIndex = 2, x = 0.4528657794, y = 0.2833637893 },
-            { placeName = "Gladiator's Quarters", cityName = "Davon's Watch", zoneId = 41, cityMapId = 24, mapIndex = 11, x = 0.6444798708, y = 0.7986122966 },
-            { placeName = "Gladiator's Quarters", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, mapIndex = 46, x = 0.1552033424, y = 0.3838516772 },
-            { placeName = "Gladiator's Quarters", cityName = "Leyawiin", zoneId = 1261, cityMapId = 1940, mapIndex = 43, x = 0.3808173537, y = 0.1457562000 },
-            { placeName = "Gladiator's Quarters", cityName = "Rimmen", zoneId = 1086, cityMapId = 1576, mapIndex = 36, x = 0.0888012722, y = 0.6129474044 },
-            { placeName = "Gladiator's Quarters", cityName = "Vivec City", zoneId = 849, cityMapId = 1287, mapIndex = 30, x = 0.2177096158, y = 0.5691549778 },
-            { placeName = "Gladiator's Quarters", cityName = "Vulkhel Guard", zoneId = 381, cityMapId = 243, mapIndex = 15, x = 0.5323008299, y = 0.5054043531 },
+            { placeName = "Gladiator's Quarters", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, x = 0.0890831128, y = 0.4126663506 },
+            { placeName = "Gladiator's Quarters", cityName = "Daggerfall", zoneId = 3, cityMapId = 63, x = 0.4528657794, y = 0.2833637893 },
+            { placeName = "Gladiator's Quarters", cityName = "Davon's Watch", zoneId = 41, cityMapId = 24, x = 0.6444798708, y = 0.7986122966 },
+            { placeName = "Gladiator's Quarters", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, x = 0.1552033424, y = 0.3838516772 },
+            { placeName = "Gladiator's Quarters", cityName = "Leyawiin", zoneId = 1261, cityMapId = 1940, x = 0.3808173537, y = 0.1457562000 },
+            { placeName = "Gladiator's Quarters", cityName = "Rimmen", zoneId = 1086, cityMapId = 1576, x = 0.0888012722, y = 0.6129474044 },
+            { placeName = "Gladiator's Quarters", cityName = "Vivec City", zoneId = 849, cityMapId = 1287, x = 0.2177096158, y = 0.5691549778 },
+            { placeName = "Gladiator's Quarters", cityName = "Vulkhel Guard", zoneId = 381, cityMapId = 243, x = 0.5323008299, y = 0.5054043531 },
         },
     },
     {
         name = "Battlereeve Tanerline", -- https://en.uesp.net/wiki/Online:Battlereeve_Tanerline
         category = "Summerset World Event Daily",
         locations = {
-            { placeName = "Plaza of the Hand", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, mapIndex = 32, x = 0.3182982802, y = 0.8105757833 },
+            { placeName = "Plaza of the Hand", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, x = 0.3182982802, y = 0.8105757833 },
         },
     },
     {
         name = "Beleru Omoril", -- https://en.uesp.net/wiki/Online:Beleru_Omoril
         category = "Vvardenfell World Boss Dailies",
         locations = {
-            { placeName = "Hall of Justice", cityName = "Vivec City", zoneId = 849, cityMapId = 1287, mapIndex = 30, x = 0.4785906971, y = 0.5526601076 },
+            { placeName = "Hall of Justice", cityName = "Vivec City", zoneId = 849, cityMapId = 1287, x = 0.4785906971, y = 0.5526601076 },
         },
     },
     {
         name = "Bolgrul", -- https://en.uesp.net/wiki/Online:Bolgrul
         category = "Undaunted Daily Quests",
         locations = {
-            { placeName = "Undaunted Enclave", cityName = "Dreughside", zoneId = 19, cityMapId = 33, mapIndex = 4, x = 0.1467203200, y = 0.4824189544, alliance = 2 },
-            { placeName = "Undaunted Enclave", cityName = "Elden Root", zoneId = 383, cityMapId = 445, mapIndex = 7, x = 0.5607210398, y = 0.6603766084, alliance = 1 },
-            { placeName = "Undaunted Enclave", cityName = "Mournhold", zoneId = 57, cityMapId = 205, mapIndex = 10, x = 0.3173196912, y = 0.6755146980, alliance = 3 },
+            { placeName = "Undaunted Enclave", cityName = "Dreughside", zoneId = 19, cityMapId = 33, x = 0.1467203200, y = 0.4824189544, alliance = 2 },
+            { placeName = "Undaunted Enclave", cityName = "Elden Root", zoneId = 383, cityMapId = 445, x = 0.5607210398, y = 0.6603766084, alliance = 1 },
+            { placeName = "Undaunted Enclave", cityName = "Mournhold", zoneId = 57, cityMapId = 205, x = 0.3173196912, y = 0.6755146980, alliance = 3 },
         },
     },
     {
         name = "Bolu", -- https://en.uesp.net/wiki/Online:Bolu
         category = "Murkmire World Boss Dailies",
         locations = {
-            { placeName = "Lilmoth", cityName = "Lilmoth", zoneId = 726, cityMapId = 1560, mapIndex = 34, x = 0.4509567022, y = 0.6382588148 },
+            { placeName = "Lilmoth", cityName = "Lilmoth", zoneId = 726, cityMapId = 1560, x = 0.4509567022, y = 0.6382588148 },
         },
     },
     {
         name = "Bralthahawn", -- https://en.uesp.net/wiki/Online:Bralthahawn
         category = "The Reach Delve Dailies",
         locations = {
-            { placeName = "Markarth", cityName = "Markarth", zoneId = 1207, cityMapId = 1858, mapIndex = 42, x = 0.5804236531, y = 0.5801844597 },
+            { placeName = "Markarth", cityName = "Markarth", zoneId = 1207, cityMapId = 1858, x = 0.5804236531, y = 0.5801844597 },
         },
     },
     {
         name = "Britta Silanus", -- https://en.uesp.net/wiki/Online:Britta_Silanus
         category = "Blackwood World Boss Dailies",
         locations = {
-            { placeName = "Leyawiin", cityName = "Leyawiin", zoneId = 1261, cityMapId = 1940, mapIndex = 43, x = 0.2164784223, y = 0.5353142619 },
+            { placeName = "Leyawiin", cityName = "Leyawiin", zoneId = 1261, cityMapId = 1940, x = 0.2164784223, y = 0.5353142619 },
         },
     },
     {
         name = "Bruccius Baenius", -- https://en.uesp.net/wiki/Online:Bruccius_Baenius
         category = "Dragonhold World Boss Dailies",
         locations = {
-            { placeName = "Senchal Merchant Square", cityName = "Senchal", zoneId = 1133, cityMapId = 1675, mapIndex = 37, x = 0.5404431820, y = 0.6989180446 },
+            { placeName = "Senchal Merchant Square", cityName = "Senchal", zoneId = 1133, cityMapId = 1675, x = 0.5404431820, y = 0.6989180446 },
         },
     },
     {
         name = "Bursar of Tributes", -- https://en.uesp.net/wiki/Online:Bursar_of_Tributes
         category = "Blackfeather Court Dailies",
         locations = {
-            { placeName = "Slag Town", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, mapIndex = 31, x = 0.6117810607, y = 0.4892891645 },
+            { placeName = "Slag Town", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, x = 0.6117810607, y = 0.4892891645 },
         },
     },
     {
         name = "Cardea Gallus", -- https://en.uesp.net/wiki/Online:Cardea_Gallus
         category = "Fighters Guild Daily Quests",
         locations = {
-            { placeName = "Fighters Guild", cityName = "Dreughside", zoneId = 19, cityMapId = 33, mapIndex = 4, x = 0.3621351123, y = 0.3019210696, alliance = 2 },
+            { placeName = "Fighters Guild", cityName = "Dreughside", zoneId = 19, cityMapId = 33, x = 0.3621351123, y = 0.3019210696, alliance = 2 },
             { placeName = "Fighters Guild", cityName = "Elden Root", zoneId = 383, cityMapId = 446, x = 0.6467759609, y = 0.8231694102, alliance = 1 },
-            { placeName = "Fighters Guild", cityName = "Mournhold", zoneId = 57, cityMapId = 205, mapIndex = 10, x = 0.5448757410, y = 0.7273079157, alliance = 3 },
+            { placeName = "Fighters Guild", cityName = "Mournhold", zoneId = 57, cityMapId = 205, x = 0.5448757410, y = 0.7273079157, alliance = 3 },
         },
     },
     {
         name = "Chizbari the Chipper", -- https://en.uesp.net/wiki/Online:Chizbari_the_Chipper
         category = "Dragonhold World Event Daily",
         locations = {
-            { placeName = "Dragonguard Sanctum", cityName = "Dragonguard Sanctum", zoneId = 1133, mapIndex = 37, x = 0.2724579275, y = 0.2858497202 },
+            { placeName = "Dragonguard Sanctum", cityName = "Dragonguard Sanctum", zoneId = 1133, x = 0.2724579275, y = 0.2858497202 },
         },
     },
     {
         name = "Clockwork Facilitator", -- https://en.uesp.net/wiki/Online:Clockwork_Facilitator
         category = "Clockwork City World Boss Dailies",
         locations = {
-            { placeName = "Brass Fortress", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, mapIndex = 31, x = 0.5895296931, y = 0.5412595272 },
+            { placeName = "Brass Fortress", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, x = 0.5895296931, y = 0.5412595272 },
         },
     },
     {
         name = "Commandant Salerius", -- https://en.uesp.net/wiki/Online:Commandant_Salerius
         category = "West Weald Delve Dailies",
         locations = {
-            { placeName = "Skingrad", cityName = "Skingrad", zoneId = 1443, cityMapId = 2514, mapIndex = 51, x = 0.6211023331, y = 0.5777600408 },
+            { placeName = "Skingrad", cityName = "Skingrad", zoneId = 1443, cityMapId = 2514, x = 0.6211023331, y = 0.5777600408 },
         },
     },
     {
         name = "Deetum-Jas", -- https://en.uesp.net/wiki/Online:Deetum-Jas
         category = "Blackwood Delve Dailies",
         locations = {
-            { placeName = "Leyawiin", cityName = "Leyawiin", zoneId = 1261, cityMapId = 1940, mapIndex = 43, x = 0.2240708619, y = 0.5302291512 },
+            { placeName = "Leyawiin", cityName = "Leyawiin", zoneId = 1261, cityMapId = 1940, x = 0.2240708619, y = 0.5302291512 },
         },
     },
     {
         name = "Dirge Truptor", -- https://en.uesp.net/wiki/Online:Dirge_Truptor
         category = "New Moon Dailies",
         locations = {
-            { placeName = "Dragonguard Sanctum", cityName = "Dragonguard Sanctum", zoneId = 1133, mapIndex = 37, x = 0.3161886632, y = 0.4525164068 },
+            { placeName = "Dragonguard Sanctum", cityName = "Dragonguard Sanctum", zoneId = 1133, x = 0.3161886632, y = 0.4525164068 },
         },
     },
     {
         name = "Druid Aishabeh", -- https://en.uesp.net/wiki/Online:Druid_Aishabeh
         category = "Galen World Event Daily",
         locations = {
-            { placeName = "Vastyr", cityName = "Vastyr", zoneId = 1383, cityMapId = 2227, mapIndex = 48, x = 0.5592867136, y = 0.4597567618 },
+            { placeName = "Vastyr", cityName = "Vastyr", zoneId = 1383, cityMapId = 2227, x = 0.5592867136, y = 0.4597567618 },
         },
     },
     {
         name = "Druid Gastoc", -- https://en.uesp.net/wiki/Online:Druid_Gastoc
         category = "Galen World Boss Dailies",
         locations = {
-            { placeName = "Vastyr", cityName = "Vastyr", zoneId = 1383, cityMapId = 2227, mapIndex = 48, x = 0.5653922707, y = 0.4549231976 },
+            { placeName = "Vastyr", cityName = "Vastyr", zoneId = 1383, cityMapId = 2227, x = 0.5653922707, y = 0.4549231976 },
         },
     },
     {
         name = "Druid Peeska", -- https://en.uesp.net/wiki/Online:Druid_Peeska
         category = "High Isle World Event Daily",
         locations = {
-            { placeName = "Gonfalon Bay", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, mapIndex = 46, x = 0.4540071785, y = 0.3389952183 },
+            { placeName = "Gonfalon Bay", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, x = 0.4540071785, y = 0.3389952183 },
         },
     },
     {
         name = "Grigerda", -- https://en.uesp.net/wiki/Online:Grigerda
         category = "Bruma Daily Quests",
         locations = {
-            { placeName = "Manor House", cityName = "Bruma", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.4695066810, y = 0.1727644503 },
+            { placeName = "Manor House", cityName = "Bruma", zoneId = 181, cityMapId = 16, x = 0.4695066810, y = 0.1727644503 },
         },
     },
     {
         name = "Guruzug", -- https://en.uesp.net/wiki/Online:Guruzug
         category = "Wrothgar Delve Dailies",
         locations = {
-            { placeName = "Clan Longhouse", cityName = "Morkul Stronghold", zoneId = 684, mapIndex = 27, x = 0.2577092367, y = 0.2359836767 },
+            { placeName = "Clan Longhouse", cityName = "Morkul Stronghold", zoneId = 684, x = 0.2577092367, y = 0.2359836767 },
         },
     },
     {
         name = "Guybert Flaubert", -- https://en.uesp.net/wiki/Online:Guybert_Flaubert
         category = "Dragonhold Delve Dailies",
         locations = {
-            { placeName = "Senchal Merchant Square", cityName = "Senchal", zoneId = 1133, cityMapId = 1675, mapIndex = 37, x = 0.5404431820, y = 0.6989180446 },
+            { placeName = "Senchal Merchant Square", cityName = "Senchal", zoneId = 1133, cityMapId = 1675, x = 0.5404431820, y = 0.6989180446 },
         },
     },
     {
         name = "Gwenyfe", -- https://en.uesp.net/wiki/Online:Gwenyfe
         category = "The Reach World Boss Dailies",
         locations = {
-            { placeName = "Markarth", cityName = "Markarth", zoneId = 1207, cityMapId = 1858, mapIndex = 42, x = 0.5935087204, y = 0.5781345963 },
+            { placeName = "Markarth", cityName = "Markarth", zoneId = 1207, cityMapId = 1858, x = 0.5935087204, y = 0.5781345963 },
         },
     },
     {
         name = "Hidaver", -- https://en.uesp.net/wiki/Online:Hidaver
         category = "Western Skyrim World Boss Dailies",
         locations = {
-            { placeName = "Solitude", cityName = "Solitude", zoneId = 1160, cityMapId = 1773, mapIndex = 38, x = 0.4348280132, y = 0.5176772475 },
+            { placeName = "Solitude", cityName = "Solitude", zoneId = 1160, cityMapId = 1773, x = 0.4348280132, y = 0.5176772475 },
         },
     },
     {
         name = "Hjorik", -- https://en.uesp.net/wiki/Online:Hjorik
         category = "Bruma Daily Quests",
         locations = {
-            { placeName = "Bruma Chapel", cityName = "Bruma", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.4773422182, y = 0.1810999960 },
+            { placeName = "Bruma Chapel", cityName = "Bruma", zoneId = 181, cityMapId = 16, x = 0.4773422182, y = 0.1810999960 },
         },
     },
     {
         name = "Huntmaster Sorim-Nakar", -- https://en.uesp.net/wiki/Online:Huntmaster_Sorim-Nakar
         category = "Ashlander Hunt Dailies",
         locations = {
-            { placeName = "Ald'ruhn", cityName = "Ald'ruhn", zoneId = 849, mapIndex = 30, x = 0.3880285621, y = 0.4805646837 },
+            { placeName = "Ald'ruhn", cityName = "Ald'ruhn", zoneId = 849, x = 0.3880285621, y = 0.4805646837 },
         },
     },
     {
         name = "Juline Courcelles", -- https://en.uesp.net/wiki/Online:Juline_Courcelles
         category = "Galen Delve Dailies",
         locations = {
-            { placeName = "Vastyr", cityName = "Vastyr", zoneId = 1383, cityMapId = 2227, mapIndex = 48, x = 0.5674274564, y = 0.4533120096 },
+            { placeName = "Vastyr", cityName = "Vastyr", zoneId = 1383, cityMapId = 2227, x = 0.5674274564, y = 0.4533120096 },
         },
     },
     {
         name = "Jurana", -- https://en.uesp.net/wiki/Online:Jurana
         category = "Vlastarus Daily Quests",
         locations = {
-            { placeName = "Vlastarus", cityName = "Vlastarus", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.3062888980, y = 0.6631821990 },
+            { placeName = "Vlastarus", cityName = "Vlastarus", zoneId = 181, cityMapId = 16, x = 0.3062888980, y = 0.6631821990 },
         },
     },
     {
         name = "Justiciar Farowel", -- https://en.uesp.net/wiki/Online:Justiciar_Farowel
         category = "Summerset World Boss Dailies",
         locations = {
-            { placeName = "Rinmawen's Plaza", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, mapIndex = 32, x = 0.4420191050, y = 0.6215175390 },
+            { placeName = "Rinmawen's Plaza", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, x = 0.4420191050, y = 0.6215175390 },
         },
     },
     {
         name = "Justiciar Tanorian", -- https://en.uesp.net/wiki/Online:Justiciar_Tanorian
         category = "Summerset Delve Dailies",
         locations = {
-            { placeName = "Rinmawen's Plaza", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, mapIndex = 32, x = 0.4420191050, y = 0.6215175390 },
+            { placeName = "Rinmawen's Plaza", cityName = "Alinor", zoneId = 1011, cityMapId = 1430, x = 0.4420191050, y = 0.6215175390 },
         },
     },
     {
         name = "Kishka", -- https://en.uesp.net/wiki/Online:Kishka
         category = "Tales of Tribute Daily",
         locations = {
-            { placeName = "Gonfalon Gaming Hall", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, mapIndex = 46, x = 0.5925837159, y = 0.6735047698 },
+            { placeName = "Gonfalon Gaming Hall", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, x = 0.5925837159, y = 0.6735047698 },
         },
     },
     {
         name = "Lector Volonaro", -- https://en.uesp.net/wiki/Online:Lector_Volonaro
         category = "Solstice Delve Dailies",
         locations = {
-            { placeName = "Cathedral Square", cityName = "Sunport", zoneId = 1502, cityMapId = 2654, mapIndex = 53, x = 0.5714650750, y = 0.6742879152 },
+            { placeName = "Cathedral Square", cityName = "Sunport", zoneId = 1502, cityMapId = 2654, x = 0.5714650750, y = 0.6742879152 },
         },
     },
     {
         name = "Legionary Jaida", -- https://en.uesp.net/wiki/Online:Legionary_Jaida
         category = "West Weald World Event Daily",
         locations = {
-            { placeName = "Skingrad", cityName = "Skingrad", zoneId = 1443, cityMapId = 2514, mapIndex = 51, x = 0.6164059043, y = 0.5765205026 },
+            { placeName = "Skingrad", cityName = "Skingrad", zoneId = 1443, cityMapId = 2514, x = 0.6164059043, y = 0.5765205026 },
         },
     },
     {
         name = "Lieutenant Agrance", -- https://en.uesp.net/wiki/Online:Lieutenant_Agrance
         category = "West Weald World Boss Dailies",
         locations = {
-            { placeName = "Skingrad", cityName = "Skingrad", zoneId = 1443, cityMapId = 2514, mapIndex = 51, x = 0.6211023331, y = 0.5777600408 },
+            { placeName = "Skingrad", cityName = "Skingrad", zoneId = 1443, cityMapId = 2514, x = 0.6211023331, y = 0.5777600408 },
         },
     },
     {
         name = "Lliae the Quick", -- https://en.uesp.net/wiki/Online:Lliae_the_Quick
         category = "Chorrol and Weynon Priory Daily Quests",
         locations = {
-            { placeName = "Chorrol", cityName = "Chorrol", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.1737888902, y = 0.3858844340 },
+            { placeName = "Chorrol", cityName = "Chorrol", zoneId = 181, cityMapId = 16, x = 0.1737888902, y = 0.3858844340 },
         },
     },
     {
         name = "Luna Beriel", -- https://en.uesp.net/wiki/Online:Luna_Beriel
         category = "Deadlands Delve Dailies",
         locations = {
-            { placeName = "Fargrave", cityName = "Fargrave", zoneId = 1283, cityMapId = 2035, mapIndex = 44, x = 0.2527459562, y = 0.3096819520 },
+            { placeName = "Fargrave", cityName = "Fargrave", zoneId = 1283, cityMapId = 2035, x = 0.2527459562, y = 0.3096819520 },
         },
     },
     {
         name = "Mael", -- https://en.uesp.net/wiki/Online:Mael
         category = "Chorrol and Weynon Priory Daily Quests",
         locations = {
-            { placeName = "Chorrol", cityName = "Chorrol", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.2163755596, y = 0.3975844383 },
+            { placeName = "Chorrol", cityName = "Chorrol", zoneId = 181, cityMapId = 16, x = 0.2163755596, y = 0.3975844383 },
         },
     },
     {
         name = "Marunji", -- https://en.uesp.net/wiki/Online:Marunji
         category = "Tales of Tribute Daily",
         locations = {
-            { placeName = "Gonfalon Gaming Hall", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, mapIndex = 46, x = 0.5925837159, y = 0.6735047698 },
+            { placeName = "Gonfalon Gaming Hall", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, x = 0.5925837159, y = 0.6735047698 },
         },
     },
     {
@@ -316,161 +317,161 @@ data.DAILY_QUEST_GIVERS = {
         name = "Morlia", -- https://en.uesp.net/wiki/Online:Morlia
         category = "Solstice World Boss Dailies",
         locations = {
-            { placeName = "Cathedral Square", cityName = "Sunport", zoneId = 1502, cityMapId = 2654, mapIndex = 53, x = 0.5673776865, y = 0.6738621593 },
+            { placeName = "Cathedral Square", cityName = "Sunport", zoneId = 1502, cityMapId = 2654, x = 0.5673776865, y = 0.6738621593 },
         },
     },
     {
         name = "Nelerien", -- https://en.uesp.net/wiki/Online:Nelerien
         category = "Vlastarus Daily Quests",
         locations = {
-            { placeName = "Vlastarus", cityName = "Vlastarus", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.3056488931, y = 0.6583666801 },
+            { placeName = "Vlastarus", cityName = "Vlastarus", zoneId = 181, cityMapId = 16, x = 0.3056488931, y = 0.6583666801 },
         },
     },
     {
         name = "Nisuzi", -- https://en.uesp.net/wiki/Online:Nisuzi
         category = "Northern Elsweyr Delve Dailies",
         locations = {
-            { placeName = "Job Brokers' tent", cityName = "Rimmen", zoneId = 1086, cityMapId = 1576, mapIndex = 36, x = 0.3082407117, y = 0.7174170613 },
+            { placeName = "Job Brokers' tent", cityName = "Rimmen", zoneId = 1086, cityMapId = 1576, x = 0.3082407117, y = 0.7174170613 },
         },
     },
     {
         name = "Novice Holli", -- https://en.uesp.net/wiki/Online:Novice_Holli
         category = "Clockwork City Delve Dailies",
         locations = {
-            { placeName = "Brass Fortress", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, mapIndex = 31, x = 0.6162100434, y = 0.5530887842 },
+            { placeName = "Brass Fortress", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, x = 0.6162100434, y = 0.5530887842 },
         },
     },
     {
         name = "Numani-Rasi", -- https://en.uesp.net/wiki/Online:Numani-Rasi
         category = "Ashlander Relic Dailies",
         locations = {
-            { placeName = "Ald'ruhn", cityName = "Ald'ruhn", zoneId = 849, mapIndex = 30, x = 0.4020166397, y = 0.4626117349 },
+            { placeName = "Ald'ruhn", cityName = "Ald'ruhn", zoneId = 849, x = 0.4020166397, y = 0.4626117349 },
         },
     },
     {
         name = "Ordinator Nelyn", -- https://en.uesp.net/wiki/Online:Ordinator_Nelyn
         category = "Necrom World Boss Dailies",
         locations = {
-            { placeName = "Necrom", cityName = "Necrom", zoneId = 1414, cityMapId = 2343, mapIndex = 49, x = 0.5233277678, y = 0.5735207200 },
+            { placeName = "Necrom", cityName = "Necrom", zoneId = 1414, cityMapId = 2343, x = 0.5233277678, y = 0.5735207200 },
         },
     },
     {
         name = "Ordinator Tandasea", -- https://en.uesp.net/wiki/Online:Ordinator_Tandasea
         category = "Bastion Nymic Daily",
         locations = {
-            { placeName = "Necrom", cityName = "Necrom", zoneId = 1414, cityMapId = 2343, mapIndex = 49, x = 0.5240057111, y = 0.5641165972 },
+            { placeName = "Necrom", cityName = "Necrom", zoneId = 1414, cityMapId = 2343, x = 0.5240057111, y = 0.5641165972 },
         },
     },
     {
         name = "Ordinator Tilena", -- https://en.uesp.net/wiki/Online:Ordinator_Tilena
         category = "Necrom Delve Dailies",
         locations = {
-            { placeName = "Necrom", cityName = "Necrom", zoneId = 1414, cityMapId = 2343, mapIndex = 49, x = 0.5230235457, y = 0.5783270597 },
+            { placeName = "Necrom", cityName = "Necrom", zoneId = 1414, cityMapId = 2343, x = 0.5230235457, y = 0.5783270597 },
         },
     },
     {
         name = "Parisse Plouff", -- https://en.uesp.net/wiki/Online:Parisse_Plouff
         category = "High Isle World Boss Dailies",
         locations = {
-            { placeName = "Gonfalon Bay", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, mapIndex = 46, x = 0.4412081242, y = 0.3052631617 },
+            { placeName = "Gonfalon Bay", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, x = 0.4412081242, y = 0.3052631617 },
         },
     },
     {
         name = "Prefect Antias", -- https://en.uesp.net/wiki/Online:Prefect_Antias
         category = "Cropsford Daily Quests",
         locations = {
-            { placeName = "Cropsford", cityName = "Cropsford", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.6876888871, y = 0.6351400018 },
+            { placeName = "Cropsford", cityName = "Cropsford", zoneId = 181, cityMapId = 16, x = 0.6876888871, y = 0.6351400018 },
         },
     },
     {
         name = "Razgurug", -- https://en.uesp.net/wiki/Online:Razgurug
         category = "Tarnished Dailies",
         locations = {
-            { placeName = "Slag Town", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, mapIndex = 31, x = 0.6104187369, y = 0.5036413074 },
+            { placeName = "Slag Town", cityName = "Brass Fortress", zoneId = 980, cityMapId = 1348, x = 0.6104187369, y = 0.5036413074 },
         },
     },
     {
         name = "Ri'hirr", -- https://en.uesp.net/wiki/Online:Ri'hirr
         category = "Northern Elsweyr World Boss Dailies",
         locations = {
-            { placeName = "Job Brokers' tent", cityName = "Rimmen", zoneId = 1086, cityMapId = 1576, mapIndex = 36, x = 0.3098749816, y = 0.7124734521 },
+            { placeName = "Job Brokers' tent", cityName = "Rimmen", zoneId = 1086, cityMapId = 1576, x = 0.3098749816, y = 0.7124734521 },
         },
     },
     {
         name = "Speaker Terenus", -- https://en.uesp.net/wiki/Online:Speaker_Terenus
         category = "Dark Brotherhood Sacraments",
         locations = {
-            { placeName = "Dark Brotherhood Sanctuary", cityName = "Anvil", zoneId = 823, cityMapId = 1074, mapIndex = 29, x = 0.2401068062, y = 0.6885277629 },
+            { placeName = "Dark Brotherhood Sanctuary", cityName = "Anvil", zoneId = 823, cityMapId = 1074, x = 0.2401068062, y = 0.6885277629 },
         },
     },
     {
         name = "Swordthane Jylta", -- https://en.uesp.net/wiki/Online:Swordthane_Jylta
         category = "Western Skyrim World Event Daily",
         locations = {
-            { placeName = "Solitude", cityName = "Solitude", zoneId = 1160, cityMapId = 1773, mapIndex = 38, x = 0.4142244756, y = 0.5048190951 },
+            { placeName = "Solitude", cityName = "Solitude", zoneId = 1160, cityMapId = 1773, x = 0.4142244756, y = 0.5048190951 },
         },
     },
     {
         name = "Sylvian Herius", -- https://en.uesp.net/wiki/Online:Sylvian_Herius
         category = "Cheydinhal Daily Quests",
         locations = {
-            { placeName = "Cheydinhal", cityName = "Cheydinhal", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.7720400095, y = 0.3961022198 },
+            { placeName = "Cheydinhal", cityName = "Cheydinhal", zoneId = 181, cityMapId = 16, x = 0.7720400095, y = 0.3961022198 },
         },
     },
     {
         name = "Tinzen", -- https://en.uesp.net/wiki/Online:Tinzen
         category = "Western Skyrim Delve Dailies",
         locations = {
-            { placeName = "Solitude", cityName = "Solitude", zoneId = 1160, cityMapId = 1773, mapIndex = 38, x = 0.4278876483, y = 0.5140656829 },
+            { placeName = "Solitude", cityName = "Solitude", zoneId = 1160, cityMapId = 1773, x = 0.4278876483, y = 0.5140656829 },
         },
     },
     {
         name = "Traylan Omoril", -- https://en.uesp.net/wiki/Online:Traylan_Omoril
         category = "Vvardenfell Delve Dailies",
         locations = {
-            { placeName = "Hall of Justice", cityName = "Vivec City", zoneId = 849, cityMapId = 1287, mapIndex = 30, x = 0.4791199267, y = 0.5571587086 },
+            { placeName = "Hall of Justice", cityName = "Vivec City", zoneId = 849, cityMapId = 1287, x = 0.4791199267, y = 0.5571587086 },
         },
     },
     {
         name = "Tuwul", -- https://en.uesp.net/wiki/Online:Tuwul
         category = "Root-Whisper Dailies",
         locations = {
-            { placeName = "Root-Whisper Village", cityName = "Root-Whisper Village", zoneId = 726, mapIndex = 34, x = 0.7637448034, y = 0.7447340171 },
+            { placeName = "Root-Whisper Village", cityName = "Root-Whisper Village", zoneId = 726, x = 0.7637448034, y = 0.7447340171 },
         },
     },
     {
         name = "Ufgra gra-Gum", -- https://en.uesp.net/wiki/Online:Ufgra_gra-Gum
         category = "Cropsford Daily Quests",
         locations = {
-            { placeName = "Cropsford", cityName = "Cropsford", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.6882155538, y = 0.6307377815 },
+            { placeName = "Cropsford", cityName = "Cropsford", zoneId = 181, cityMapId = 16, x = 0.6882155538, y = 0.6307377815 },
         },
     },
     {
         name = "Varo Hosidias", -- https://en.uesp.net/wiki/Online:Varo_Hosidias
         category = "Murkmire Delve Dailies",
         locations = {
-            { placeName = "Lilmoth", cityName = "Lilmoth", zoneId = 726, cityMapId = 1560, mapIndex = 34, x = 0.4464905560, y = 0.6364693046 },
+            { placeName = "Lilmoth", cityName = "Lilmoth", zoneId = 726, cityMapId = 1560, x = 0.4464905560, y = 0.6364693046 },
         },
     },
     {
         name = "Vaveli Indavel", -- https://en.uesp.net/wiki/Online:Vaveli_Indavel
         category = "Deadlands World Boss Dailies",
         locations = {
-            { placeName = "Fargrave", cityName = "Fargrave", zoneId = 1283, cityMapId = 2035, mapIndex = 44, x = 0.2459675819, y = 0.3083097339 },
+            { placeName = "Fargrave", cityName = "Fargrave", zoneId = 1283, cityMapId = 2035, x = 0.2459675819, y = 0.3083097339 },
         },
     },
     {
         name = "Vyctoria Girien", -- https://en.uesp.net/wiki/Online:Vyctoria_Girien
         category = "Cheydinhal Daily Quests",
         locations = {
-            { placeName = "Cheydinhal", cityName = "Cheydinhal", zoneId = 181, cityMapId = 16, mapIndex = 14, x = 0.7664933205, y = 0.3963666558 },
+            { placeName = "Cheydinhal", cityName = "Cheydinhal", zoneId = 181, cityMapId = 16, x = 0.7664933205, y = 0.3963666558 },
         },
     },
     {
         name = "Wayllod", -- https://en.uesp.net/wiki/Online:Wayllod
         category = "High Isle Delve Dailies",
         locations = {
-            { placeName = "Gonfalon Bay", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, mapIndex = 46, x = 0.4452751279, y = 0.3144736886 },
+            { placeName = "Gonfalon Bay", cityName = "Gonfalon Bay", zoneId = 1318, cityMapId = 2163, x = 0.4452751279, y = 0.3144736886 },
         },
     },
 }

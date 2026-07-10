@@ -1,4 +1,4 @@
-GPH_Overview = GPH_Overview or {}
+﻿GPH_Overview = GPH_Overview or {}
 GPH_Overview.Quest = GPH_Overview.Quest or {}
 
 local Quest = GPH_Overview.Quest
@@ -56,14 +56,12 @@ local function AddBulletListSection(tooltip, lines, headerText, lineColor, listK
   bulletList:Clear()
 
   local r, g, b = GetInterfaceColor(INTERFACE_COLOR_TYPE_GAMEPAD_TOOLTIP, GAMEPAD_TOOLTIP_COLOR_GENERAL_COLOR_3)
-  local narrationLines = {}
   for _, line in ipairs(lines) do
     local text = lineColor and lineColor ~= "" and (lineColor .. line .. "|r") or line
     bulletList:AddLine(text)
     if (not lineColor or lineColor == "") and bulletList.lastLabel then
       bulletList.lastLabel:SetColor(r, g, b, 1)
     end
-    table.insert(narrationLines, line)
   end
 
   local width = tooltip:GetWidth()
@@ -90,7 +88,6 @@ local function AddBulletListSection(tooltip, lines, headerText, lineColor, listK
   table.insert(activeBulletControls, control)
 
   local section = tooltip:AcquireSection(tooltip:GetStyle("bodySection"))
-  section.nextNarrationText = table.concat(narrationLines, ", ")
   section:AddControl(control, control:GetHeight() + 12, control:GetWidth())
   tooltip:AddSection(section)
 end
@@ -250,7 +247,7 @@ function Quest.ShowLeftTooltip(state)
 end
 
 function Quest.ShouldShowKeybinds(state)
-  local sv = _G["GamePadHelper_SavedVars"]
+  local sv = _G["GamePadHelper_CharSavedVars"]
   if not (sv and sv.overviewEnabled and SCENE_MANAGER:IsShowing("mainMenuGamepad")) then
     return false
   end

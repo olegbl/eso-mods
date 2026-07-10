@@ -2,9 +2,17 @@
 
 [https://github.com/olegbl/eso-mods/tree/main/LibMultiIcon](https://github.com/olegbl/eso-mods/tree/main/LibMultiIcon)
 
+> ⚠ **This library is no longer actively developed. It will not be updated beyond API 101049.**
+
 ## Description
 
 Adds additional methods to instances of ZO_MultiIcon to allow different icons to have different colors instead of sharing a single color.
+
+## Changes in 1.03
+
+- Updated icon removal to work with current ESO `ZO_MultiIcon` internals (`iconData`).
+- Removing the currently displayed icon now immediately switches to the next remaining icon.
+- Clearing icons now also resets the active texture so reused controls do not keep stale icons.
 
 ## API
 

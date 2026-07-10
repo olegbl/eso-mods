@@ -1,13 +1,20 @@
 local function UpdateLootHistoryOffset()
-    local savedVars = _G["GamePadHelper_SavedVars"]
-    if not savedVars then return end
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if not sv then return end
 
-    local offset = savedVars.lootOffset or 0
     local mainControl = ZO_LootHistoryControl_Gamepad
     if mainControl then
         mainControl:ClearAnchors()
+
+        local inGamepadPreferredMode = IsInGamepadPreferredMode == nil or IsInGamepadPreferredMode()
+        if not inGamepadPreferredMode then
+            mainControl:SetAnchor(BOTTOMLEFT, GuiRoot, BOTTOMLEFT, 0, -120)
+            return
+        end
+
+        local offset = sv.lootOffset or 0
         local useKeyboardChat = GetSetting_Bool(SETTING_TYPE_GAMEPAD, GAMEPAD_SETTING_USE_KEYBOARD_CHAT)
-        if useKeyboardChat and savedVars.lootOffsetEnabled then
+        if useKeyboardChat and sv.lootOffsetEnabled then
             local gamepadOffset = -120 - offset
             mainControl:SetAnchor(BOTTOMLEFT, GuiRoot, BOTTOMLEFT, 0, gamepadOffset)
         else
@@ -25,6 +32,9 @@ local function OnAddonLoaded(event, addonName)
 
     -- Register for keyboard chat setting changes in gamepad mode
     EVENT_MANAGER:RegisterForEvent("LootOffset", EVENT_GAMEPAD_USE_KEYBOARD_CHAT_CHANGED, function()
+        UpdateLootHistoryOffset()
+    end)
+    EVENT_MANAGER:RegisterForEvent("LootOffset_PreferredMode", EVENT_GAMEPAD_PREFERRED_MODE_CHANGED, function()
         UpdateLootHistoryOffset()
     end)
 

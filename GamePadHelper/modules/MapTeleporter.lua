@@ -1,4 +1,4 @@
-local MAP_NAME_TO_ZONE_ID = {}
+﻿local MAP_NAME_TO_ZONE_ID = {}
 local mapSearchSuppressingTeleport = false
 
 local function CleanName(s)
@@ -38,6 +38,31 @@ local function PopulateMapNameToZoneIdMapping()
     end
 end
 
+local function GetResolvedZoneIdFromCandidate(candidate)
+    if type(candidate) ~= "table" then
+        return nil
+    end
+    if candidate.zoneId and candidate.zoneId ~= 0 then
+        return candidate.zoneId
+    end
+    if candidate.zoneIndex and candidate.zoneIndex ~= 0 then
+        local zoneId = GetZoneId(candidate.zoneIndex)
+        if zoneId and zoneId ~= 0 then
+            return zoneId
+        end
+    end
+    if candidate.nodeIndex then
+        local zoneIndex = GetFastTravelNodePOIIndicies(candidate.nodeIndex)
+        if zoneIndex and zoneIndex ~= 0 then
+            local zoneId = GetZoneId(zoneIndex)
+            if zoneId and zoneId ~= 0 then
+                return zoneId
+            end
+        end
+    end
+    return nil
+end
+
 local function GetFallbackZoneId()
     -- the zone of the map being viewed beats a stale Map Search selection
     if GetCurrentMapZoneIndex then
@@ -49,22 +74,12 @@ local function GetFallbackZoneId()
             end
         end
     end
-    local saved = GamePadHelper.SavedVars
-    local candidate = saved and saved.lastSelectedPOI
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    local candidate = sv and sv.lastSelectedPOI
     if type(candidate) == "table" then
-        if candidate.zoneId and candidate.zoneId ~= 0 then
-            return candidate.zoneId, candidate.name
-        end
-        if candidate.zoneIndex and candidate.zoneIndex ~= 0 then
-            local zoneId = GetZoneId(candidate.zoneIndex)
-            if zoneId and zoneId ~= 0 then return zoneId, candidate.name end
-        end
-        if candidate.nodeIndex then
-            local zoneIndex = GetFastTravelNodePOIIndicies(candidate.nodeIndex)
-            if zoneIndex and zoneIndex ~= 0 then
-                local zoneId = GetZoneId(zoneIndex)
-                if zoneId and zoneId ~= 0 then return zoneId, candidate.name end
-            end
+        local zoneId = GetResolvedZoneIdFromCandidate(candidate)
+        if zoneId and zoneId ~= 0 then
+            return zoneId, candidate.name
         end
     end
     return nil
@@ -173,8 +188,8 @@ TryPlayersFromIndex = function(players, index, onAllFailed)
         return
     end
     local chainId   = teleportChainId
-    local jumpName  = "TryPlayers_Jump_"  .. chainId
-    local activName = "TryPlayers_Activ_" .. chainId
+    local jumpName  = "GPH_Teleport_Jump_"  .. chainId
+    local activName = "GPH_Teleport_Activ_" .. chainId
     local done        = false
     local jumpStarted = false
 
@@ -352,7 +367,7 @@ local function PopulateKeybindStripDescriptor()
 end
 
 local function OnWorldMapSceneShow()
-    local sv = GamePadHelper.SavedVars
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.teleporterEnabled then return end
     KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
     KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
@@ -456,12 +471,12 @@ local function IsAnyJumpable()
     return IsFriendJumpable() or IsGuildJumpable() or IsGroupJumpable()
 end
 
-local _keybindInitialized = nil
-local function GamepadChatInit()
-    local sv = GamePadHelper.SavedVars
+local chatKeybindInitialized = nil
+local function OnChatMenuShow()
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.teleporterEnabled then return false end
-    if not _keybindInitialized then
-        _keybindInitialized = true
+    if not chatKeybindInitialized then
+        chatKeybindInitialized = true
         CHAT_KEYBIND_STRIP_DESCRIPTOR = {
             alignment = KEYBIND_STRIP_ALIGN_LEFT,
             {
@@ -643,7 +658,7 @@ local function OnAddonLoaded(_, name)
         KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
     end)
     CALLBACK_MANAGER:RegisterCallback("WorldMapInfo_Gamepad_Hidden", function()
-        local sv = GamePadHelper.SavedVars
+        local sv = _G["GamePadHelper_CharSavedVars"]
         if sv and sv.teleporterEnabled and IsInGamepadPreferredMode()
            and GAMEPAD_WORLD_MAP_SCENE:IsShowing() then
             KEYBIND_STRIP:AddKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
@@ -651,7 +666,7 @@ local function OnAddonLoaded(_, name)
     end)
 
     if CHAT_MENU_GAMEPAD then
-        ZO_PreHook(CHAT_MENU_GAMEPAD, "OnShow", GamepadChatInit)
+        ZO_PreHook(CHAT_MENU_GAMEPAD, "OnShow", OnChatMenuShow)
 
         ZO_PreHook(CHAT_MENU_GAMEPAD, "OnTargetChanged", function(_, _, targetData)
             CHAT_MENU_GAMEPAD.socialData = targetData and (targetData.data or targetData) or nil

@@ -1,0 +1,44 @@
+﻿[CENTER][SIZE="5"][COLOR="#3399FF"][B]LibItemLinkDecoder[/B][/COLOR][/SIZE]
+[B]Version 1.03[/B] | API 101050 | by olegbl, quelron[/CENTER]
+
+[CENTER]A helper library for Elder Scrolls Online that decodes item links into editable structured objects and re-encodes them back into valid item links.[/CENTER]
+
+[SIZE="4"][COLOR="#3399FF"][B]What It Does[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Decodes an item link into an object with named fields and raw index access.
+[*]Lets addons inspect and modify item link values without manual parsing.
+[*]Can clone decoded links for safe editing.
+[*]Can encode the modified structure back into an item link string.
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]API[/B][/COLOR][/SIZE]
+
+[CODE]
+local decodedItemLink = LibItemLinkDecoder:Decode(itemLink)
+
+decodedItemLink.linkType
+decodedItemLink.quality
+decodedItemLink.level
+decodedItemLink.championLevel
+
+decodedItemLink:SetIndex(1, "value")
+decodedItemLink:SetValue("level", 50)
+local copiedDecodedItemLink = decodedItemLink:Clone()
+local newItemLink = decodedItemLink:Encode()
+[/CODE]
+
+[SIZE="4"][COLOR="#3399FF"][B]Use Cases[/B][/COLOR][/SIZE]
+
+[LIST]
+[*]Tooltip parsing
+[*]Enchant and trait analysis
+[*]Item-link transformation utilities
+[*]Advanced inventory and trading addons
+[/LIST]
+
+[SIZE="4"][COLOR="#3399FF"][B]Support[/B][/COLOR][/SIZE]
+
+This library is provided as-is, without warranty or support of any kind, express or implied.
+
+[URL="https://github.com/olegbl/eso-mods/tree/main/LibItemLinkDecoder"]LibItemLinkDecoder GitHub Repository[/URL]

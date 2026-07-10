@@ -1,4 +1,4 @@
-local cnt0 = 0
+local prevLureCharges = 0
 
 -- Bait constants
 local BAIT_LAKE_GUTS          = 2
@@ -50,15 +50,29 @@ AddFishingHoleName("River Fishing Hole",     RIVER_HOLE)
 
 local setBait = true
 
+local function CountItemInBag(bagId, itemId)
+    local total = 0
+    for slotIndex = 0, GetBagSize(bagId) - 1 do
+        if GetItemId(bagId, slotIndex) == itemId then
+            total = total + GetSlotStackSize(bagId, slotIndex)
+        end
+    end
+    return total
+end
+
+-- GetItemInfo takes a slot index, not an item id, so the old lookup read the
+-- wrong slots and never returned a real bait count.
 local function GetItemQuantity(itemId)
-    local _, qnt  = GetItemInfo(BAG_VIRTUAL, itemId)
-    local _, qnt2 = GetItemInfo(BAG_BACKPACK, itemId)
-    if HasCraftBagAccess() then return (qnt + qnt2) else return qnt2 end
+    local total = CountItemInBag(BAG_BACKPACK, itemId)
+    if HasCraftBagAccess() then
+        total = total + CountItemInBag(BAG_VIRTUAL, itemId)
+    end
+    return total
 end
 
 local function SelectFishingBait(interactableName)
-    local savedVars = _G["GamePadHelper_SavedVars"]
-    if not savedVars or not savedVars.fishingEnabled then return end
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if not sv or not sv.fishingEnabled then return end
 
     local nameLower = zo_strlower(interactableName)
     local hole = nil
@@ -70,7 +84,7 @@ local function SelectFishingBait(interactableName)
     end
     if not hole then return end
 
-    if savedVars.fishingAlternativeBaits and GetItemQuantity(hole.altId) > 0 then
+    if sv.fishingAlternativeBaits and GetItemQuantity(hole.altId) > 0 then
         SetFishingLure(hole.alt)
     else
         SetFishingLure(hole.reg)
@@ -78,19 +92,19 @@ local function SelectFishingBait(interactableName)
     setBait = false
 end
 
-local function startVibration2()
+local function OnFishBiteRumble()
     SetGamepadVibration(3000, 0.99, 0.50, 1.00, 1.00, "Fishing")
-    EVENT_MANAGER:UnregisterForUpdate("startVibration2")
+    EVENT_MANAGER:UnregisterForUpdate("GPH_FishBiteRumble")
 end
 
-local function startVibration()
+local function OnFishBitePulse()
     SetGamepadVibration(180, 0.50, 0.90, 1.00, 1.00, "Fishing")
-    EVENT_MANAGER:RegisterForUpdate("startVibration2", 250, startVibration2)
+    EVENT_MANAGER:RegisterForUpdate("GPH_FishBiteRumble", 250, OnFishBiteRumble)
 end
 
 local function onSlotUpdate(event, bagId, slotIndex, isNew)
-    local savedVars = _G["GamePadHelper_SavedVars"]
-    if not savedVars or not savedVars.fishingEnabled then
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if not sv or not sv.fishingEnabled then
         return
     end
 
@@ -102,11 +116,9 @@ local function onSlotUpdate(event, bagId, slotIndex, isNew)
     local cnt = 0
     if lure then
         cnt = select(3, GetFishingLureInfo(lure))
-    else
-        cnt = 0
     end
-    if (not isNew and (cnt0 - cnt == 1)) then
-        startVibration()
+    if (not isNew and (prevLureCharges - cnt == 1)) then
+        OnFishBitePulse()
         local action = GetGameCameraInteractableActionInfo()
         if action == GetString(SI_GAMECAMERAACTIONTYPE17) then
             local messageParams = CENTER_SCREEN_ANNOUNCE:CreateMessageParams(CSA_CATEGORY_MAJOR_TEXT, SOUNDS.BOOK_ACQUIRED)
@@ -116,19 +128,21 @@ local function onSlotUpdate(event, bagId, slotIndex, isNew)
     else
         SetGamepadVibration(0, 0, 0, 0, 0, "Fishing")
     end
-    cnt0 = cnt
+    prevLureCharges = cnt
 end
 
 local function onLureCleared(event)
     local lure = GetFishingLure()
     if lure then
-        cnt0 = select(3, GetFishingLureInfo(lure))
+        prevLureCharges = select(3, GetFishingLureInfo(lure))
+    else
+        prevLureCharges = 0
     end
 end
 
 local function onLureSet(event, lure)
     if lure then
-        cnt0 = select(3, GetFishingLureInfo(lure))
+        prevLureCharges = select(3, GetFishingLureInfo(lure))
     end
 end
 
@@ -142,8 +156,8 @@ local function OnAddonLoaded(event, name)
 
     if ZO_Reticle then
         ZO_PreHook(ZO_Reticle, "TryHandlingInteraction", function(interactionPossible, currentFrameTimeSeconds)
-            local savedVars = _G["GamePadHelper_SavedVars"]
-            if not savedVars or not savedVars.fishingEnabled then
+            local sv = _G["GamePadHelper_CharSavedVars"]
+            if not sv or not sv.fishingEnabled then
                 return
             end
 
@@ -160,7 +174,7 @@ local function OnAddonLoaded(event, name)
 
     local lure = GetFishingLure()
     if lure then
-        cnt0 = select(3, GetFishingLureInfo(lure))
+        prevLureCharges = select(3, GetFishingLureInfo(lure))
     end
 end
 

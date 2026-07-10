@@ -1,0 +1,14 @@
+LibItemLinkDecoder is a helper library for Elder Scrolls Online that decodes item links into editable structured objects and re-encodes them back into valid item links.
+
+It can:
+- decode an item link into named fields and raw indexes
+- let addons inspect and modify individual item link values
+- clone decoded links for safe editing
+- encode the edited structure back into an item link
+
+Example API:
+- LibItemLinkDecoder:Decode(itemLink)
+- decodedItemLink:SetValue("level", 50)
+- decodedItemLink:Encode()
+
+This library is intended for addon authors and is provided as-is.

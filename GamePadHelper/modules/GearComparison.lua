@@ -1,12 +1,12 @@
 ﻿local function GamepadInventory_SwitchActiveList_Before(self, listDescriptor)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.gearComparisonEnabled then return end
     if listDescriptor == self.currentListType then return end
     GAMEPAD_TOOLTIPS:Reset(GAMEPAD_QUAD3_TOOLTIP)
 end
 
 local function GamepadInventory_UpdateRightTooltip_After(self, list, selectedData, oldSelectedData)
-    local sv = _G["GamePadHelper_SavedVars"]
+    local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not sv.gearComparisonEnabled then return end
     local targetCategoryData = self.categoryList:GetTargetData()
     if targetCategoryData and targetCategoryData.equipSlot then

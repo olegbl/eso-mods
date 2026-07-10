@@ -19,16 +19,17 @@ local function TruncateDetail(s, maxLen)
     return cut .. "..."
 end
 
-local TYPE_WAYSHRINE     = 1
-local TYPE_ZONE          = 2
-local TYPE_POI           = 3
-local TYPE_HOUSE_OWNED   = 4
-local TYPE_HOUSE_UNOWNED = 5
-local TYPE_LIFT          = 6
-local TYPE_CUSTOM        = 7
-local TYPE_NPC           = 8
-local TYPE_TRADER        = 9
-local TYPE_TRAVEL        = 10
+local TYPE_WAYSHRINE        = 1
+local TYPE_ZONE             = 2
+local TYPE_POI              = 3
+local TYPE_HOUSE_OWNED      = 4
+local TYPE_HOUSE_UNOWNED    = 5
+local TYPE_LIFT             = 6
+local TYPE_CUSTOM           = 7
+local TYPE_NPC              = 8
+local TYPE_TRADER           = 9
+local TYPE_TRAVEL           = 10
+local TYPE_CYRODIIL_KEEP    = 11
 
 local function IsServiceMapTarget(c)
     return c and (c.type == TYPE_CUSTOM or c.type == TYPE_NPC or c.type == TYPE_TRADER or c.type == TYPE_TRAVEL)
@@ -96,7 +97,7 @@ local zoneQuestCounts = nil
 
 local cityServicesCache = nil  -- { locations=[], tradersByNodeIndex={} }, populated on first use
 local traderGuildMap    = nil  -- trader/guild tooltip data, built with city cache
-local CITY_SCAN_CACHE_VERSION = 14
+local CITY_SCAN_BATCH   = 12   -- maps scanned per frame during background pre-warm
 local clickableSubMapCache = nil
 local craftingPOIIndex = {}  -- "zoneId:pxKey:pyKey" -> poiIndex, built during PreScan
 
@@ -226,7 +227,7 @@ end
 GamePadHelper.MapSearchIsShowing = IsFragmentShowing
 
 local function GetSavedVars()
-    return GamePadHelper.SavedVars
+    return _G["GamePadHelper_CharSavedVars"]
 end
 
 local function UpdateKeybinds()
@@ -335,19 +336,17 @@ local function GetBookmarksArray()
     local sv = GetSavedVars()
     if not sv then return {} end
     if sv.mapSearchBookmarksAccountWide == true then
-        if not sv.mapSearchBookmarksAll then
-            sv.mapSearchBookmarksAll = {}
+        local acct = _G["GamePadHelper_SavedVars"]
+        if not acct then return {} end
+        if not acct.mapSearchBookmarksAll then
+            acct.mapSearchBookmarksAll = {}
         end
-        return sv.mapSearchBookmarksAll
+        return acct.mapSearchBookmarksAll
     end
-    local charName = GetUnitName("player")
     if not sv.mapSearchBookmarks then
         sv.mapSearchBookmarks = {}
     end
-    if not sv.mapSearchBookmarks[charName] then
-        sv.mapSearchBookmarks[charName] = {}
-    end
-    return sv.mapSearchBookmarks[charName]
+    return sv.mapSearchBookmarks
 end
 
 local function GetRecentArray()
@@ -368,8 +367,6 @@ local function MakeSavedCandidate(c, key)
         icon         = c.icon,
         nodeIndex    = c.nodeIndex,
         zoneId       = c.zoneId,
-        zoneIndex    = c.zoneIndex,
-        mapIndex     = c.mapIndex,
         poiIndex     = c.poiIndex,
         zoneName     = c.zoneName,
         placeName    = c.placeName,
@@ -481,6 +478,13 @@ local function BuildCandidateNarrationText(c, isBookmark)
     elseif c.type == TYPE_ZONE then
         if c.isLocked then parts[#parts + 1] = GetString(SI_GPH_MAPSEARCH_NARRATION_LOCKED) end
         parts[#parts + 1] = GetString(SI_GPH_MAPSEARCH_NARRATION_ZONE)
+    elseif c.type == TYPE_CYRODIIL_KEEP then
+        if c.groupCount and c.groupCount > 0 then
+            parts[#parts + 1] = c.groupCount .. " " .. GetString(SI_GPH_CYRODIIL_MEMBERS_NEARBY)
+        end
+        if c.isLeaderKeep then
+            parts[#parts + 1] = GetString(SI_GPH_CYRODIIL_LEADER_NEARBY)
+        end
     elseif c.type == TYPE_LIFT then
         if not c.known     then parts[#parts + 1] = GetString(SI_GPH_MAPSEARCH_NARRATION_UNDISCOVERED)
         elseif c.isLocked  then parts[#parts + 1] = GetString(SI_GPH_MAPSEARCH_NARRATION_LOCKED) end
@@ -501,7 +505,7 @@ end
 
 -- pre-scan 
 
-local function AddClickableSubMap(maps, seen, parentMapIndex, parentZoneId, x, y, fallbackName)
+local function AddClickableSubMap(maps, seen, parentZoneId, x, y, fallbackName)
     if not x or not y or x <= 0 or y <= 0 then return end
     local locationName, _, _, _, _, _, mapId = GetMapMouseoverInfo(x, y)
     if mapId and mapId ~= 0 and not seen[mapId] then
@@ -509,7 +513,6 @@ local function AddClickableSubMap(maps, seen, parentMapIndex, parentZoneId, x, y
         maps[#maps + 1] = {
             mapId = mapId,
             name = CleanName((locationName and locationName ~= "") and locationName or (fallbackName or "")),
-            parentMapIndex = parentMapIndex,
             parentZoneId = parentZoneId,
         }
     end
@@ -532,13 +535,13 @@ local function GetClickableSubMaps()
                 for poiIndex = 1, GetNumPOIs(zoneIndex) do
                     local poiName = GetPOIInfo(zoneIndex, poiIndex)
                     local nx, ny = GetPOIMapInfo(zoneIndex, poiIndex)
-                    AddClickableSubMap(maps, seen, mapIndex, parentZoneId, nx, ny, poiName)
+                    AddClickableSubMap(maps, seen, parentZoneId, nx, ny, poiName)
                 end
             end
 
             for blobIndex = 1, GetNumMapBlobs() do
                 local blobName, nx, nz = GetMapBlobNameInfo(blobIndex)
-                AddClickableSubMap(maps, seen, mapIndex, parentZoneId, nx, nz, blobName)
+                AddClickableSubMap(maps, seen, parentZoneId, nx, nz, blobName)
             end
         end
     end
@@ -550,14 +553,10 @@ end
 
 local function PreScan()
     craftingPOIIndex = {}
-    local zoneToMap    = {}
     local nameToZoneId = {}
     for mi = 1, GetNumMaps() do
-        local mapName, mapType, _, zi = GetMapInfoByIndex(mi)
+        local mapName, _, _, zi = GetMapInfoByIndex(mi)
         if zi and zi > 0 then
-            if not zoneToMap[zi] or mapType == MAPTYPE_ZONE then
-                zoneToMap[zi] = mi
-            end
             nameToZoneId[mapName] = GetZoneId(zi)
         end
     end
@@ -593,10 +592,8 @@ local function PreScan()
                     name         = CleanName(name),
                     icon         = icon,
                     nodeIndex    = nodeIndex,
-                    zoneIndex    = zoneIndex,
                     zoneId       = zoneId,
                     poiIndex     = poiIndex,
-                    mapIndex     = zoneToMap[zoneIndex],
                     zoneName     = CleanName(GetZoneNameById(zoneId)),
                     known        = known,
                     isLocked     = isLocked,
@@ -610,23 +607,21 @@ local function PreScan()
     end
 
     local seenZone = {}
-    local function AddZoneEntry(zoneId, zoneIndex, mapIndex, zoneName)
+    local function AddZoneEntry(zoneId, zoneIndex, zoneName)
         if not zoneId or zoneId <= 0 or seenZone[zoneId] then return end
         seenZone[zoneId] = true
 
         local cleanZoneName = CleanName(zoneName or "")
         data.zones[#data.zones + 1] = {
-            name      = cleanZoneName,
-            zoneId    = zoneId,
-            zoneIndex = zoneIndex,
-            mapIndex  = mapIndex,
-            isLocked  = lockedZoneIndex[zoneIndex] or false,
+            name     = cleanZoneName,
+            zoneId   = zoneId,
+            isLocked = lockedZoneIndex[zoneIndex] or false,
         }
         nameToZoneId[cleanZoneName] = zoneId
     end
 
     local seenPOI = {}
-    local function AddPOIEntry(zoneIndex, zoneId, poiIndex, mapIndex, zoneName)
+    local function AddPOIEntry(zoneIndex, zoneId, poiIndex, zoneName)
         local uid = zoneIndex .. ":" .. poiIndex
         if seenPOI[uid] then return end
         seenPOI[uid] = true
@@ -654,10 +649,8 @@ local function PreScan()
             -- Only _owned suffix means you own it; _complete/_incomplete do not.
             isOwned    = poiIcon ~= nil and poiIcon:find("_owned") ~= nil and poiIcon:find("_unowned") == nil,
             poiType    = poiType,
-            zoneIndex  = zoneIndex,
             zoneId     = zoneId,
             poiIndex   = poiIndex,
-            mapIndex   = mapIndex,
             zoneName   = zoneName,
             known      = isDiscovered,
             isLocked   = isLocked,
@@ -674,9 +667,9 @@ local function PreScan()
         end
     end
 
-    local function ScanZonePOIs(zoneIndex, zoneId, mapIndex, zoneName)
+    local function ScanZonePOIs(zoneIndex, zoneId, zoneName)
         for poiIndex = 1, GetNumPOIs(zoneIndex) do
-            AddPOIEntry(zoneIndex, zoneId, poiIndex, mapIndex, zoneName)
+            AddPOIEntry(zoneIndex, zoneId, poiIndex, zoneName)
         end
     end
 
@@ -685,7 +678,7 @@ local function PreScan()
         if mapName ~= "" and zoneIndex and zoneIndex > 0 then
             local zoneId = GetZoneId(zoneIndex)
             if not seenZone[zoneId] and (mapType == MAPTYPE_ZONE or mapType == MAPTYPE_WORLD) then
-                AddZoneEntry(zoneId, zoneIndex, mapIndex, mapName)
+                AddZoneEntry(zoneId, zoneIndex, mapName)
             end
         end
     end
@@ -695,7 +688,7 @@ local function PreScan()
         if zoneIndex and zoneIndex > 0 then
             local zoneId   = GetZoneId(zoneIndex)
             local zoneName = CleanName(GetZoneNameById(zoneId))
-            ScanZonePOIs(zoneIndex, zoneId, zoneToMap[zoneIndex], zoneName)
+            ScanZonePOIs(zoneIndex, zoneId, zoneName)
         end
     end
 
@@ -708,10 +701,10 @@ local function PreScan()
                 local zoneId = GetZoneId(zoneIndex)
                 local zoneName = CleanName(GetZoneNameById(zoneId))
                 if zoneId and zoneId > 0 and not seenZone[zoneId] then
-                    AddZoneEntry(zoneId, zoneIndex, subMap.parentMapIndex, zoneName ~= "" and zoneName or CleanName(GetMapName()))
+                    AddZoneEntry(zoneId, zoneIndex, zoneName ~= "" and zoneName or CleanName(GetMapName()))
                 end
 
-                ScanZonePOIs(zoneIndex, zoneId, subMap.parentMapIndex, zoneName)
+                ScanZonePOIs(zoneIndex, zoneId, zoneName)
             end
         end
     end
@@ -750,7 +743,7 @@ local function FindBestDiscoveredWayshrineFromScan(candidate)
     if not list then return nil end
 
     local filterZoneId    = candidate and candidate.zoneId
-    local filterZoneIndex = candidate and candidate.zoneIndex
+    local filterZoneIndex = GetResolvedZoneIndex(candidate)
     local filterZoneName  = candidate and candidate.name and candidate.name:lower() or nil
 
     local function pickBest(matchFn)
@@ -774,7 +767,7 @@ local function FindBestDiscoveredWayshrineFromScan(candidate)
     end
 
     if filterZoneIndex then
-        local byZoneIndex = pickBest(function(c) return c.zoneIndex == filterZoneIndex end)
+        local byZoneIndex = pickBest(function(c) return GetResolvedZoneIndex(c) == filterZoneIndex end)
         if byZoneIndex then return byZoneIndex end
     end
 
@@ -949,7 +942,6 @@ local function ScanCurrentMapLocations(scan)
             cityName     = scan.cityName,
             destinationX = lx,
             destinationY = lz,
-            mapIndex     = scan.mapIndex,
             isTrader     = isTrader,
             nearestNode  = traderNode,
             npcLines     = npcLines,
@@ -959,12 +951,20 @@ local function ScanCurrentMapLocations(scan)
     return traderCount
 end
 
-local function ScanCityServices()
+local function ScanCityServices(yielder)
+    local apiVersion = GetAPIVersion and GetAPIVersion() or 0
     local originalMapId = GetCurrentMapId and GetCurrentMapId() or nil
     local locations = {}
     local tradersByNodeIndex = {}
     local seenCityMapIds = {}
     local seenLocations = {}
+
+    -- When a yielder is supplied (background pre-warm) the scan runs in small
+    -- batches per frame so it never blows the console per-frame budget. The map
+    -- is restored to the batch-start position before yielding so an open world
+    -- map never visibly jumps. Without a yielder this runs synchronously as before.
+    local batchStartMap = originalMapId
+    local sinceYield = 0
 
     for mapIndex = 1, GetNumMaps() do
         local mapName, mapType, _, zoneIndex = GetMapInfoByIndex(mapIndex)
@@ -982,7 +982,6 @@ local function ScanCityServices()
                     zoneIndex = zoneIndex,
                     cityMapId = GetCurrentMapId and GetCurrentMapId() or 0,
                     cityName = CleanName(GetMapName()),
-                    mapIndex = mapIndex,
                 })
             end
 
@@ -1003,13 +1002,22 @@ local function ScanCityServices()
                                 zoneId = parentZoneId,
                                 cityMapId = cityMapId,
                                 cityName = cityName,
-                                mapIndex = mapIndex,
                                 fixedTraderNode = nearestNode,
                             })
                             SetMapToMapListIndex(mapIndex)
                         end
                     end
                 end
+            end
+        end
+
+        if yielder then
+            sinceYield = sinceYield + 1
+            if sinceYield >= CITY_SCAN_BATCH then
+                sinceYield = 0
+                if batchStartMap then SetMapToMapId(batchStartMap) end
+                yielder()
+                batchStartMap = GetCurrentMapId and GetCurrentMapId() or nil
             end
         end
     end
@@ -1030,26 +1038,107 @@ local function ScanCityServices()
                 zoneIndex = zoneIndex,
                 cityMapId = mapId,
                 cityName = mapName ~= "" and mapName or subMap.name,
-                mapIndex = subMap.parentMapIndex,
             })
         end
     end
 
-    if originalMapId then SetMapToMapId(originalMapId) end
+    -- Restore to where we were at the start of the final batch (= scan start for
+    -- the synchronous path, since batchStartMap is never advanced without a yielder).
+    if batchStartMap then SetMapToMapId(batchStartMap) end
     return {
         locations = locations,
         tradersByNodeIndex = tradersByNodeIndex,
-        version = CITY_SCAN_CACHE_VERSION,
+        apiVersion = apiVersion,
+    }
+end
+
+-- --- Saved-cache compaction -------------------------------------------------
+-- The in-memory city cache stays "rich" (all consumers read it unchanged). Only
+-- the on-disk copy is compacted to keep the console autosave small: icon paths
+-- are interned into a shared list, the redundant `aliases` string is dropped
+-- (rebuilt from npcLines + category on load), and float coords are rounded.
+
+local function RoundCoord(v)
+    if type(v) ~= "number" then return v end
+    return math.floor(v * 10000 + 0.5) / 10000
+end
+
+local function BuildAliasesFromLines(name, category, npcLines)
+    local parts = {}
+    name = name or ""
+    if npcLines then
+        for _, line in ipairs(npcLines) do
+            if line and line ~= "" and line ~= name then parts[#parts + 1] = line end
+        end
+    end
+    if category and category ~= "" and category ~= name then parts[#parts + 1] = category end
+    return table.concat(parts, " ")
+end
+
+local function CompactCityScanForSave(cache)
+    if not cache or not cache.locations then return cache end
+
+    local iconList, iconIndex = {}, {}
+    local function internIcon(icon)
+        icon = icon or ""
+        local idx = iconIndex[icon]
+        if not idx then
+            iconList[#iconList + 1] = icon
+            idx = #iconList
+            iconIndex[icon] = idx
+        end
+        return idx
+    end
+
+    local outLocations = {}
+    for i = 1, #cache.locations do
+        local loc = cache.locations[i]
+        local copy = {}
+        for k, v in pairs(loc) do copy[k] = v end
+        copy.aliases     = nil                      -- rebuilt on load
+        copy.icon        = internIcon(loc.icon)     -- index into iconList
+        copy.destinationX = RoundCoord(loc.destinationX)
+        copy.destinationY = RoundCoord(loc.destinationY)
+        outLocations[i] = copy
+    end
+
+    return {
+        apiVersion         = cache.apiVersion,
+        locations          = outLocations,
+        tradersByNodeIndex = cache.tradersByNodeIndex,
+        icons              = iconList,
+    }
+end
+
+local function RehydrateCityScan(saved)
+    if not saved or not saved.locations then return nil end
+    local iconList = saved.icons or {}
+    local outLocations = {}
+    for i = 1, #saved.locations do
+        local loc = saved.locations[i]
+        local copy = {}
+        for k, v in pairs(loc) do copy[k] = v end
+        if type(copy.icon) == "number" then
+            copy.icon = iconList[copy.icon] or ""
+        end
+        copy.aliases = BuildAliasesFromLines(copy.name, copy.category, copy.npcLines)
+        outLocations[i] = copy
+    end
+    return {
+        apiVersion         = saved.apiVersion,
+        locations          = outLocations,
+        tradersByNodeIndex = saved.tradersByNodeIndex,
     }
 end
 
 local function LoadCityScanFromSavedVars()
     local mapData = _G["GamePadHelperMapData"]
+    local apiVersion = GetAPIVersion and GetAPIVersion() or 0
     if mapData and mapData.cityScanCache
-        and mapData.cityScanCache.version == CITY_SCAN_CACHE_VERSION
+        and mapData.cityScanCache.apiVersion == apiVersion
         and mapData.cityScanCache.locations
         and mapData.cityScanCache.tradersByNodeIndex then
-        cityServicesCache = mapData.cityScanCache
+        cityServicesCache = RehydrateCityScan(mapData.cityScanCache)
     end
 end
 
@@ -1124,13 +1213,14 @@ local function BuildTraderOwnershipLookup()
 end
 
 local function GetCityServices()
+    local apiVersion = GetAPIVersion and GetAPIVersion() or 0
     if not cityServicesCache
-        or cityServicesCache.version ~= CITY_SCAN_CACHE_VERSION
+        or cityServicesCache.apiVersion ~= apiVersion
         or not cityServicesCache.locations
         or not cityServicesCache.tradersByNodeIndex then
         cityServicesCache = ScanCityServices()
         if not _G["GamePadHelperMapData"] then _G["GamePadHelperMapData"] = {} end
-        _G["GamePadHelperMapData"].cityScanCache = cityServicesCache
+        _G["GamePadHelperMapData"].cityScanCache = CompactCityScanForSave(cityServicesCache)
     end
     if not traderGuildMap then
         traderGuildMap = BuildTraderOwnershipLookup()
@@ -1141,6 +1231,60 @@ end
 local function GetTraderOwnershipLookup()
     if not traderGuildMap then GetCityServices() end
     return traderGuildMap
+end
+
+local function IsCityCacheReady()
+    local apiVersion = GetAPIVersion and GetAPIVersion() or 0
+    return cityServicesCache
+        and cityServicesCache.apiVersion == apiVersion
+        and cityServicesCache.locations
+        and cityServicesCache.tradersByNodeIndex
+end
+
+local SCAN_PREWARM_UPDATE = "GamePadHelper_CityScanPrewarm"
+local cityScanPrewarmActive = false
+
+-- Build the city-services cache in the background, a few maps per frame,
+-- instead of one big synchronous scan. GetCityServices() still has the
+-- synchronous scan as a fallback, so a search that fires before the prewarm
+-- finishes is never blocked.
+local function StartCityScanPrewarm(onComplete)
+    if cityScanPrewarmActive then return end
+    if IsCityCacheReady() then
+        if onComplete then onComplete() end
+        return
+    end
+
+    cityScanPrewarmActive = true
+    local co = coroutine.create(function()
+        return ScanCityServices(coroutine.yield)
+    end)
+
+    EVENT_MANAGER:RegisterForUpdate(SCAN_PREWARM_UPDATE, 0, function()
+        -- Something else (e.g. a search forcing a synchronous scan) finished first.
+        if IsCityCacheReady() then
+            EVENT_MANAGER:UnregisterForUpdate(SCAN_PREWARM_UPDATE)
+            cityScanPrewarmActive = false
+            return
+        end
+
+        local ok, result = coroutine.resume(co)
+        if not ok then
+            EVENT_MANAGER:UnregisterForUpdate(SCAN_PREWARM_UPDATE)
+            cityScanPrewarmActive = false
+            return
+        end
+
+        if coroutine.status(co) == "dead" then
+            EVENT_MANAGER:UnregisterForUpdate(SCAN_PREWARM_UPDATE)
+            cityScanPrewarmActive = false
+            cityServicesCache = result
+            if not _G["GamePadHelperMapData"] then _G["GamePadHelperMapData"] = {} end
+            _G["GamePadHelperMapData"].cityScanCache = CompactCityScanForSave(result)
+            traderGuildMap = BuildTraderOwnershipLookup()
+            if onComplete then onComplete() end
+        end
+    end)
 end
 
 local function GetOwnedGuildNamesForCandidate(c)
@@ -1211,11 +1355,242 @@ local function GetTraderCountForCandidate(c)
 end
 
 
+local function GetGroupCountsPerKeep(keepNodes)
+    local counts     = {}
+    local leaderTag  = nil
+    local leaderKeep = nil
+
+    for i = 1, GetGroupSize() do
+        local tag = GetGroupUnitTagByIndex(i)
+        if tag and DoesUnitExist(tag) and IsUnitOnline(tag) then
+            if IsUnitGroupLeader(tag) then leaderTag = tag end
+        end
+    end
+
+    local function nearestKeep(nx, ny)
+        local best, bestDist = nil, math.huge
+        for _, node in ipairs(keepNodes) do
+            local d = (nx - node.normX)^2 + (ny - node.normY)^2
+            if d < bestDist then best, bestDist = node.keepId, d end
+        end
+        return best
+    end
+
+    for i = 1, GetGroupSize() do
+        local tag = GetGroupUnitTagByIndex(i)
+        if tag and DoesUnitExist(tag) and IsUnitOnline(tag) then
+            local x, y, _, isInMap = GetMapPlayerPosition(tag)
+            if isInMap then
+                local kid = nearestKeep(x, y)
+                if kid then counts[kid] = (counts[kid] or 0) + 1 end
+            end
+        end
+    end
+
+    local leaderX, leaderY
+    if leaderTag then
+        local lx, ly, _, isInMap = GetMapPlayerPosition(leaderTag)
+        if isInMap then
+            leaderKeep = nearestKeep(lx, ly)
+            leaderX, leaderY = lx, ly
+        end
+    end
+
+    return counts, leaderKeep, leaderX, leaderY
+end
+
+local function IsCyrodiilKeepSearchEnabled()
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    if sv and sv.cyrodiilKeepSearchEnabled == false then return false end
+    return true
+end
+
+
+local cyrodiilMainMapId = nil  -- captured when main Cyrodiil map is open, reused for sub-map panning
+
+local CAMP_PIN_TO_ALLIANCE = {
+    [MAP_PIN_TYPE_FORWARD_CAMP_ALDMERI_DOMINION]    = ALLIANCE_ALDMERI_DOMINION,
+    [MAP_PIN_TYPE_FORWARD_CAMP_DAGGERFALL_COVENANT] = ALLIANCE_DAGGERFALL_COVENANT,
+    [MAP_PIN_TYPE_FORWARD_CAMP_EBONHEART_PACT]      = ALLIANCE_EBONHEART_PACT,
+}
+
+
+local function BuildCyrodiilRespawnCandidates(list)
+    local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
+    local respawnNodes = {}
+
+    local seenKeepId = {}
+    for i = 1, GetNumKeeps() do
+        -- GetKeepKeysByIndex returns (keepId, bgContext); the same keepId appears once
+        -- per bgContext so we deduplicate to avoid listing the same keep twice.
+        local keepId = GetKeepKeysByIndex(i)
+        if keepId and not seenKeepId[keepId] and CanRespawnAtKeep(keepId) then
+            seenKeepId[keepId] = true
+            local _, normX, normY = GetKeepPinInfo(keepId, bgContext)
+            if normX and normY then
+                respawnNodes[#respawnNodes + 1] = {
+                    keepId = keepId, normX = normX, normY = normY, isCamp = false,
+                }
+            end
+        end
+    end
+
+    for i = 1, GetNumForwardCamps(bgContext) do
+        local pinType, normX, normY, _, useable = GetForwardCampPinInfo(bgContext, i)
+        if useable then
+            respawnNodes[#respawnNodes + 1] = {
+                keepId = -i, normX = normX, normY = normY,
+                isCamp = true, campIndex = i, campPinType = pinType,
+            }
+        end
+    end
+
+    if #respawnNodes == 0 then return end
+
+    local groupCounts, leaderNodeId = GetGroupCountsPerKeep(respawnNodes)
+
+    table.sort(respawnNodes, function(a, b)
+        local aIsLeader = (a.keepId == leaderNodeId)
+        local bIsLeader = (b.keepId == leaderNodeId)
+        if aIsLeader ~= bIsLeader then return aIsLeader end
+        local ac = groupCounts[a.keepId] or 0
+        local bc = groupCounts[b.keepId] or 0
+        if ac ~= bc then return ac > bc end
+        if a.isCamp ~= b.isCamp then return not a.isCamp end
+        if not a.isCamp then
+            return CleanName(GetKeepName(a.keepId)) < CleanName(GetKeepName(b.keepId))
+        end
+        return a.campIndex < b.campIndex
+    end)
+
+    for _, node in ipairs(respawnNodes) do
+        if node.isCamp then
+            local campPinData = ZO_MapPin and ZO_MapPin.PIN_DATA and ZO_MapPin.PIN_DATA[node.campPinType]
+            local name = GetString(SI_TOOLTIP_FORWARD_CAMP)
+            list[#list + 1] = {
+                name         = name,
+                searchName   = name:lower(),
+                type         = TYPE_CYRODIIL_KEEP,
+                icon         = campPinData and campPinData.texture,
+                keepId       = nil,
+                campIndex    = node.campIndex,
+                alliance     = CAMP_PIN_TO_ALLIANCE[node.campPinType],
+                groupCount   = groupCounts[node.keepId] or 0,
+                isLeaderKeep = (node.keepId == leaderNodeId),
+                normX        = node.normX,
+                normY        = node.normY,
+                cityMapId    = cyrodiilMainMapId,
+                known        = true,
+                isLocked     = false,
+                isRespawn    = true,
+                isCamp       = true,
+            }
+        else
+            local name    = CleanName(GetKeepName(node.keepId))
+            local pinType = GetKeepPinInfo(node.keepId, bgContext)
+            local pinData = ZO_MapPin and ZO_MapPin.PIN_DATA and ZO_MapPin.PIN_DATA[pinType]
+            list[#list + 1] = {
+                name         = name,
+                searchName   = name:lower(),
+                type         = TYPE_CYRODIIL_KEEP,
+                icon         = pinData and pinData.texture,
+                keepId       = node.keepId,
+                campIndex    = nil,
+                alliance     = GetKeepAlliance(node.keepId, bgContext),
+                groupCount   = groupCounts[node.keepId] or 0,
+                isLeaderKeep = (node.keepId == leaderNodeId),
+                normX        = node.normX,
+                normY        = node.normY,
+                cityMapId    = cyrodiilMainMapId,
+                known        = true,
+                isLocked     = false,
+                isRespawn    = true,
+                isCamp       = false,
+            }
+        end
+    end
+end
+
+local function BuildCyrodiilKeepCandidates(list)
+    if not IsCyrodiilKeepSearchEnabled() then return end
+    if not GetMapContentType or GetMapContentType() ~= MAP_CONTENT_AVA then return end
+
+    -- Store Cyrodiil main map ID only when on the zone-level map (not a gate sub-map)
+    if GetCurrentMapId and GetMapType and GetMapType() == MAPTYPE_ZONE then
+        cyrodiilMainMapId = GetCurrentMapId()
+    end
+
+    -- In death-respawn mode, show respawnable keeps and forward camps instead of the travel network
+    if WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_AVA_RESPAWN) then
+        BuildCyrodiilRespawnCandidates(list)
+        return
+    end
+
+    local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
+    local VALID_TYPES = {
+        [KEEPTYPE_KEEP]        = true,
+        [KEEPTYPE_OUTPOST]     = true,
+        [KEEPTYPE_BORDER_KEEP] = true,
+    }
+
+    local keepNodes = {}
+    for i = 1, GetNumKeepTravelNetworkNodes(bgContext) do
+        local keepId, accessible, normX, normY = GetKeepTravelNetworkNodeInfo(i, bgContext)
+        if accessible then
+            local kt = GetKeepType(keepId)
+            if VALID_TYPES[kt] then
+                keepNodes[#keepNodes + 1] = { keepId = keepId, normX = normX, normY = normY }
+            end
+        end
+    end
+
+    if #keepNodes == 0 then return end
+
+    local groupCounts, leaderKeepId, leaderX, leaderY = GetGroupCountsPerKeep(keepNodes)
+
+    table.sort(keepNodes, function(a, b)
+        local aIsLeader = (a.keepId == leaderKeepId)
+        local bIsLeader = (b.keepId == leaderKeepId)
+        if aIsLeader ~= bIsLeader then return aIsLeader end
+        local ac = groupCounts[a.keepId] or 0
+        local bc = groupCounts[b.keepId] or 0
+        if ac ~= bc then return ac > bc end
+        return CleanName(GetKeepName(a.keepId)) < CleanName(GetKeepName(b.keepId))
+    end)
+
+    for _, node in ipairs(keepNodes) do
+        local keepId   = node.keepId
+        local name     = CleanName(GetKeepName(keepId))
+        local alliance = GetKeepAlliance(keepId, bgContext)
+        local pinType  = GetKeepPinInfo(keepId, bgContext)
+        local pinData  = ZO_MapPin and ZO_MapPin.PIN_DATA and ZO_MapPin.PIN_DATA[pinType]
+        list[#list + 1] = {
+            name         = name,
+            searchName   = name:lower(),
+            type         = TYPE_CYRODIIL_KEEP,
+            icon         = pinData and pinData.texture,
+            keepId       = keepId,
+            alliance     = alliance,
+            groupCount   = groupCounts[keepId] or 0,
+            isLeaderKeep = (keepId == leaderKeepId),
+            leaderNormX  = (keepId == leaderKeepId) and leaderX or nil,
+            leaderNormY  = (keepId == leaderKeepId) and leaderY or nil,
+            normX        = node.normX,
+            normY        = node.normY,
+            cityMapId    = cyrodiilMainMapId,
+            known        = true,
+            isLocked     = false,
+        }
+    end
+end
+
 local function BuildCandidates()
     if not scannedData then PreScan() end
 
     local nameToZoneId = scannedData.nameToZoneId
     local list = {}
+    local cityServiceSetEntryCache = {}
+    local cityServiceTraderNamesCache = {}
     local ownedHouseByKey = {}
     local ownedHouseByName = {}
     local wayshrineNames = {}
@@ -1236,9 +1611,7 @@ local function BuildCandidates()
             icon        = ws.icon,
             nodeIndex   = ws.nodeIndex,
             zoneId      = ws.zoneId,
-            zoneIndex   = ws.zoneIndex,
             poiIndex    = ws.poiIndex,
-            mapIndex    = ws.mapIndex,
             zoneName    = ws.zoneName,
             known       = ws.known,
             isLocked    = ws.isLocked,
@@ -1254,8 +1627,6 @@ local function BuildCandidates()
             type       = TYPE_ZONE,
             icon       = "EsoUI/Art/Icons/mapKey/mapKey_zoneStory.dds",
             zoneId     = z.zoneId,
-            zoneIndex  = z.zoneIndex,
-            mapIndex   = z.mapIndex,
             zoneName   = z.name,
             known      = true,
             isLocked   = z.isLocked,
@@ -1288,15 +1659,11 @@ local function BuildCandidates()
                 isLocked     = poi.isLocked,
             }
             if cityZoneId then
-                entry.zoneId    = cityZoneId
-                entry.zoneIndex = GetZoneIndex(cityZoneId)
-                entry.mapIndex  = GetMapIndexByZoneId(cityZoneId)
+                entry.zoneId   = cityZoneId
             else
                 entry.searchName = BuildSearchName(poi.name, (searchAliases ~= "" and searchAliases .. " " or "") .. GetCraftingSetSearchAlias(poi.setId))
-                entry.zoneId     = poi.zoneId
-                entry.zoneIndex  = poi.zoneIndex
-                entry.poiIndex   = poi.poiIndex
-                entry.mapIndex   = poi.mapIndex
+                entry.zoneId   = poi.zoneId
+                entry.poiIndex = poi.poiIndex
                 entry.zoneName   = poi.zoneName
                 entry.known      = poi.known
                 entry.traitCount = poi.traitCount
@@ -1311,8 +1678,30 @@ local function BuildCandidates()
     local seenCustom = {}
     local function AddCityServiceCandidate(service, zoneName, displayName, searchAliases, placeName, category, detailLabel, entryType)
         if not displayName or displayName == "" then return end
-        local setEntry = GetCraftingSetLocationEntry(service.zoneId, displayName)
-        local traderNames = GetTraderNamesFromService(service, displayName)
+        local metadataCacheKey = table.concat({
+            tostring(service.zoneId or ""),
+            displayName,
+            tostring(service.isTrader or false),
+        }, "|")
+
+        local setEntry = cityServiceSetEntryCache[metadataCacheKey]
+        if setEntry == nil then
+            setEntry = GetCraftingSetLocationEntry(service.zoneId, displayName) or false
+            cityServiceSetEntryCache[metadataCacheKey] = setEntry
+        end
+        if setEntry == false then
+            setEntry = nil
+        end
+
+        local traderNames = cityServiceTraderNamesCache[metadataCacheKey]
+        if traderNames == nil then
+            traderNames = GetTraderNamesFromService(service, displayName) or false
+            cityServiceTraderNamesCache[metadataCacheKey] = traderNames
+        end
+        if traderNames == false then
+            traderNames = nil
+        end
+
         entryType = entryType or (service.isTrader and TYPE_TRADER)
             or (IsTravelService(service, displayName, category, detailLabel) and TYPE_TRAVEL)
             or TYPE_CUSTOM
@@ -1345,7 +1734,6 @@ local function BuildCandidates()
             zoneName     = zoneName,
             placeName    = placeName,
             cityName     = service.cityName,
-            mapIndex     = service.mapIndex,
             cityMapId    = service.cityMapId,
             destinationX = service.destinationX,
             destinationY = service.destinationY,
@@ -1428,7 +1816,7 @@ local function BuildCandidates()
             end
             for _, loc in ipairs(locs) do
                 local zoneName = GetCleanZoneName(loc.zoneId)
-                local key = entry.name:lower() .. "|" .. (loc.placeName or ""):lower() .. "|" .. (loc.cityName or ""):lower()
+                local key = (entry.name or ""):lower() .. "|" .. (loc.placeName or ""):lower() .. "|" .. (loc.cityName or ""):lower()
                 if not seenDaily[key] then
                     seenDaily[key] = true
                     list[#list + 1] = {
@@ -1445,7 +1833,6 @@ local function BuildCandidates()
                         zoneName     = zoneName,
                         placeName    = loc.placeName,
                         cityName     = loc.cityName,
-                        mapIndex     = loc.mapIndex,
                         cityMapId    = loc.cityMapId,
                         destinationX = loc.x,
                         destinationY = loc.y,
@@ -1458,6 +1845,8 @@ local function BuildCandidates()
             end
         end
     end
+
+    BuildCyrodiilKeepCandidates(list)
 
     scannedData = nil  -- free raw scan data; candidates table has everything needed
     return list
@@ -1514,6 +1903,14 @@ RunSearch = function(term)
 
     if termLower == "" and currentTab == TAB_SEARCH then
         results = {}
+        if IsCyrodiilKeepSearchEnabled() and GetMapContentType and GetMapContentType() == MAP_CONTENT_AVA then
+            for i = 1, #source do
+                local c = source[i]
+                if c.type == TYPE_CYRODIIL_KEEP then
+                    results[#results + 1] = c
+                end
+            end
+        end
         return
     end
 
@@ -1720,6 +2117,9 @@ local function GetCandidateSubText(c)
         parts[#parts + 1] = GetString(SI_GPH_MAPSEARCH_LABEL_LIFT)
     elseif c.type == TYPE_ZONE then
         parts[#parts + 1] = GetString(SI_GPH_MAPSEARCH_NARRATION_ZONE)
+    elseif c.type == TYPE_CYRODIIL_KEEP then
+        local allianceLabel = c.alliance and GetString("SI_ALLIANCE", c.alliance) or ""
+        parts[#parts + 1] = allianceLabel ~= "" and allianceLabel or GetString(SI_GPH_MAPSEARCH_GROUP_CYRODIIL_KEEPS)
     end
     return #parts > 0 and table.concat(parts, ", ") or nil
 end
@@ -1799,16 +2199,17 @@ end
 
 
 local CAT_NAMES = {
-    [TYPE_WAYSHRINE]     = GetString(SI_GPH_MAPSEARCH_GROUP_WAYSHRINES),
-    [TYPE_LIFT]          = GetString(SI_GPH_MAPSEARCH_GROUP_LIFTS),
-    [TYPE_ZONE]          = GetString(SI_GPH_MAPSEARCH_GROUP_ZONES),
-    [TYPE_POI]           = GetString(SI_GPH_MAPSEARCH_GROUP_LOCATIONS),
-    [TYPE_HOUSE_OWNED]   = GetString(SI_GPH_MAPSEARCH_GROUP_OWNED_HOUSES),
-    [TYPE_HOUSE_UNOWNED] = GetString(SI_GPH_MAPSEARCH_GROUP_UNOWNED_HOUSES),
-    [TYPE_CUSTOM]        = GetString(SI_GPH_MAPSEARCH_GROUP_CITY_LOCATIONS),
-    [TYPE_NPC]           = GetString(SI_GPH_MAPSEARCH_GROUP_NPCS),
-    [TYPE_TRADER]        = GetString(SI_GPH_MAPSEARCH_GROUP_GUILD_TRADERS),
-    [TYPE_TRAVEL]        = GetString(SI_GPH_MAPSEARCH_GROUP_TRAVEL_SERVICES),
+    [TYPE_WAYSHRINE]        = GetString(SI_GPH_MAPSEARCH_GROUP_WAYSHRINES),
+    [TYPE_LIFT]             = GetString(SI_GPH_MAPSEARCH_GROUP_LIFTS),
+    [TYPE_ZONE]             = GetString(SI_GPH_MAPSEARCH_GROUP_ZONES),
+    [TYPE_POI]              = GetString(SI_GPH_MAPSEARCH_GROUP_LOCATIONS),
+    [TYPE_HOUSE_OWNED]      = GetString(SI_GPH_MAPSEARCH_GROUP_OWNED_HOUSES),
+    [TYPE_HOUSE_UNOWNED]    = GetString(SI_GPH_MAPSEARCH_GROUP_UNOWNED_HOUSES),
+    [TYPE_CUSTOM]           = GetString(SI_GPH_MAPSEARCH_GROUP_CITY_LOCATIONS),
+    [TYPE_NPC]              = GetString(SI_GPH_MAPSEARCH_GROUP_NPCS),
+    [TYPE_TRADER]           = GetString(SI_GPH_MAPSEARCH_GROUP_GUILD_TRADERS),
+    [TYPE_TRAVEL]           = GetString(SI_GPH_MAPSEARCH_GROUP_TRAVEL_SERVICES),
+    [TYPE_CYRODIIL_KEEP]    = GetString(SI_GPH_MAPSEARCH_GROUP_CYRODIIL_KEEPS),
 }
 
 local function BuildListEntryData(c, displayName, isBookmarked, narrationBookmark)
@@ -1883,6 +2284,14 @@ local function BuildListEntryData(c, displayName, isBookmarked, narrationBookmar
         if zoneMapText then entryData:AddSubLabel("|cFFD700" .. zoneMapText .. "|r") end
         if zoneLeadText then entryData:AddSubLabel("|cFFD700" .. zoneLeadText .. "|r") end
         if zoneQuestText then entryData:AddSubLabel("|cFFD700" .. zoneQuestText .. "|r") end
+    end
+    if c.type == TYPE_CYRODIIL_KEEP then
+        if c.groupCount and c.groupCount > 0 then
+            entryData:AddSubLabel("|cFFD700" .. c.groupCount .. " " .. GetString(SI_GPH_CYRODIIL_MEMBERS_NEARBY) .. "|r")
+        end
+        if c.isLeaderKeep then
+            entryData:AddSubLabel("|c66FF99" .. GetString(SI_GPH_CYRODIIL_LEADER_NEARBY) .. "|r")
+        end
     end
     if traderCount then
         local traderText = traderCount .. " " .. GetString(traderCount == 1 and SI_GPH_MAPSEARCH_WAYSHRINE_TRADER or SI_GPH_MAPSEARCH_WAYSHRINE_TRADERS)
@@ -1961,6 +2370,7 @@ RebuildList = function()
                 grouped[c.type][#grouped[c.type] + 1] = c
             end
             local typeOrder = {
+                TYPE_CYRODIIL_KEEP,
                 TYPE_WAYSHRINE,
                 TYPE_LIFT,
                 TYPE_ZONE,
@@ -2001,6 +2411,12 @@ end
 local postTeleportDestination = nil
 local postTeleportCandidate   = nil
 
+local function GetResolvedZoneIndex(c)
+    if not c or not c.zoneId or c.zoneId <= 0 then return nil end
+    local zoneIndex = GetZoneIndex and GetZoneIndex(c.zoneId)
+    return (zoneIndex and zoneIndex > 0) and zoneIndex or nil
+end
+
 local function AddMapPin(x, y)
     local sv = GetSavedVars()
     if sv ~= nil and sv.mapSearchMapPin == false then return end
@@ -2015,10 +2431,17 @@ local function PlaceDestinationDiamondPre(c)
     local sv = GetSavedVars()
     if sv ~= nil and sv.mapSearchSetDestination == false then return end
     local x, y
-    if c.destinationX and c.destinationY then
+    local zoneIndex = GetResolvedZoneIndex(c)
+    if c.type == TYPE_CYRODIIL_KEEP then
+        if c.isLeaderKeep and c.leaderNormX and c.leaderNormY then
+            x, y = c.leaderNormX, c.leaderNormY
+        elseif c.normX and c.normY then
+            x, y = c.normX, c.normY
+        end
+    elseif c.destinationX and c.destinationY then
         x, y = c.destinationX, c.destinationY
-    elseif c.zoneIndex and c.poiIndex then
-        x, y = GetPOIMapInfo(c.zoneIndex, c.poiIndex)
+    elseif zoneIndex and c.poiIndex then
+        x, y = GetPOIMapInfo(zoneIndex, c.poiIndex)
     elseif c.nodeIndex then
         local _, _, nx, ny = GetFastTravelNodeInfo(c.nodeIndex)
         x, y = nx, ny
@@ -2035,14 +2458,24 @@ end
 local function StorePostTeleportDestination(c)
     local sv = GetSavedVars()
     if sv ~= nil and sv.mapSearchSetDestination == false then return end
+    if c.type == TYPE_CYRODIIL_KEEP then
+        local cyrodiilMapId = GetCurrentMapId and GetCurrentMapId()
+        if c.isLeaderKeep and c.leaderNormX and c.leaderNormY then
+            postTeleportDestination = { x = c.leaderNormX, y = c.leaderNormY, mapId = cyrodiilMapId }
+        elseif c.normX and c.normY then
+            postTeleportDestination = { x = c.normX, y = c.normY, mapId = cyrodiilMapId }
+        end
+        return
+    end
     local mapId = c.cityMapId
         or (c.zoneId and GetMapIdByZoneId and GetMapIdByZoneId(c.zoneId) or nil)
+    local zoneIndex = GetResolvedZoneIndex(c)
     if c.destinationX and c.destinationY then
         postTeleportDestination = { x = c.destinationX, y = c.destinationY, mapId = mapId }
         return
     end
-    if c.zoneIndex and c.poiIndex then
-        local nx, ny = GetPOIMapInfo(c.zoneIndex, c.poiIndex)
+    if zoneIndex and c.poiIndex then
+        local nx, ny = GetPOIMapInfo(zoneIndex, c.poiIndex)
         if nx and nx > 0 then
             postTeleportDestination = { x = nx, y = ny, mapId = mapId }
             return
@@ -2060,6 +2493,7 @@ local function CenterMapOnCandidate(c)
     if not c then return end
 
     local zoneId       = c.zoneId
+    local zoneIndex    = GetResolvedZoneIndex(c)
     local mapId        = c.cityMapId or (zoneId and GetMapIdByZoneId(zoneId))
     local currentMapId = GetCurrentMapId and GetCurrentMapId()
 
@@ -2081,8 +2515,8 @@ local function CenterMapOnCandidate(c)
             ZO_WorldMap_PanToWayshrine(c.nodeIndex)
             return
         end
-        if c.zoneIndex and c.poiIndex then
-            local nx, ny = GetPOIMapInfo(c.zoneIndex, c.poiIndex)
+        if zoneIndex and c.poiIndex then
+            local nx, ny = GetPOIMapInfo(zoneIndex, c.poiIndex)
             if nx and nx > 0 then
                 ZO_WorldMap_PanToNormalizedPosition(nx, ny)
                 AddMapPin(nx, ny)
@@ -2095,6 +2529,14 @@ local function CenterMapOnCandidate(c)
                 AddMapPin(nx, ny)
             end
             ZO_WorldMap_PanToWayshrine(c.nodeIndex)
+        end
+        if c.type == TYPE_CYRODIIL_KEEP and c.normX and c.normY then
+            ZO_WorldMap_PanToNormalizedPosition(c.normX, c.normY)
+            if c.isLeaderKeep and c.leaderNormX and c.leaderNormY then
+                AddMapPin(c.leaderNormX, c.leaderNormY)
+            else
+                AddMapPin(c.normX, c.normY)
+            end
         end
     end
 
@@ -2266,8 +2708,12 @@ local function BuildKeybindDescriptor()
                 local td = listObject and listObject:GetTargetData()
                 if td and td.candidate then
                     local c = td.candidate
+                    if c.type == TYPE_CYRODIIL_KEEP and c.isRespawn then
+                        return GetString(SI_GPH_CYRODIIL_REVIVE)
+                    end
                     if (c.type == TYPE_WAYSHRINE and c.known and not c.isLocked)
-                    or c.type == TYPE_HOUSE_OWNED then
+                    or c.type == TYPE_HOUSE_OWNED
+                    or c.type == TYPE_CYRODIIL_KEEP then
                         return GetString(SI_GPH_TELEPORT)
                     end
                 end
@@ -2323,6 +2769,35 @@ local function BuildKeybindDescriptor()
                     return
                 end
 
+                if c.type == TYPE_CYRODIIL_KEEP then
+                    if c.isRespawn then
+                        if c.isCamp then
+                            RespawnAtForwardCamp(c.campIndex)
+                        else
+                            RespawnAtKeep(c.keepId)
+                        end
+                        return
+                    end
+                    if WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_KEEP_TRAVEL) then
+                        for i = 1, GetGroupSize() do
+                            local tag = GetGroupUnitTagByIndex(i)
+                            if tag and DoesUnitExist(tag) and IsUnitOnline(tag) and IsUnitGroupLeader(tag) then
+                                local lx, ly, _, isInMap = GetMapPlayerPosition(tag)
+                                if isInMap then
+                                    c.leaderNormX, c.leaderNormY = lx, ly
+                                    c.isLeaderKeep = true
+                                end
+                                break
+                            end
+                        end
+                        StorePostTeleportDestination(c)
+                        TravelToKeep(c.keepId)
+                    else
+                        ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE))
+                    end
+                    return
+                end
+
                 local nodeIndex, failReason = nil, nil
                 if c.type == TYPE_WAYSHRINE and c.known then
                     nodeIndex = c.nodeIndex
@@ -2335,10 +2810,11 @@ local function BuildKeybindDescriptor()
                         nodeIndex = FindBestDiscoveredWayshrineFromScan(c)
                     end
                     if not nodeIndex then failReason = GetString(SI_GPH_MAPSEARCH_NARRATION_UNDISCOVERED) end
-                elseif c.zoneIndex and c.poiIndex then
-                    local nx, ny = GetPOIMapInfo(c.zoneIndex, c.poiIndex)
+                elseif c.poiIndex then
+                    local zoneIndex = GetResolvedZoneIndex(c)
+                    local nx, ny = zoneIndex and GetPOIMapInfo(zoneIndex, c.poiIndex)
                     if nx and ny then
-                        nodeIndex = FindNearestWayshrineToPos(nx, ny, 0, c.zoneIndex)
+                        nodeIndex = FindNearestWayshrineToPos(nx, ny, 0, zoneIndex)
                     end
                     if not nodeIndex then failReason = GetString(SI_GPH_MAPSEARCH_NARRATION_UNDISCOVERED) end
                 elseif c.nodeIndex then
@@ -2521,7 +2997,8 @@ local function InitList(control)
         if not (editControl and editControl:HasFocus()) then
             SCREEN_NARRATION_MANAGER:QueueCustomEntry("GPH_MapSearch_Narration")
         end
-        if not (listObject:GetTargetData() and listObject:GetTargetData().candidate) then
+        local td = listObject:GetTargetData()
+        if not (td and td.candidate) then
             ZO_WorldMap_HideAllTooltips()
         end
         DetailTooltip()
@@ -2635,6 +3112,17 @@ local function InsertMapSearchTab()
             if GamePadHelper.MapTeleporter then
                 GamePadHelper.MapTeleporter.SetSuppressed(true)
             end
+            candidates = nil  -- rebuild keep group counts fresh each time the list opens
+            if IsCyrodiilKeepSearchEnabled() and GetMapContentType and GetMapContentType() == MAP_CONTENT_AVA then
+                for i = 1, GetGroupSize() do
+                    local tag = GetGroupUnitTagByIndex(i)
+                    if tag and DoesUnitExist(tag) and IsUnitOnline(tag) and IsUnitGroupLeader(tag) then
+                        local lx, ly, _, isInMap = GetMapPlayerPosition(tag)
+                        if isInMap then AddMapPin(lx, ly) end
+                        break
+                    end
+                end
+            end
             RunSearch(currentTerm)
             if not zoneMapCounts   then BuildZoneMapCounts()   end
             if not zoneLeadCounts  then BuildZoneLeadCounts()  end
@@ -2697,6 +3185,7 @@ end
 local function SanitizeSavedMapSearchCandidate(c)
     if type(c) ~= "table" then return end
     c.searchName = c.name and c.name:lower() or ""
+    c.zoneIndex  = nil
     if IsServiceMapTarget(c) and not c.placeName then
         c.narrationLabel = nil
         c.poiTypeLabel = nil
@@ -2704,27 +3193,26 @@ local function SanitizeSavedMapSearchCandidate(c)
 end
 
 local function SanitizeSavedMapSearchData()
-    if not _G["GamePadHelper_SavedVars"] then return end
-    if type(_G["GamePadHelper_SavedVars"].mapSearchRecent) == "table" then
-        for _, c in ipairs(_G["GamePadHelper_SavedVars"].mapSearchRecent) do
-            SanitizeSavedMapSearchCandidate(c)
-        end
-    end
-    if type(_G["GamePadHelper_SavedVars"].lastSelectedPOI) == "table" then
-        SanitizeSavedMapSearchCandidate(_G["GamePadHelper_SavedVars"].lastSelectedPOI)
-    end
-    if type(_G["GamePadHelper_SavedVars"].mapSearchBookmarksAll) == "table" then
-        for _, c in ipairs(_G["GamePadHelper_SavedVars"].mapSearchBookmarksAll) do
-            SanitizeSavedMapSearchCandidate(c)
-        end
-    end
-    if type(_G["GamePadHelper_SavedVars"].mapSearchBookmarks) == "table" then
-        for _, bookmarks in pairs(_G["GamePadHelper_SavedVars"].mapSearchBookmarks) do
-            if type(bookmarks) == "table" then
-                for _, c in ipairs(bookmarks) do
-                    SanitizeSavedMapSearchCandidate(c)
-                end
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    local acctSv = _G["GamePadHelper_SavedVars"]
+    if sv then
+        if type(sv.mapSearchRecent) == "table" then
+            for _, c in ipairs(sv.mapSearchRecent) do
+                SanitizeSavedMapSearchCandidate(c)
             end
+        end
+        if type(sv.lastSelectedPOI) == "table" then
+            SanitizeSavedMapSearchCandidate(sv.lastSelectedPOI)
+        end
+        if type(sv.mapSearchBookmarks) == "table" then
+            for _, c in ipairs(sv.mapSearchBookmarks) do
+                SanitizeSavedMapSearchCandidate(c)
+            end
+        end
+    end
+    if acctSv and type(acctSv.mapSearchBookmarksAll) == "table" then
+        for _, c in ipairs(acctSv.mapSearchBookmarksAll) do
+            SanitizeSavedMapSearchCandidate(c)
         end
     end
 end
@@ -2735,14 +3223,16 @@ local function OnAddonLoaded(_, name)
     if name ~= "GamePadHelper" then return end
     EVENT_MANAGER:UnregisterForEvent("MapSearch", EVENT_ADD_ON_LOADED)
     SanitizeSavedMapSearchData()
+    LoadCityScanFromSavedVars()
 
     EVENT_MANAGER:RegisterForEvent("MapSearch_PreScan", EVENT_PLAYER_ACTIVATED, function()
         EVENT_MANAGER:UnregisterForEvent("MapSearch_PreScan", EVENT_PLAYER_ACTIVATED)
         if not scannedData then PreScan() end
-        LoadCityScanFromSavedVars()
-        zo_callLater(function()
-            if not candidates then candidates = BuildCandidates() end
-        end, 3000)
+        -- Start the city-services cache build in the background if no valid cache
+        -- was loaded from disk, so the first search doesn't trigger a sync freeze.
+        if not IsCityCacheReady() then
+            StartCityScanPrewarm(nil)
+        end
     end)
 
     EVENT_MANAGER:RegisterForEvent("MapSearch_RecallNodeReset", EVENT_PLAYER_ACTIVATED, function()
@@ -2764,6 +3254,26 @@ local function OnAddonLoaded(_, name)
     EVENT_MANAGER:RegisterForEvent("MapSearch_POIUpdated", EVENT_POI_UPDATED, function()
         cachedRecallNode = nil
     end)
+    EVENT_MANAGER:RegisterForEvent("MapSearch_KeepNetworkUpdated", EVENT_FAST_TRAVEL_KEEP_NETWORK_UPDATED, function()
+        candidates = nil
+    end)
+    EVENT_MANAGER:RegisterForEvent("MapSearch_ForwardCampsUpdated", EVENT_FORWARD_CAMPS_UPDATED, function()
+        candidates = nil
+    end)
+
+    -- When the player clicks "Choose Revive Location" in Cyrodiil death screen,
+    -- MAP_MODE_AVA_RESPAWN is pushed BEFORE the world map shows. Hook this so that
+    -- if Map Search is already open we immediately rebuild with respawn candidates.
+    if ZO_WorldMap_ShowAvARespawns then
+        SecurePostHook("ZO_WorldMap_ShowAvARespawns", function()
+            candidates = nil
+            lastSearchTerm = nil
+            if IsFragmentShowing() then
+                RunSearch(currentTerm)
+                RebuildList()
+            end
+        end)
+    end
 
     -- Auto-capture crafting set trait data when player visits a crafting station
     local SMITHING_TYPES = {
@@ -2974,11 +3484,11 @@ local function OnAddonLoaded(_, name)
             wasOnGPHSearch = IsFragmentShowing()
         elseif newState == SCENE_SHOWING then
             zo_callLater(InsertMapSearchTab, 0)
-            if _G["GamePadHelper_SavedVars"] and _G["GamePadHelper_SavedVars"].lastSelectedPOI then
+            local sv = _G["GamePadHelper_CharSavedVars"]
+            if sv and sv.lastSelectedPOI then
                 zo_callLater(function()
-                    local poi = _G["GamePadHelper_SavedVars"].lastSelectedPOI
-                    CenterMapOnCandidate(poi)
-                    _G["GamePadHelper_SavedVars"].lastSelectedPOI = nil
+                    CenterMapOnCandidate(sv.lastSelectedPOI)
+                    sv.lastSelectedPOI = nil
                 end, 100)
             end
             if pendingWaypointDest then
@@ -2998,6 +3508,19 @@ local function OnAddonLoaded(_, name)
             end
         end)
     end
+
+    -- Enlarge the group leader pin to 64×64 when viewing the Cyrodiil map
+    if ZO_MapPin and ZO_PostHook and MAP_CONTENT_AVA then
+        ZO_PostHook(ZO_MapPin, "UpdateSize", function(self)
+            if self.m_PinType == MAP_PIN_TYPE_GROUP_LEADER
+            and GetMapContentType
+            and GetMapContentType() == MAP_CONTENT_AVA
+            and IsCyrodiilKeepSearchEnabled()
+            then
+                self:GetControl():SetDimensions(64, 64)
+            end
+        end)
+    end
 end
 
 _G["GamePadHelper_ClearCityCache"] = function()
@@ -3007,9 +3530,10 @@ _G["GamePadHelper_ClearCityCache"] = function()
     lastSearchTerm = nil
     local mapData = _G["GamePadHelperMapData"]
     if mapData then mapData.cityScanCache = nil end
-    zo_callLater(function()
-        if not candidates then candidates = BuildCandidates() end
-    end, 500)
+    -- Rebuild the cache in the background, then refresh the candidate list.
+    StartCityScanPrewarm(function()
+        candidates = BuildCandidates()
+    end)
 end
 
 EVENT_MANAGER:RegisterForEvent("MapSearch", EVENT_ADD_ON_LOADED, OnAddonLoaded)

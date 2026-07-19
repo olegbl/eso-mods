@@ -30,3 +30,8 @@ IMPORTANT: If you installed LibMultiIcon for older GamePadHelper builds, remove 
 ## Optional Integrations
 
 Market prices via TamrielTradeCentre (PC) or Tamriel Savings Co Price Fetcher / TSC Price Data API packages (console).
+
+## Links
+
+- ESOUI download page: https://www.esoui.com/downloads/fileinfo.php?id=3268
+- GitHub repository: https://github.com/olegbl/eso-mods/tree/main/GamePadHelper

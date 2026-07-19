@@ -41,6 +41,7 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 ## Tooltip Improvements
 
+- **Tooltip Set Collection** — single-set reward containers show account collection progress and missing equipment slots; multi-set containers are excluded.
 - **Tooltip Price** — cleaner price display with market data when a supported source is installed.
 - **Tooltip Enchantment** — reformatted enchantment lines.
 - **Tooltip Poison** — reformatted applied poison lines.

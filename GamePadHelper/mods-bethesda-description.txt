@@ -15,7 +15,7 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 - Provisioning Filter — hides low-level recipes below CP160.
 - Gear Comparison — side-by-side item stat comparison panels.
 - Loot Offset — moves the loot history panel up to avoid chat overlap.
-- Tooltip improvements — price, enchantment, poison, trait, and font.
+- Tooltip improvements — set collection progress, price, enchantment, poison, trait, and font.
 - Inventory Trait — research indicators (blue/green/yellow/red) with duplicate counts and deconstruction legend.
 - Inventory Countess and Bursar — highlights treasures for The Covetous Countess and Bursar of Tributes quests.
 

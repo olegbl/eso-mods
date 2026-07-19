@@ -137,6 +137,7 @@ Built only for gamepad and console UI.[/CENTER]
 
 [B][COLOR="#DAA520"]Tooltip Improvements[/COLOR][/B]
 [LIST]
+[*][B]Tooltip Set Collection[/B] [Default: ON] - single-set reward containers show account collection progress and missing equipment slots; multi-set containers are excluded.
 [*][B]Tooltip Enchantment[/B] [Default: ON] - reformats enchantment information for readability.
 [*][B]Tooltip Font[/B] [Default: ON] - applies a cleaner item tooltip font for gamepad play.
 [*][B]Tooltip Poison[/B] [Default: ON] - reformats applied poison information.

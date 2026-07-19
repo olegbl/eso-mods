@@ -71,6 +71,7 @@ local charDefaults = {
     tooltipPoisonEnabled = true,
     tooltipFontEnabled = true,
     tooltipEnchantmentEnabled = true,
+    tooltipSetCollectionEnabled = true,
     cyrodiilKeepSearchEnabled = true,
 }
 _G["GamePadHelper_CharDefaults"] = charDefaults

@@ -22,7 +22,6 @@ Built only for gamepad and console UI.[/CENTER]
 [*][B]Set collection on container tooltips[/B] - single-set reward containers now show account collection progress and which equipment slots are still missing. Multi-set containers are excluded. Toggle via Settings → GPH Settings → Tooltips and UI → Tooltip Set Collection. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
 [*][B]Cyrodiil revive and retreat in Map Search[/B] - Map Search lists and revalidates all revive locations, gives multiple forward camps distinct names, and refreshes group positions while open. Retreat items and abilities now support selecting an available destination directly from the gamepad list.
 [*][B]Freerunner’s Post Favors[/B] - added the three Season One Favor boards in Skywatch, Ebonheart, and Aldcroft as searchable daily quest givers for Battlereeve Urcelmo, Holgunn One-Eye, and Lady Arabelle Davaux.
-[*][B]Map Search cache fix[/B] - improved Map Search caching logic to prevent load and search hangs. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the fix.
 [/LIST]
 
 [SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.16[/B][/COLOR][/SIZE]

@@ -32,6 +32,7 @@ local strings = {
     SI_GPH_CYRODIIL_LEADER_NEARBY = "队长在这里",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "您必须在中转神龛处才能前往要塞。",
     SI_GPH_CYRODIIL_REVIVE = "复活",
+    SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE = "该塞罗迪尔地点已无法使用。",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "赛罗第尔要塞搜索",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "在查看赛罗第尔地图时，在地图搜索中显示可访问的赛罗第尔要塞。",
 
@@ -295,7 +296,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t 贡品管理员|r – 激活组任务",
     SI_GPH_TOOLTIP_CROW_TITLE = "贡品管理员",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\n特质颜色含义：\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 已装备的可研究物品\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 唯一可用副本\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 背包中有重复\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 银行中有重复\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r：重复数量\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t 精巧\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t 华丽",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FF新内容|r\n\n• |cFFFF00塞罗迪尔复活|r - 在塞罗迪尔死亡后选择选择复活地点，地图搜索将列出所有可复活的地点，包括要塞、城镇、前哨和前线营地。选择一个条目并按复活即可在该处重生。\n\n• |cFFFF00地图搜索缓存|r - 改进缓存逻辑，防止加载和搜索时卡顿。感谢 Bazooper-blip 提供的修复。",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FF新内容|r\n\n• |cFFFF00塞罗迪尔复活与撤退|r - 地图搜索会重新验证复活地点，为多个前线营地显示不同名称，并在界面打开时持续更新队伍位置。撤退物品和技能现在也可通过手柄列表选择可用目的地。\n\n• |cFFFF00自由奔跑者哨站委托|r - 已将天望城、黑檀心城和阿尔德克罗夫特的三个委托公告板添加为可搜索的每日任务发布点。\n\n• |cFFFF00地图搜索缓存|r - 改进缓存逻辑，防止加载和搜索时卡顿。感谢 Bazooper-blip 提供的修复。",
     SI_GPH_WHATS_NEW_CONFIRM = "知道了",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — 新功能",
 }

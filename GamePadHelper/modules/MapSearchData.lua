@@ -174,6 +174,27 @@ data.DAILY_QUEST_GIVERS = {
         },
     },
     {
+        name = "Favors for Battlereeve Urcelmo",
+        category = "Favors Daily Quests",
+        locations = {
+            { placeName = "Freerunner's Post Board", cityName = "Skywatch", zoneId = 381, cityMapId = 545, x = 0.2032544315, y = 0.4982859790 },
+        },
+    },
+    {
+        name = "Favors for Holgunn One-Eye",
+        category = "Favors Daily Quests",
+        locations = {
+            { placeName = "Freerunner's Post Board", cityName = "Ebonheart", zoneId = 41, cityMapId = 511, x = 0.4247008264, y = 0.6376555562 },
+        },
+    },
+    {
+        name = "Favors for Lady Arabelle Davaux",
+        category = "Favors Daily Quests",
+        locations = {
+            { placeName = "Freerunner's Post Board", cityName = "Aldcroft", zoneId = 3, cityMapId = 531, x = 0.3860857487, y = 0.3523341119 },
+        },
+    },
+    {
         name = "Grigerda", -- https://en.uesp.net/wiki/Online:Grigerda
         category = "Bruma Daily Quests",
         locations = {

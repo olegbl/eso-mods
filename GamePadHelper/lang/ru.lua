@@ -32,6 +32,7 @@ local strings = {
     SI_GPH_CYRODIIL_LEADER_NEARBY = "Лидер группы здесь",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "Вы должны находиться у Транзитного святилища, чтобы путешествовать к крепости.",
     SI_GPH_CYRODIIL_REVIVE = "Воскресить",
+    SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE = "Эта точка в Сиродииле больше недоступна.",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "Поиск крепостей Сиродила",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "Показывает доступные крепости Сиродила в поиске карты при просмотре карты Сиродила.",
 
@@ -295,7 +296,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t Сборщик подношений|r – активная группа",
     SI_GPH_TOOLTIP_CROW_TITLE = "Сборщик подношений",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\nЗначение цвета черты:\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r надетый предмет с исследуемой чертой\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r единственная доступная копия\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r есть дубликат в инвентаре\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r есть дубликат в банке\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r: количество дубликатов\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t Замысловатый\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t Изысканный",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FFЧто нового|r\n\n• |cFFFF00Воскрешение в Сиродииле|r - когда вы погибаете в Сиродииле и выбираете Выбрать место возрождения, поиск по карте показывает все доступные точки возрождения, включая форты, города, аванпосты и полевые лагеря. Выберите запись и нажмите Воскресить, чтобы возродиться там.\n\n• |cFFFF00Кэш поиска по карте|r - улучшена логика кэширования для устранения зависаний при загрузке и поиске. Благодарим Bazooper-blip за исправление.",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FFЧто нового|r\n\n• |cFFFF00Возрождение и отступление в Сиродииле|r - поиск по карте повторно проверяет точки возрождения, различает несколько полевых лагерей и обновляет позиции группы, пока список открыт. Предметы и способности отступления теперь позволяют выбрать доступную точку в списке для геймпада.\n\n• |cFFFF00Поручения постов Freerunners|r - три доски поручений в Скайвотче, Эбонхарте и Альдкрофте добавлены как доступные для поиска источники ежедневных заданий.\n\n• |cFFFF00Кэш поиска по карте|r - улучшена логика кэширования для устранения зависаний при загрузке и поиске. Благодарим Bazooper-blip за исправление.",
     SI_GPH_WHATS_NEW_CONFIRM = "Понятно",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — Что нового",
 }

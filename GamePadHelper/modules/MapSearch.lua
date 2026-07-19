@@ -91,6 +91,7 @@ local currentTab = TAB_SEARCH
 local pendingNarration  = nil
 local postTeleportMsg   = nil
 local listCostLoopId = 0
+local cyrodiilRefreshLoopId = 0
 local zoneMapCounts   = nil
 local zoneLeadCounts  = nil
 local zoneQuestCounts = nil
@@ -716,6 +717,12 @@ local function PreScan()
 end
 
 -- candidates
+
+local function GetResolvedZoneIndex(c)
+    if not c or not c.zoneId or c.zoneId <= 0 then return nil end
+    local zoneIndex = GetZoneIndex and GetZoneIndex(c.zoneId)
+    return (zoneIndex and zoneIndex > 0) and zoneIndex or nil
+end
 
 local function FindNearestWayshrineToPos(px, py, minDist, filterZoneIndex)
     if not px or not py or px == 0 or py == 0 then return nil end
@@ -1466,14 +1473,16 @@ local function BuildCyrodiilRespawnCandidates(list)
     for _, node in ipairs(respawnNodes) do
         if node.isCamp then
             local campPinData = ZO_MapPin and ZO_MapPin.PIN_DATA and ZO_MapPin.PIN_DATA[node.campPinType]
-            local name = GetString(SI_TOOLTIP_FORWARD_CAMP)
+            local baseName = GetString(SI_TOOLTIP_FORWARD_CAMP)
+            local name = string.format("%s %d", baseName, node.campIndex)
             list[#list + 1] = {
                 name         = name,
-                searchName   = name:lower(),
+                searchName   = (name .. " " .. baseName):lower(),
                 type         = TYPE_CYRODIIL_KEEP,
                 icon         = campPinData and campPinData.texture,
                 keepId       = nil,
                 campIndex    = node.campIndex,
+                campPinType  = node.campPinType,
                 alliance     = CAMP_PIN_TO_ALLIANCE[node.campPinType],
                 groupCount   = groupCounts[node.keepId] or 0,
                 isLeaderKeep = (node.keepId == leaderNodeId),
@@ -1527,6 +1536,7 @@ local function BuildCyrodiilKeepCandidates(list)
     end
 
     local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
+    local isKeepRecallMode = WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_AVA_KEEP_RECALL)
     local VALID_TYPES = {
         [KEEPTYPE_KEEP]        = true,
         [KEEPTYPE_OUTPOST]     = true,
@@ -1536,7 +1546,10 @@ local function BuildCyrodiilKeepCandidates(list)
     local keepNodes = {}
     for i = 1, GetNumKeepTravelNetworkNodes(bgContext) do
         local keepId, accessible, normX, normY = GetKeepTravelNetworkNodeInfo(i, bgContext)
-        if accessible then
+        local canUse = isKeepRecallMode
+            and GetKeepRecallAvailable and GetKeepRecallAvailable(keepId, bgContext)
+            or (not isKeepRecallMode and accessible)
+        if canUse then
             local kt = GetKeepType(keepId)
             if VALID_TYPES[kt] then
                 keepNodes[#keepNodes + 1] = { keepId = keepId, normX = normX, normY = normY }
@@ -1580,6 +1593,7 @@ local function BuildCyrodiilKeepCandidates(list)
             cityMapId    = cyrodiilMainMapId,
             known        = true,
             isLocked     = false,
+            isKeepRecall = isKeepRecallMode,
         }
     end
 end
@@ -2197,6 +2211,156 @@ local function StartListCostLoop()
     zo_callLater(loop, 1000)
 end
 
+local function StopCyrodiilRefreshLoop()
+    cyrodiilRefreshLoopId = cyrodiilRefreshLoopId + 1
+end
+
+local function RestoreCyrodiilSelection(selected)
+    if not selected or selected.type ~= TYPE_CYRODIIL_KEEP then return end
+    for i, candidate in ipairs(results) do
+        local sameDestination
+        if selected.isCamp then
+            sameDestination = candidate.isCamp
+                and candidate.campPinType == selected.campPinType
+                and candidate.normX and candidate.normY and selected.normX and selected.normY
+                and math.abs(candidate.normX - selected.normX) < 0.00001
+                and math.abs(candidate.normY - selected.normY) < 0.00001
+        else
+            sameDestination = not candidate.isCamp and candidate.keepId == selected.keepId
+        end
+        if sameDestination then
+            lastSelectedIndex = i
+            return
+        end
+    end
+end
+
+local function GetCyrodiilCandidateIdentity(candidate)
+    if candidate.isCamp then
+        return table.concat({
+            "camp",
+            tostring(candidate.campPinType or 0),
+            string.format("%.5f", candidate.normX or 0),
+            string.format("%.5f", candidate.normY or 0),
+        }, ":")
+    end
+    return "keep:" .. tostring(candidate.keepId or 0)
+end
+
+local function RefreshLiveCyrodiilCandidates()
+    if not candidates then return "structural" end
+
+    local fresh = {}
+    BuildCyrodiilKeepCandidates(fresh)
+
+    local previousById = {}
+    for _, candidate in ipairs(candidates) do
+        if candidate.type == TYPE_CYRODIIL_KEEP then
+            previousById[GetCyrodiilCandidateIdentity(candidate)] = candidate
+        end
+    end
+
+    local previousCount = 0
+    for _ in pairs(previousById) do previousCount = previousCount + 1 end
+
+    local structuralChange = previousCount ~= #fresh
+    local visualChange = false
+    if not structuralChange then
+        for _, candidate in ipairs(fresh) do
+            local old = previousById[GetCyrodiilCandidateIdentity(candidate)]
+            if not old
+            or old.isRespawn ~= candidate.isRespawn
+            or old.isKeepRecall ~= candidate.isKeepRecall then
+                structuralChange = true
+                break
+            end
+            if (old.groupCount or 0) ~= (candidate.groupCount or 0)
+            or old.isLeaderKeep ~= candidate.isLeaderKeep then
+                visualChange = true
+            end
+        end
+    end
+
+    if structuralChange then
+        local updated = {}
+        for _, candidate in ipairs(candidates) do
+            if candidate.type ~= TYPE_CYRODIIL_KEEP then
+                updated[#updated + 1] = candidate
+            end
+        end
+        for _, candidate in ipairs(fresh) do
+            updated[#updated + 1] = candidate
+        end
+        candidates = updated
+        return "structural"
+    end
+
+    -- Preserve the stable row objects and update only their live group data.
+    for _, candidate in ipairs(fresh) do
+        local old = previousById[GetCyrodiilCandidateIdentity(candidate)]
+        old.groupCount   = candidate.groupCount
+        old.isLeaderKeep = candidate.isLeaderKeep
+        old.leaderNormX  = candidate.leaderNormX
+        old.leaderNormY  = candidate.leaderNormY
+    end
+    return visualChange and "visual" or nil
+end
+
+local function RefreshCyrodiilDynamicRows()
+    if not listObject or not listObject.dataList then return end
+    local membersText = GetString(SI_GPH_CYRODIIL_MEMBERS_NEARBY)
+    local leaderText  = GetString(SI_GPH_CYRODIIL_LEADER_NEARBY)
+    for _, data in ipairs(listObject.dataList) do
+        local candidate = data.candidate
+        if candidate and candidate.type == TYPE_CYRODIIL_KEEP then
+            if data.subLabels then
+                for i = #data.subLabels, 1, -1 do
+                    local label = data.subLabels[i]
+                    if label and (label:find(membersText, 1, true) or label:find(leaderText, 1, true)) then
+                        table.remove(data.subLabels, i)
+                    end
+                end
+            end
+            if candidate.groupCount and candidate.groupCount > 0 then
+                data:AddSubLabel("|cFFD700" .. candidate.groupCount .. " " .. membersText .. "|r")
+            end
+            if candidate.isLeaderKeep then
+                data:AddSubLabel("|c66FF99" .. leaderText .. "|r")
+            end
+            data.narrationText = BuildCandidateNarrationText(candidate, data.isBookmark == true)
+        end
+    end
+    listObject:RefreshVisible()
+end
+
+local function StartCyrodiilRefreshLoop()
+    StopCyrodiilRefreshLoop()
+    local myId = cyrodiilRefreshLoopId
+    local function loop()
+        if cyrodiilRefreshLoopId ~= myId or not IsFragmentShowing() then return end
+        if IsCyrodiilKeepSearchEnabled()
+        and GetMapContentType and GetMapContentType() == MAP_CONTENT_AVA then
+            -- Group map positions change without a keep-network event, so refresh
+            -- counters and the leader indicator while keeping destination rows stable.
+            local targetData = listObject and listObject:GetTargetData()
+            local selected = targetData and targetData.candidate
+            local changeType = RefreshLiveCyrodiilCandidates()
+            if changeType == "structural" then
+                lastSearchTerm = nil
+                RunSearch(currentTerm)
+                RestoreCyrodiilSelection(selected)
+                RebuildList()
+                UpdateKeybinds()
+            elseif changeType == "visual" then
+                RefreshCyrodiilDynamicRows()
+                UpdateKeybinds()
+            end
+        end
+        zo_callLater(loop, 2000)
+    end
+    zo_callLater(loop, 2000)
+end
+
 
 local CAT_NAMES = {
     [TYPE_WAYSHRINE]        = GetString(SI_GPH_MAPSEARCH_GROUP_WAYSHRINES),
@@ -2411,12 +2575,6 @@ end
 local postTeleportDestination = nil
 local postTeleportCandidate   = nil
 
-local function GetResolvedZoneIndex(c)
-    if not c or not c.zoneId or c.zoneId <= 0 then return nil end
-    local zoneIndex = GetZoneIndex and GetZoneIndex(c.zoneId)
-    return (zoneIndex and zoneIndex > 0) and zoneIndex or nil
-end
-
 local function AddMapPin(x, y)
     local sv = GetSavedVars()
     if sv ~= nil and sv.mapSearchMapPin == false then return end
@@ -2607,7 +2765,9 @@ local function BuildKeybindDescriptor()
                 local td = listObject and listObject:GetTargetData()
                 if td and td.candidate then
                     local sv = GetSavedVars()
-                    if sv then sv.lastSelectedPOI = MakeSavedCandidate(td.candidate) end
+                    if sv and not td.candidate.isRespawn then
+                        sv.lastSelectedPOI = MakeSavedCandidate(td.candidate)
+                    end
                     CenterMapOnCandidate(td.candidate)
                     local keybindName = ZO_Keybindings_GetBindingStringFromAction("UI_SHORTCUT_QUINARY") or GetString(SI_GPH_TELEPORT)
                     pendingNarration = BuildCandidateNarrationText(td.candidate, td.isBookmark) .. ". " .. zo_strformat(SI_GPH_MAPSEARCH_SHOWN_ON_MAP, keybindName)
@@ -2699,7 +2859,7 @@ local function BuildKeybindDescriptor()
             visible  = function()
                 if editControl and editControl:HasFocus() then return false end
                 local td = listObject and listObject:GetTargetData()
-                return td ~= nil and td.candidate ~= nil
+                return td ~= nil and td.candidate ~= nil and not td.candidate.isRespawn
             end,
         },
         {
@@ -2738,7 +2898,7 @@ local function BuildKeybindDescriptor()
                 if not td or not td.candidate then return end
                 local c = td.candidate
                 local sv = GetSavedVars()
-                if sv then sv.lastSelectedPOI = MakeSavedCandidate(c) end
+                if sv and not c.isRespawn then sv.lastSelectedPOI = MakeSavedCandidate(c) end
 
                 if c.isLocked then
                     local collectibleData
@@ -2771,14 +2931,52 @@ local function BuildKeybindDescriptor()
 
                 if c.type == TYPE_CYRODIIL_KEEP then
                     if c.isRespawn then
+                        if not WORLD_MAP_MANAGER or not WORLD_MAP_MANAGER:IsInMode(MAP_MODE_AVA_RESPAWN) then
+                            ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE))
+                            return
+                        end
                         if c.isCamp then
+                            local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
+                            local pinType, normX, normY, _, useable = GetForwardCampPinInfo(bgContext, c.campIndex)
+                            local sameCamp = useable
+                                and pinType == c.campPinType
+                                and normX and normY
+                                and math.abs(normX - c.normX) < 0.00001
+                                and math.abs(normY - c.normY) < 0.00001
+                            if not sameCamp then
+                                candidates = nil
+                                lastSearchTerm = nil
+                                RunSearch(currentTerm)
+                                RebuildList()
+                                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE))
+                                return
+                            end
                             RespawnAtForwardCamp(c.campIndex)
                         else
+                            if not c.keepId or not CanRespawnAtKeep(c.keepId) then
+                                candidates = nil
+                                lastSearchTerm = nil
+                                RunSearch(currentTerm)
+                                RebuildList()
+                                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE))
+                                return
+                            end
                             RespawnAtKeep(c.keepId)
                         end
                         return
                     end
-                    if WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_KEEP_TRAVEL) then
+                    local isKeepTravel = WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_KEEP_TRAVEL)
+                    local isKeepRecall = WORLD_MAP_MANAGER and WORLD_MAP_MANAGER:IsInMode(MAP_MODE_AVA_KEEP_RECALL)
+                    if isKeepTravel or isKeepRecall then
+                        local bgContext = ZO_WorldMap_GetBattlegroundQueryType and ZO_WorldMap_GetBattlegroundQueryType() or BGQUERY_ASSIGNED_AND_LOCAL
+                        if isKeepRecall and (not GetKeepRecallAvailable or not GetKeepRecallAvailable(c.keepId, bgContext)) then
+                            candidates = nil
+                            lastSearchTerm = nil
+                            RunSearch(currentTerm)
+                            RebuildList()
+                            ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE))
+                            return
+                        end
                         for i = 1, GetGroupSize() do
                             local tag = GetGroupUnitTagByIndex(i)
                             if tag and DoesUnitExist(tag) and IsUnitOnline(tag) and IsUnitGroupLeader(tag) then
@@ -3130,6 +3328,7 @@ local function InsertMapSearchTab()
             RebuildList()
             UpdateRecallCostLabel()
             StartListCostLoop()
+            StartCyrodiilRefreshLoop()
             if listObject then
                 listObject:Activate()
                 local numItems = listObject:GetNumItems()
@@ -3158,6 +3357,7 @@ local function InsertMapSearchTab()
             if editControl then editControl:LoseFocus() end
             pendingNarration = nil
             StopListCostLoop()
+            StopCyrodiilRefreshLoop()
             GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_MOVABLE_TOOLTIP)
             if _G["GamePadHelper_MapTeleporter_SetSuppressed"] then
                 _G["GamePadHelper_MapTeleporter_SetSuppressed"](false)
@@ -3254,12 +3454,28 @@ local function OnAddonLoaded(_, name)
     EVENT_MANAGER:RegisterForEvent("MapSearch_POIUpdated", EVENT_POI_UPDATED, function()
         cachedRecallNode = nil
     end)
-    EVENT_MANAGER:RegisterForEvent("MapSearch_KeepNetworkUpdated", EVENT_FAST_TRAVEL_KEEP_NETWORK_UPDATED, function()
-        candidates = nil
-    end)
-    EVENT_MANAGER:RegisterForEvent("MapSearch_ForwardCampsUpdated", EVENT_FORWARD_CAMPS_UPDATED, function()
-        candidates = nil
-    end)
+    local function RefreshCyrodiilCandidates()
+        local targetData = listObject and listObject:GetTargetData()
+        local selected = targetData and targetData.candidate
+        if IsFragmentShowing() and GetMapContentType and GetMapContentType() == MAP_CONTENT_AVA then
+            local changeType = RefreshLiveCyrodiilCandidates()
+            if changeType == "structural" then
+                lastSearchTerm = nil
+                RunSearch(currentTerm)
+                RestoreCyrodiilSelection(selected)
+                RebuildList()
+                UpdateKeybinds()
+            elseif changeType == "visual" then
+                RefreshCyrodiilDynamicRows()
+                UpdateKeybinds()
+            end
+        else
+            candidates = nil
+            lastSearchTerm = nil
+        end
+    end
+    EVENT_MANAGER:RegisterForEvent("MapSearch_KeepNetworkUpdated", EVENT_FAST_TRAVEL_KEEP_NETWORK_UPDATED, RefreshCyrodiilCandidates)
+    EVENT_MANAGER:RegisterForEvent("MapSearch_ForwardCampsUpdated", EVENT_FORWARD_CAMPS_UPDATED, RefreshCyrodiilCandidates)
 
     -- When the player clicks "Choose Revive Location" in Cyrodiil death screen,
     -- MAP_MODE_AVA_RESPAWN is pushed BEFORE the world map shows. Hook this so that
@@ -3271,6 +3487,20 @@ local function OnAddonLoaded(_, name)
             if IsFragmentShowing() then
                 RunSearch(currentTerm)
                 RebuildList()
+            end
+        end)
+    end
+
+    -- Retreat items and abilities open the dedicated keep-recall map mode. Rebuild
+    -- immediately so Map Search uses GetKeepRecallAvailable instead of shrine travel.
+    if ZO_WorldMap_ShowAvAKeepRecall then
+        SecurePostHook("ZO_WorldMap_ShowAvAKeepRecall", function()
+            candidates = nil
+            lastSearchTerm = nil
+            if IsFragmentShowing() then
+                RunSearch(currentTerm)
+                RebuildList()
+                UpdateKeybinds()
             end
         end)
     end

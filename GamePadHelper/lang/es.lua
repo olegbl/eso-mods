@@ -32,6 +32,7 @@ local strings = {
     SI_GPH_CYRODIIL_LEADER_NEARBY = "El líder del grupo está aquí",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "Debes estar en un Santuario de Tránsito para viajar a una fortaleza.",
     SI_GPH_CYRODIIL_REVIVE = "Revivir",
+    SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE = "Esa ubicación de Cyrodiil ya no está disponible.",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "Búsqueda de fortalezas de Cyrodiil",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "Muestra las fortalezas accesibles de Cyrodiil en la búsqueda del mapa al ver el mapa de Cyrodiil.",
 
@@ -295,7 +296,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t Tesorero de tributos|r – grupo activo",
     SI_GPH_TOOLTIP_CROW_TITLE = "Tesorero de tributos",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\nSignificado del color del rasgo:\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r objeto equipado investigable\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r única copia accesible\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r tiene duplicado en el inventario\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r tiene duplicado en el banco\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r: cantidad de duplicados\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t Intrincado\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t Ornamentado",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FFNovedades|r\n\n• |cFFFF00Revivir en Cyrodiil|r - cuando mueres en Cyrodiil y eliges Seleccionar lugar de reaparición, la Búsqueda en el mapa muestra todos los lugares donde puedes revivir, incluyendo fortalezas, pueblos, avanzadas y campamentos avanzados. Selecciona una entrada y pulsa Revivir para reaparecer allí.\n\n• |cFFFF00Caché de búsqueda en el mapa|r - lógica de caché mejorada para evitar bloqueos de carga y búsqueda. Gracias a Bazooper-blip por el arreglo.",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FFNovedades|r\n\n• |cFFFF00Revivir y retirarse en Cyrodiil|r - la Búsqueda en el mapa vuelve a comprobar los lugares de reaparición, distingue varios campamentos avanzados y actualiza las posiciones del grupo mientras está abierta. Los objetos y habilidades de retirada ahora permiten elegir un destino disponible desde la lista de mando.\n\n• |cFFFF00Favores del puesto de los Freerunners|r - se añadieron los tres tablones de favores de Skywatch, Ebonheart y Aldcroft como otorgantes de misiones diarias que se pueden buscar.\n\n• |cFFFF00Caché de búsqueda en el mapa|r - lógica de caché mejorada para evitar bloqueos de carga y búsqueda. Gracias a Bazooper-blip por el arreglo.",
     SI_GPH_WHATS_NEW_CONFIRM = "Entendido",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — Novedades",
 }

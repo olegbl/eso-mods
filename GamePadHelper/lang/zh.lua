@@ -274,6 +274,7 @@ local strings = {
     SI_GPH_TELEPORT_NO_VALID_TARGET = "未选择有效的传送目标",
     SI_GPH_TELEPORT_NO_ZONE_DATA = "没有 <<1>> 的区域数据",
     SI_GPH_TELEPORT_PLAYER_UNREACHABLE = "无法传送到 <<1>> - 玩家可能在副本中",
+    SI_GPH_TELEPORT_PLAYERS_UNREACHABLE = "无法传送到 <<1>> 名玩家中的任何一位 - 他们可能在副本中",
     SI_GPH_TIME_DAY_SHORT = "<<1>>天",
     SI_GPH_TIME_HOUR_SHORT = "<<1>>小时",
     SI_GPH_TIME_MINUTE_SHORT = "<<1>>分钟",

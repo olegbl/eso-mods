@@ -136,6 +136,7 @@
     SI_GPH_MAPSEARCH_FREE_TRAVEL_WAYSHRINE  = "Wayshrine (<<1>> Gold)",
     SI_GPH_MAPSEARCH_FREE_TRAVEL_FAILED     = "No reachable players found - try the wayshrine",
     SI_GPH_TELEPORT_PLAYER_UNREACHABLE      = "Could not teleport to <<1>> - player may be in an instance",
+    SI_GPH_TELEPORT_PLAYERS_UNREACHABLE     = "Could not teleport to any of <<1>> players - they may be in instances",
     SI_GPH_MAPSEARCH_TELEPORT_NEAREST = "Teleport to Nearest Wayshrine",
     SI_GPH_MAPSEARCH_TELEPORTED_TO = "Teleported to <<1>>. Check map for destination pin.",
     SI_GPH_MAPSEARCH_UNBOOKMARK = "Unbookmark",

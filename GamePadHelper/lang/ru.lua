@@ -274,6 +274,7 @@ local strings = {
     SI_GPH_TELEPORT_NO_VALID_TARGET = "Не выбрана допустимая телепортируемая цель.",
     SI_GPH_TELEPORT_NO_ZONE_DATA = "Нет данных о зоне для <<1>>",
     SI_GPH_TELEPORT_PLAYER_UNREACHABLE = "Не удалось телепортироваться к <<1>> - игрок может находиться в инстансе",
+    SI_GPH_TELEPORT_PLAYERS_UNREACHABLE = "Не удалось телепортироваться ни к одному из <<1>> игроков - возможно, они находятся в инстансах",
     SI_GPH_TIME_DAY_SHORT = "<<1>>д",
     SI_GPH_TIME_HOUR_SHORT = "<<1>>ч",
     SI_GPH_TIME_MINUTE_SHORT = "<<1>>м",

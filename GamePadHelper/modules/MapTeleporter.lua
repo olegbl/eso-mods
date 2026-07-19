@@ -1,6 +1,4 @@
-﻿local _ChatSystem = KEYBOARD_CHAT_SYSTEM or CHAT_SYSTEM
-
-local MAP_NAME_TO_ZONE_ID = {}
+﻿local MAP_NAME_TO_ZONE_ID = {}
 local mapSearchSuppressingTeleport = false
 
 local function CleanName(s)
@@ -47,6 +45,12 @@ local function GetResolvedZoneIdFromCandidate(candidate)
     if candidate.zoneId and candidate.zoneId ~= 0 then
         return candidate.zoneId
     end
+    if candidate.zoneIndex and candidate.zoneIndex ~= 0 then
+        local zoneId = GetZoneId(candidate.zoneIndex)
+        if zoneId and zoneId ~= 0 then
+            return zoneId
+        end
+    end
     if candidate.nodeIndex then
         local zoneIndex = GetFastTravelNodePOIIndicies(candidate.nodeIndex)
         if zoneIndex and zoneIndex ~= 0 then
@@ -60,14 +64,7 @@ local function GetResolvedZoneIdFromCandidate(candidate)
 end
 
 local function GetFallbackZoneId()
-    local sv = _G["GamePadHelper_CharSavedVars"]
-    local candidate = sv and sv.lastSelectedPOI
-    if type(candidate) == "table" then
-        local zoneId = GetResolvedZoneIdFromCandidate(candidate)
-        if zoneId and zoneId ~= 0 then
-            return zoneId, candidate.name
-        end
-    end
+    -- the zone of the map being viewed beats a stale Map Search selection
     if GetCurrentMapZoneIndex then
         local zoneIndex = GetCurrentMapZoneIndex()
         if zoneIndex and zoneIndex ~= 0 then
@@ -75,6 +72,14 @@ local function GetFallbackZoneId()
             if zoneId and zoneId ~= 0 then
                 return zoneId, GetZoneNameById(zoneId)
             end
+        end
+    end
+    local sv = _G["GamePadHelper_CharSavedVars"]
+    local candidate = sv and sv.lastSelectedPOI
+    if type(candidate) == "table" then
+        local zoneId = GetResolvedZoneIdFromCandidate(candidate)
+        if zoneId and zoneId ~= 0 then
+            return zoneId, candidate.name
         end
     end
     return nil
@@ -103,19 +108,7 @@ local function FindPlayersInZone(targetZoneId)
     local myName = GetDisplayName()
     local results, seen = {}, {}
 
-    -- friends first
-    for j = 1, GetNumFriends() do
-        local displayName, _, status = GetFriendInfo(j)
-        if displayName and displayName ~= "" and displayName ~= myName and status ~= PLAYER_STATUS_OFFLINE and not seen[displayName] then
-            local hasChar, charName, _, _, _, _, _, zoneId = GetFriendCharacterInfo(j)
-            if hasChar and zoneId and zoneId ~= 0 and ZonesOverlap(zoneId, targetZoneId) then
-                seen[displayName] = true
-                results[#results + 1] = { displayName = displayName, charName = charName }
-            end
-        end
-    end
-
-    -- then group/party members
+    -- group/party members first: the most reliable jump targets
     for i = 1, GetGroupSize() do
         local tag = GetGroupUnitTagByIndex(i)
         if tag and IsUnitOnline(tag) and not IsGroupMemberInRemoteRegion(tag) then
@@ -129,6 +122,18 @@ local function FindPlayersInZone(targetZoneId)
                         results[#results + 1] = { displayName = displayName, charName = GetUnitName(tag), isGroup = true }
                     end
                 end
+            end
+        end
+    end
+
+    -- then friends
+    for j = 1, GetNumFriends() do
+        local displayName, _, status = GetFriendInfo(j)
+        if displayName and displayName ~= "" and displayName ~= myName and status ~= PLAYER_STATUS_OFFLINE and not seen[displayName] then
+            local hasChar, charName, _, _, _, _, _, zoneId = GetFriendCharacterInfo(j)
+            if hasChar and zoneId and zoneId ~= 0 and ZonesOverlap(zoneId, targetZoneId) then
+                seen[displayName] = true
+                results[#results + 1] = { displayName = displayName, charName = charName }
             end
         end
     end
@@ -171,6 +176,14 @@ TryPlayersFromIndex = function(players, index, onAllFailed)
         teleportChainId = teleportChainId + 1
     end
     if index > #players then
+        -- one summary alert for the whole chain instead of one per player
+        if #players == 1 then
+            local p = players[1]
+            local name = type(p) == "table" and ((p.charName ~= "" and p.charName) or p.displayName) or tostring(p)
+            ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, zo_strformat(SI_GPH_TELEPORT_PLAYER_UNREACHABLE, name))
+        elseif #players > 1 then
+            ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, zo_strformat(SI_GPH_TELEPORT_PLAYERS_UNREACHABLE, #players))
+        end
         if onAllFailed then onAllFailed() end
         return
     end
@@ -188,9 +201,6 @@ TryPlayersFromIndex = function(players, index, onAllFailed)
     local function onFail()
         done = true
         cleanup()
-        local p = players[index]
-        local name = type(p) == "table" and ((p.charName ~= "" and p.charName) or p.displayName) or tostring(p)
-        ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, zo_strformat(SI_GPH_TELEPORT_PLAYER_UNREACHABLE, name))
         TryPlayersFromIndex(players, index + 1, onAllFailed)
     end
 
@@ -208,8 +218,9 @@ TryPlayersFromIndex = function(players, index, onAllFailed)
         or reason == JUMP_RESULT_LOCAL_JUMP_SUCCESSFUL
         or reason == JUMP_RESULT_JUMP_CONVERTED_TO_REMOTE
         or reason == JUMP_RESULT_JUMP_CONVERTED_TO_LOCAL then
-            jumpStarted = true  -- jump confirmed started, wait for EVENT_PLAYER_ACTIVATED
-            EVENT_MANAGER:UnregisterForEvent(jumpName, EVENT_JUMP_FAILED)
+            -- jump confirmed started; keep listening, an initiated jump can
+            -- still abort (combat, target changed zones) before the zone loads
+            jumpStarted = true
             return
         end
         onFail()
@@ -250,6 +261,8 @@ local function FindOwnedHouseInZone(targetZoneId)
         { ZO_CollectibleCategoryData.IsHousingCategory },
         { ZO_CollectibleData.IsUnlocked }
     )
+    local primaryHouseId = GetHousingPrimaryHouse and GetHousingPrimaryHouse() or 0
+    local fallbackId, fallbackName
     for _, house in ipairs(houses) do
         local houseId = house:GetReferenceId()
         if ZonesOverlap(GetHouseZoneId(houseId), targetZoneId) then
@@ -258,9 +271,15 @@ local function FindOwnedHouseInZone(targetZoneId)
             if not houseName or houseName == "" then
                 houseName = GetCollectibleDefaultNickname(collectibleId)
             end
-            return houseId, houseName
+            if houseId == primaryHouseId then
+                return houseId, houseName
+            end
+            if not fallbackId then
+                fallbackId, fallbackName = houseId, houseName
+            end
         end
     end
+    return fallbackId, fallbackName
 end
 
 -- world map teleport
@@ -284,7 +303,10 @@ local function CreateTeleportCallback()
 
     local players  = FindPlayersInZone(zoneId)
     local houseId, houseName = FindOwnedHouseInZone(zoneId)
-    local nodeIndex = (not players and not houseId) and FindWayshrineInZone(zoneId)
+    if houseId and not CanJumpToHouseFromCurrentLocation() then
+        houseId, houseName = nil, nil
+    end
+    local nodeIndex = FindWayshrineInZone(zoneId)
 
     if not players and not houseId and not nodeIndex then
         ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_TELEPORT_NO_TARGET))
@@ -303,8 +325,8 @@ local function CreateTeleportCallback()
             ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, houseName or cleanLocation))
             RequestJumpToHouse(houseId, true)
         elseif nodeIndex then
-            ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, cleanLocation))
-            FastTravelToNode(nodeIndex)
+            -- recall costs gold, so ask before spending it
+            ZO_Dialogs_ShowGamepadDialog("GPH_HOVER_WAYSHRINE_CONFIRM", { nodeIndex = nodeIndex, name = cleanLocation })
         else
             ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_MAPSEARCH_FREE_TRAVEL_FAILED))
         end
@@ -324,7 +346,7 @@ local CHAT_KEYBIND_STRIP_DESCRIPTOR     = nil
 
 local function IsMapSearchTeleportSuppressed()
     if mapSearchSuppressingTeleport then return true end
-    local isMapSearchShowing = _G["GamePadHelper_MapSearch_IsShowing"]
+    local isMapSearchShowing = GamePadHelper.MapSearchIsShowing
     return type(isMapSearchShowing) == "function" and isMapSearchShowing() == true
 end
 
@@ -378,39 +400,44 @@ end
 
 -- shared teleport API (called by MapSearch)
 
-_G["GamePadHelper_MapTeleporter_TryFreeTeleport"] = function(params)
-    if not params or not params.zoneId then return false end
-    local players            = FindPlayersInZone(params.zoneId)
-    local houseId, houseName = FindOwnedHouseInZone(params.zoneId)
-    if not players and not houseId then return false end
-    local first = players and players[1]
-    ZO_Dialogs_ShowGamepadDialog("GPH_FREE_TRAVEL_OPTIONS", {
-        name          = params.name,
-        nodeIndex     = params.nodeIndex,
-        cost          = params.cost,
-        players       = players,
-        memberDisplay = first and first.displayName,
-        memberChar    = first and first.charName,
-        houseId       = houseId,
-        houseName     = houseName,
-        onWayshrine   = params.onWayshrine,
-    })
-    return true
-end
-
-_G["GamePadHelper_MapTeleporter_SetSuppressed"] = function(suppressed)
-    mapSearchSuppressingTeleport = suppressed == true
-    if not KEYBIND_STRIP then return end
-    KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
-    KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
-    if not mapSearchSuppressingTeleport then
-        if GAMEPAD_WORLD_MAP_SCENE and GAMEPAD_WORLD_MAP_SCENE:IsShowing() then
-            OnWorldMapSceneShow()
-        elseif WORLD_MAP_SCENE and WORLD_MAP_SCENE:IsShowing() then
-            OnWorldMapSceneShow()
+GamePadHelper.MapTeleporter = {
+    TryFreeTeleport = function(params)
+        if not params or not params.zoneId then return false end
+        local players            = FindPlayersInZone(params.zoneId)
+        local houseId, houseName = FindOwnedHouseInZone(params.zoneId)
+        if houseId and not CanJumpToHouseFromCurrentLocation() then
+            houseId, houseName = nil, nil
         end
-    end
-end
+        if not players and not houseId then return false end
+        local first = players and players[1]
+        ZO_Dialogs_ShowGamepadDialog("GPH_FREE_TRAVEL_OPTIONS", {
+            name          = params.name,
+            nodeIndex     = params.nodeIndex,
+            cost          = params.cost,
+            players       = players,
+            memberDisplay = first and first.displayName,
+            memberChar    = first and first.charName,
+            houseId       = houseId,
+            houseName     = houseName,
+            onWayshrine   = params.onWayshrine,
+        })
+        return true
+    end,
+
+    SetSuppressed = function(suppressed)
+        mapSearchSuppressingTeleport = suppressed == true
+        if not KEYBIND_STRIP then return end
+        KEYBIND_STRIP:RemoveKeybindButtonGroup(GAMEPAD_KEYBIND_STRIP_DESCRIPTOR)
+        KEYBIND_STRIP:RemoveKeybindButtonGroup(KEYBOARD_KEYBIND_STRIP_DESCRIPTOR)
+        if not mapSearchSuppressingTeleport then
+            if GAMEPAD_WORLD_MAP_SCENE and GAMEPAD_WORLD_MAP_SCENE:IsShowing() then
+                OnWorldMapSceneShow()
+            elseif WORLD_MAP_SCENE and WORLD_MAP_SCENE:IsShowing() then
+                OnWorldMapSceneShow()
+            end
+        end
+    end,
+}
 
 -- chat teleport
 
@@ -456,7 +483,9 @@ local function OnChatMenuShow()
                 name    = GetString(SI_GPH_TELEPORT),
                 keybind = "UI_SHORTCUT_QUINARY",
                 enabled = function()
-                    return CanLeaveCurrentLocationViaTeleport() and not IsUnitDead("player")
+                    return IsAnyJumpable()
+                        and CanLeaveCurrentLocationViaTeleport()
+                        and not IsUnitDead("player")
                 end,
                 visible  = function() return true end,
                 callback = function()
@@ -465,16 +494,10 @@ local function OnChatMenuShow()
                         ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_TELEPORT_NO_VALID_TARGET))
                         return
                     end
+                    -- route through the retry chain for failure feedback
+                    local player = { displayName = data.displayName, isGroup = IsGroupJumpable() }
                     SCENE_MANAGER:HideCurrentScene()
-                    local displayName = data.displayName
-                    ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, displayName))
-                    if IsFriendJumpable() then
-                        JumpToFriend(displayName)
-                    elseif IsGroupJumpable() then
-                        JumpToGroupMember(displayName)
-                    else
-                        JumpToGuildMember(displayName)
-                    end
+                    TryPlayersFromIndex({ player }, 1, nil)
                 end,
             }
         }
@@ -520,6 +543,12 @@ local function OnAddonLoaded(_, name)
                 text     = SI_DIALOG_CONFIRM,
                 callback = function(dialog)
                     if not dialog.data then return end
+                    -- onConfirm replaces the default travel action so callers
+                    -- (e.g. MapSearch) can keep their post-teleport handling
+                    if dialog.data.onConfirm then
+                        dialog.data.onConfirm()
+                        return
+                    end
                     ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, dialog.data.name))
                     FastTravelToNode(dialog.data.nodeIndex)
                     SCENE_MANAGER:ShowBaseScene()
@@ -560,6 +589,10 @@ local function OnAddonLoaded(_, name)
                                 if d.houseId then
                                     ZO_Dialogs_ShowGamepadDialog("GAMEPAD_TRAVEL_TO_HOUSE_OPTIONS_DIALOG",
                                         { GetReferenceId = function() return d.houseId end })
+                                elseif d.nodeIndex then
+                                    -- recall costs gold, so ask before spending it
+                                    ZO_Dialogs_ShowGamepadDialog("GPH_HOVER_WAYSHRINE_CONFIRM",
+                                        { nodeIndex = d.nodeIndex, name = d.name, onConfirm = d.onWayshrine })
                                 else
                                     ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, GetString(SI_GPH_MAPSEARCH_FREE_TRAVEL_FAILED))
                                 end

@@ -225,7 +225,7 @@ local function IsFragmentShowing()
     return GPH_SEARCH_FRAGMENT ~= nil and GPH_SEARCH_FRAGMENT:IsShowing()
 end
 
-_G["GamePadHelper_MapSearch_IsShowing"] = IsFragmentShowing
+GamePadHelper.MapSearchIsShowing = IsFragmentShowing
 
 local function GetSavedVars()
     return _G["GamePadHelper_CharSavedVars"]
@@ -3034,8 +3034,8 @@ local function BuildKeybindDescriptor()
                 StorePostTeleportDestination(c)
                 postTeleportCandidate = c
                 if cost > 0 then
-                    local tryFree = _G["GamePadHelper_MapTeleporter_TryFreeTeleport"]
-                    local handled = tryFree and c.zoneId and tryFree({
+                    local teleporter = GamePadHelper.MapTeleporter
+                    local handled = teleporter and c.zoneId and teleporter.TryFreeTeleport({
                         zoneId    = c.zoneId,
                         name      = c.name,
                         nodeIndex = nodeIndex,
@@ -3307,8 +3307,8 @@ local function InsertMapSearchTab()
 
     GPH_SEARCH_FRAGMENT:RegisterCallback("StateChange", function(_, newState)
         if newState == SCENE_SHOWING then
-            if _G["GamePadHelper_MapTeleporter_SetSuppressed"] then
-                _G["GamePadHelper_MapTeleporter_SetSuppressed"](true)
+            if GamePadHelper.MapTeleporter then
+                GamePadHelper.MapTeleporter.SetSuppressed(true)
             end
             candidates = nil  -- rebuild keep group counts fresh each time the list opens
             if IsCyrodiilKeepSearchEnabled() and GetMapContentType and GetMapContentType() == MAP_CONTENT_AVA then
@@ -3359,8 +3359,8 @@ local function InsertMapSearchTab()
             StopListCostLoop()
             StopCyrodiilRefreshLoop()
             GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_MOVABLE_TOOLTIP)
-            if _G["GamePadHelper_MapTeleporter_SetSuppressed"] then
-                _G["GamePadHelper_MapTeleporter_SetSuppressed"](false)
+            if GamePadHelper.MapTeleporter then
+                GamePadHelper.MapTeleporter.SetSuppressed(false)
             end
         end
     end)

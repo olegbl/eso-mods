@@ -19,7 +19,7 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 **Map Search** — gamepad search tab on the world map. Search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting set stations. The three Freerunner’s Post Favor boards in Skywatch, Ebonheart, and Aldcroft are included as daily quest givers. Includes fuzzy ranking, bookmarks, recent destinations, map panning, and ping markers. In Cyrodiil, shows accessible keeps with live group-member positions and the group leader highlighted. While dead, switches to revive mode and revalidates keeps, towns, outposts, and forward camps before respawning. Retreat items and abilities can also select an available destination directly from the gamepad list.
 
-**Teleporter** — world map hotkey to teleport to a hovered zone, prioritising free travel via group, friend, or guild members. Failed player jumps automatically try the next target, unavailable houses fall back to wayshrines, paid recalls ask for confirmation, and chat teleport uses the same reliable retry flow.
+**Teleporter** — world map hotkey to teleport to a hovered zone, prioritising free travel via group, friend, or guild members. It waits for ESO's teleport response and tries the next player only after a confirmed unavailable-player error. A started teleport is monitored, while movement, cancellation, silence, and unrelated errors stop the retry chain. The wayshrine fallback appears only after all eligible players are confirmed unavailable and shows the current recall fee before confirmation. Unavailable houses and chat teleports use the same safe fallback handling.
 
 **Tooltip Set Collection** — single-set reward containers, such as Imperial City coffers, show account collection progress and the equipment slots still missing. Multi-set containers are ignored. Toggleable under `Tooltips and UI`.
 
@@ -49,7 +49,7 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 ## Inventory Features
 
-**Inventory Countess and Bursar** — highlights treasures relevant to The Covetous Countess and Bursar of Tributes quests. Green = active Countess quest item, Blue = active Bursar quest item, White = useful but neither quest active. Stolen items cycle between stolen and quest icons. Flashes green and blue when useful for both active quests simultaneously.
+**Inventory Countess and Bursar** — adds a quest icon to treasures relevant to The Covetous Countess and Bursar of Tributes. Green = useful for either enabled active quest or Bursar group; White = useful, but not currently active. Stolen items cycle between the stolen and quest icons.
 
 **Inventory Trait** — shows trait research indicators in inventory, bank, and deconstruction.
 - Blue — equipped item with a researchable trait.

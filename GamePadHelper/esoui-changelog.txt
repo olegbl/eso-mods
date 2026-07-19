@@ -1,0 +1,12 @@
+1.06.18
+[LIST]
+[*][Teleporter] - player jumps now wait for ESO's response and retry another player only after a confirmed unavailable-player error.
+[*][Teleporter] - started teleports are monitored, while movement, cancellation, silence, and unrelated errors stop the retry chain instead of opening the fallback too early.
+[*][Teleporter] - the wayshrine fallback is offered only after all eligible players are confirmed unavailable, displays the current recall fee, and disables confirmation when the fee is unaffordable.
+[*][Teleporter] - group, friend, guild, house, and chat teleport routes now use safer target validation and fallback handling.
+[*][Map Search] - Cyrodiil revive locations are revalidated, multiple forward camps receive distinct names, and group positions refresh while the list is open.
+[*][Map Search] - Cyrodiil retreat items and abilities can select an available destination directly from the gamepad list.
+[*][Map Search] - the three Freerunner's Post Favor boards in Skywatch, Ebonheart, and Aldcroft were added as searchable daily quest givers.
+[*][Tooltip Set Collection] - single-set reward containers now show collection progress and missing equipment slots. Thanks to Bazooper-blip for the contribution.
+[*][Inventory/Tooltip Countess and Bursar] - Countess and Bursar treasures now use the same quest icon and green active color; useful inactive items remain white.
+[/LIST]

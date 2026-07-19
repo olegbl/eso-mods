@@ -18,7 +18,7 @@ Built only for gamepad and console UI.[/CENTER]
 [SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.18[/B][/COLOR][/SIZE]
 
 [LIST]
-[*][B]Reliable teleport fallback[/B] - failed or aborted player jumps now continue through available group, friend, and guild targets before offering a wayshrine fallback. Group members are preferred, unavailable houses are skipped, paid recalls require confirmation, and chat teleport uses the same retry handling. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
+[*][B]Reliable teleport fallback[/B] - player jumps now wait for ESO's teleport response and try the next target only after a confirmed unavailable-player error. Started teleports are monitored; movement, cancellation, silence, and unrelated errors stop retries. A wayshrine is offered only after every eligible target is confirmed unavailable, with the current recall fee shown before confirmation. Houses and chat teleports use the same safe handling. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
 [*][B]Set collection on container tooltips[/B] - single-set reward containers now show account collection progress and which equipment slots are still missing. Multi-set containers are excluded. Toggle via Settings → GPH Settings → Tooltips and UI → Tooltip Set Collection. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
 [*][B]Cyrodiil revive and retreat in Map Search[/B] - Map Search lists and revalidates all revive locations, gives multiple forward camps distinct names, and refreshes group positions while open. Retreat items and abilities now support selecting an available destination directly from the gamepad list.
 [*][B]Freerunner’s Post Favors[/B] - added the three Season One Favor boards in Skywatch, Ebonheart, and Aldcroft as searchable daily quest givers for Battlereeve Urcelmo, Holgunn One-Eye, and Lady Arabelle Davaux.
@@ -62,8 +62,9 @@ Built only for gamepad and console UI.[/CENTER]
 [B][COLOR="#DAA520"]Teleporter[/COLOR][/B] [Default: ON]
 [LIST]
 [*]Adds a world map hotkey to teleport to the hovered zone. Prioritizes group members, then friends and guild members, before offering the nearest wayshrine.
-[*]Retries the next available player after failed or aborted jumps, skips unavailable houses, and asks before paid wayshrine recalls.
-[*]Adds chat context menu jump options using the same retry and failure handling.
+[*]Waits for ESO's response and retries the next player only after a confirmed unavailable-player error. Movement, cancellation, silence, and unrelated errors stop the retry chain.
+[*]Monitors started teleports, skips unavailable houses, and offers a wayshrine only after all eligible players are confirmed unavailable. The confirmation shows the current recall fee and is disabled when unaffordable.
+[*]Adds chat context menu jump options using the same safe retry and fallback handling.
 [/LIST]
 
 [B][COLOR="#DAA520"]Tooltip Set Collection[/COLOR][/B] [Default: ON]
@@ -111,10 +112,9 @@ Built only for gamepad and console UI.[/CENTER]
 [B][COLOR="#DAA520"]Inventory Countess and Bursar[/COLOR][/B] [Default: ON]
 [LIST]
 [*]Marks treasures useful for The Covetous Countess and Bursar of Tributes quests.
-[*][COLOR="#00FF00"]Green[/COLOR] icon means useful for the current active Countess quest.
-[*][COLOR="#3399FF"]Blue[/COLOR] icon means useful for the current active Bursar quest.
-[*]Flashes green and blue when useful for both active quests simultaneously.
-[*][COLOR="#FFFFFF"]White[/COLOR] icon means useful, but neither quest is currently active.
+[*][COLOR="#2DC50E"]Green[/COLOR] quest icon means useful for either enabled active quest or Bursar group.
+[*][COLOR="#FFFFFF"]White[/COLOR] quest icon means useful, but not currently active.
+[*]Stolen items cycle between the stolen and quest icons.
 [/LIST]
 
 [B][COLOR="#DAA520"]Inventory Trait[/COLOR][/B] [Default: ON]

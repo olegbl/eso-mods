@@ -6,7 +6,7 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 - Overview Panel — two-column root menu with quest details and daily reminders.
 - Map Search — search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting stations. In Cyrodiil, shows accessible keeps with group proximity info. While dead, switches to revive mode and lists all revivable locations including forward camps.
-- Teleporter — world map hotkey to teleport to a hovered zone.
+- Teleporter — world map hotkey with confirmed-error player retries, monitored teleport starts, cancellation-safe handling, and a wayshrine fallback that displays the current recall fee.
 - Dungeon Finder — shows pledge quest names in the finder list.
 - Fishing — vibration on bite, reel alert, automatic bait selection and fallback.
 - Auto Repair — repairs equipped gear at merchants automatically.

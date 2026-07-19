@@ -103,23 +103,47 @@ local function ZonesOverlap(zoneA, zoneB)
 end
 
 local teleportChainId = 0
+local activeTeleportCancel = nil
+local TELEPORT_SOCIAL_ERROR_WAIT_MS = 1800
+
+local function FormatRecallCostAmount(cost, currency)
+    local canAfford = cost == 0 or cost <= GetCurrencyAmount(currency, CURRENCY_LOCATION_CHARACTER)
+    local coloredNum = (canAfford and "|cFFFFFF" or "|cff4444") .. ZO_CommaDelimitNumber(cost) .. "|r"
+    return zo_strformat(SI_GPH_MAPSEARCH_RECALL_COST_AMOUNT, coloredNum)
+end
+
+local function IsTeleportCancelMovement()
+    return IsPlayerMoving()
+        or (IsPlayerTryingToMove and IsPlayerTryingToMove())
+end
 
 local function FindPlayersInZone(targetZoneId)
     local myName = GetDisplayName()
     local results, seen = {}, {}
+
+    local function AddPlayer(displayName, charName, relationship)
+        local player = seen[displayName]
+        if not player then
+            player = { displayName = displayName, charName = charName }
+            seen[displayName] = player
+            results[#results + 1] = player
+        elseif (not player.charName or player.charName == "") and charName and charName ~= "" then
+            player.charName = charName
+        end
+        player[relationship] = true
+    end
 
     -- group/party members first: the most reliable jump targets
     for i = 1, GetGroupSize() do
         local tag = GetGroupUnitTagByIndex(i)
         if tag and IsUnitOnline(tag) and not IsGroupMemberInRemoteRegion(tag) then
             local displayName = GetUnitDisplayName(tag)
-            if displayName and displayName ~= "" and displayName ~= myName and not seen[displayName] then
+            if displayName and displayName ~= "" and displayName ~= myName then
                 local zoneIndex = GetUnitZoneIndex(tag)
                 if zoneIndex and zoneIndex ~= 0 then
                     local zoneId = GetZoneId(zoneIndex)
                     if zoneId and zoneId ~= 0 and ZonesOverlap(zoneId, targetZoneId) then
-                        seen[displayName] = true
-                        results[#results + 1] = { displayName = displayName, charName = GetUnitName(tag), isGroup = true }
+                        AddPlayer(displayName, GetUnitName(tag), "isGroup")
                     end
                 end
             end
@@ -129,11 +153,10 @@ local function FindPlayersInZone(targetZoneId)
     -- then friends
     for j = 1, GetNumFriends() do
         local displayName, _, status = GetFriendInfo(j)
-        if displayName and displayName ~= "" and displayName ~= myName and status ~= PLAYER_STATUS_OFFLINE and not seen[displayName] then
+        if displayName and displayName ~= "" and displayName ~= myName and status ~= PLAYER_STATUS_OFFLINE then
             local hasChar, charName, _, _, _, _, _, zoneId = GetFriendCharacterInfo(j)
             if hasChar and zoneId and zoneId ~= 0 and ZonesOverlap(zoneId, targetZoneId) then
-                seen[displayName] = true
-                results[#results + 1] = { displayName = displayName, charName = charName }
+                AddPlayer(displayName, charName, "isFriend")
             end
         end
     end
@@ -143,11 +166,10 @@ local function FindPlayersInZone(targetZoneId)
         local guildId = GetGuildId(i)
         for j = 1, GetNumGuildMembers(guildId) do
             local displayName, _, _, status = GetGuildMemberInfo(guildId, j)
-            if displayName ~= myName and status ~= PLAYER_STATUS_OFFLINE and not seen[displayName] then
+            if displayName and displayName ~= "" and displayName ~= myName and status ~= PLAYER_STATUS_OFFLINE then
                 local _, charName, _, _, _, _, _, zoneId = GetGuildMemberCharacterInfo(guildId, j)
                 if zoneId and zoneId ~= 0 and ZonesOverlap(zoneId, targetZoneId) then
-                    seen[displayName] = true
-                    results[#results + 1] = { displayName = displayName, charName = charName }
+                    AddPlayer(displayName, charName, "isGuild")
                 end
             end
         end
@@ -158,21 +180,41 @@ end
 
 local TryPlayersFromIndex  -- forward declaration
 
+local function IsCurrentGroupMember(displayName)
+    for i = 1, GetGroupSize() do
+        local tag = GetGroupUnitTagByIndex(i)
+        if tag and GetUnitDisplayName(tag) == displayName then
+            return true
+        end
+    end
+    return false
+end
+
 local function TeleportToPlayer(player)
     local displayName = type(player) == "table" and player.displayName or player
     local alertName = (type(player) == "table" and player.charName and player.charName ~= "") and player.charName or displayName
-    ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, alertName))
-    if type(player) == "table" and player.isGroup then
+    if type(player) == "table" and player.isGroup and IsCurrentGroupMember(displayName) then
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, alertName))
         JumpToGroupMember(displayName)
+        return true, "group"
     elseif IsFriend(displayName) then
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, alertName))
         JumpToFriend(displayName)
-    else
+        return true, "friend"
+    elseif type(player) ~= "table" or player.isGuild then
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, nil, zo_strformat(SI_GPH_TELEPORTING_TO, alertName))
         JumpToGuildMember(displayName)
+        return true, "guild"
+    else
+        return false
     end
 end
 
 TryPlayersFromIndex = function(players, index, onAllFailed)
     if index == 1 then
+        if activeTeleportCancel then
+            activeTeleportCancel()
+        end
         teleportChainId = teleportChainId + 1
     end
     if index > #players then
@@ -187,16 +229,34 @@ TryPlayersFromIndex = function(players, index, onAllFailed)
         if onAllFailed then onAllFailed() end
         return
     end
-    local chainId   = teleportChainId
-    local jumpName  = "GPH_Teleport_Jump_"  .. chainId
-    local activName = "GPH_Teleport_Activ_" .. chainId
-    local done        = false
-    local jumpStarted = false
+    local chainId     = teleportChainId
+    local socialName  = "GPH_Teleport_Social_"  .. chainId
+    local prepareName = "GPH_Teleport_Prepare_" .. chainId
+    local activName   = "GPH_Teleport_Activ_"   .. chainId
+    local deactivName = "GPH_Teleport_Deactiv_" .. chainId
+    local movementName = "GPH_Teleport_Movement_" .. chainId
+    local done          = false
+    local socialError   = 0
+    local movementArmed = not IsTeleportCancelMovement()
+    local currentRoute
+    local cancel
 
     local function cleanup()
-        EVENT_MANAGER:UnregisterForEvent(jumpName,  EVENT_JUMP_FAILED)
+        EVENT_MANAGER:UnregisterForEvent(socialName, EVENT_SOCIAL_ERROR)
+        EVENT_MANAGER:UnregisterForEvent(prepareName, EVENT_PREPARE_FOR_JUMP)
         EVENT_MANAGER:UnregisterForEvent(activName, EVENT_PLAYER_ACTIVATED)
+        EVENT_MANAGER:UnregisterForEvent(deactivName, EVENT_PLAYER_DEACTIVATED)
+        EVENT_MANAGER:UnregisterForUpdate(movementName)
+        if activeTeleportCancel == cancel then
+            activeTeleportCancel = nil
+        end
     end
+
+    cancel = function()
+        done = true
+        cleanup()
+    end
+    activeTeleportCancel = cancel
 
     local function onFail()
         done = true
@@ -211,28 +271,75 @@ TryPlayersFromIndex = function(players, index, onAllFailed)
         cleanup()
     end)
 
-    -- EVENT_JUMP_FAILED fires for all jump results (success-initiation and failures)
-    EVENT_MANAGER:RegisterForEvent(jumpName, EVENT_JUMP_FAILED, function(_, reason)
+    -- This is the same event ESO's loading screen uses to capture the moment a
+    -- teleport actually starts.  Once it fires, the request has committed and
+    -- the retry/wayshrine fallback must not run.
+    EVENT_MANAGER:RegisterForEvent(prepareName, EVENT_PREPARE_FOR_JUMP, function()
         if done then return end
-        if reason == JUMP_RESULT_REMOTE_JUMP_INITIATED
-        or reason == JUMP_RESULT_LOCAL_JUMP_SUCCESSFUL
-        or reason == JUMP_RESULT_JUMP_CONVERTED_TO_REMOTE
-        or reason == JUMP_RESULT_JUMP_CONVERTED_TO_LOCAL then
-            -- jump confirmed started; keep listening, an initiated jump can
-            -- still abort (combat, target changed zones) before the zone loads
-            jumpStarted = true
-            return
-        end
-        onFail()
+        done = true
+        cleanup()
     end)
 
-    TeleportToPlayer(players[index])
+    -- Defensive backup in case a platform/client skips EVENT_PREPARE_FOR_JUMP.
+    EVENT_MANAGER:RegisterForEvent(deactivName, EVENT_PLAYER_DEACTIVATED, function()
+        if done then return end
+        done = true
+        cleanup()
+    end)
 
-    -- fallback: if EVENT_JUMP_FAILED never fires and jump never started after 4s = silent drop
-    zo_callLater(function()
-        if done or jumpStarted then return end
+    -- EVENT_JUMP_FAILED is intentionally not used for normal player retries:
+    -- it is broad and may fire while a valid teleport is already starting.
+    EVENT_MANAGER:RegisterForEvent(socialName, EVENT_SOCIAL_ERROR, function(_, errorCode)
+        if done then return end
+        socialError = errorCode or 0
+    end)
+
+    EVENT_MANAGER:RegisterForUpdate(movementName, 50, function()
+        if done then return end
+        if IsWaitingForTeleport and IsWaitingForTeleport() then
+            done = true
+            cleanup()
+            return
+        end
+        if not movementArmed then
+            movementArmed = not IsTeleportCancelMovement()
+        elseif IsTeleportCancelMovement() then
+            -- Moving is an intentional cancel, never a reason to offer fallback.
+            cancel()
+        end
+    end)
+
+    local started
+    started, currentRoute = TeleportToPlayer(players[index])
+    if not started then
         onFail()
-    end, 4000)
+        return
+    end
+
+    -- Match BeamMeUp's delayed social-error check. Silence and unrelated errors
+    -- stop safely; only confirmed unavailable-player errors trigger a retry.
+    zo_callLater(function()
+        if done then return end
+        if IsWaitingForTeleport and IsWaitingForTeleport() then
+            done = true
+            cleanup()
+            return
+        end
+        if IsTeleportCancelMovement() then
+            cancel()
+            return
+        end
+        if socialError == SOCIAL_RESULT_NO_LOCATION
+        or socialError == SOCIAL_RESULT_CHARACTER_NOT_FOUND then
+            if currentRoute == "group" then
+                cancel()
+                return
+            end
+            onFail()
+        else
+            cancel()
+        end
+    end, TELEPORT_SOCIAL_ERROR_WAIT_MS)
 end
 
 local function FindWayshrineInZone(targetZoneId)
@@ -495,7 +602,12 @@ local function OnChatMenuShow()
                         return
                     end
                     -- route through the retry chain for failure feedback
-                    local player = { displayName = data.displayName, isGroup = IsGroupJumpable() }
+                    local player = {
+                        displayName = data.displayName,
+                        isGroup    = IsGroupJumpable(),
+                        isFriend   = IsFriendJumpable(),
+                        isGuild    = IsGuildJumpable(),
+                    }
                     SCENE_MANAGER:HideCurrentScene()
                     TryPlayersFromIndex({ player }, 1, nil)
                 end,
@@ -535,12 +647,24 @@ local function OnAddonLoaded(_, name)
                 else
                     baseId = canAfford and SI_GAMEPAD_FAST_TRAVEL_DIALOG_PREMIUM or SI_GAMEPAD_FAST_TRAVEL_DIALOG_CANT_AFFORD_PREMIUM
                 end
-                return zo_strformat(baseId, d.name, cooldownStr)
+                local text = zo_strformat(baseId, d.name, cooldownStr)
+                if cost > 0 then
+                    text = text
+                        .. "\n\n" .. GetString(SI_GPH_MAPSEARCH_RECALL_COST)
+                        .. "\n"   .. FormatRecallCostAmount(cost, currency)
+                end
+                return text
             end,
         },
         buttons = {
             {
                 text     = SI_DIALOG_CONFIRM,
+                visible  = function(dialog)
+                    if not dialog.data then return false end
+                    local nodeIndex = dialog.data.nodeIndex
+                    local currency = GetRecallCurrency(nodeIndex)
+                    return GetRecallCost(nodeIndex) <= GetCurrencyAmount(currency, CURRENCY_LOCATION_CHARACTER)
+                end,
                 callback = function(dialog)
                     if not dialog.data then return end
                     -- onConfirm replaces the default travel action so callers

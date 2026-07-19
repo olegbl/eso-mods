@@ -33,6 +33,10 @@ local strings = {
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "砦に移動するには、トランジトゥス神殿にいる必要があります。",
     SI_GPH_CYRODIIL_REVIVE = "蘇生",
     SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE = "そのシロディールの地点は利用できなくなりました。",
+    SI_GPH_TOOLTIP_SET_COLLECTION_COLLECTED = "収集済み",
+    SI_GPH_TOOLTIP_SET_COLLECTION_MISSING = "未収集",
+    SI_GPH_SETTING_TOOLTIP_SET_COLLECTION_NAME = "ツールチップのセットコレクション",
+    SI_GPH_SETTING_TOOLTIP_SET_COLLECTION_TOOLTIP = "単一のアイテムセットを獲得できるコンテナに、コレクション進行状況と未収集の装備スロットを表示します。",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "シロディール砦検索",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "シロディールマップを表示しているとき、マップ検索でアクセス可能なシロディールの砦を表示します。",
 
@@ -297,7 +301,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t 貢物徴収官|r – アクティブなグループ",
     SI_GPH_TOOLTIP_CROW_TITLE = "貢物徴収官",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\n特性色の意味:\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 装備中の研究可能アイテム\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r アクセス可能な唯一のコピー\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r インベントリに重複あり\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r 銀行に重複あり\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r: 重複数\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t 精巧\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t 装飾",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FF新着情報|r\n\n• |cFFFF00シロディールでの蘇生と撤退|r - マップ検索が蘇生地点を再確認し、複数のフォワードキャンプを区別して、表示中はグループ位置を更新します。撤退用アイテムやアビリティでも、ゲームパッドのリストから利用可能な目的地を選べるようになりました。\n\n• |cFFFF00フリーランナーズ・ポストの依頼|r - スカイウォッチ、エボンハート、アルドクロフトにある3つの依頼掲示板を検索可能なデイリークエスト提供元として追加しました。\n\n• |cFFFF00マップ検索キャッシュ|r - キャッシュロジックを改善し、読み込みと検索時のハングを防止しました。修正してくれた Bazooper-blip に感謝します。",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FF新着情報|r\n\n• |cFFFF00信頼性の高いテレポート代替処理|r - プレイヤーへのジャンプに失敗すると、旅の祠を提案する前に他の対象を試します。家、料金付きリコール、チャットからのテレポート処理も改善しました。貢献してくれた Bazooper-blip に感謝します。\n\n• |cFFFF00ツールチップのセットコレクション|r - 単一セットのコンテナに収集状況と未収集の装備スロットを表示します。貢献してくれた Bazooper-blip に感謝します。\n\n• |cFFFF00シロディールでの蘇生と撤退|r - マップ検索が蘇生地点を再確認し、複数のフォワードキャンプを区別して、表示中はグループ位置を更新します。撤退用アイテムやアビリティでも、ゲームパッドのリストから利用可能な目的地を選べます。\n\n• |cFFFF00フリーランナーズ・ポストの依頼|r - スカイウォッチ、エボンハート、アルドクロフトにある3つの依頼掲示板を検索可能なデイリークエスト提供元として追加しました。\n\n• |cFFFF00マップ検索キャッシュ|r - キャッシュロジックを改善し、読み込みと検索時のハングを防止しました。修正してくれた Bazooper-blip に感謝します。",
     SI_GPH_WHATS_NEW_CONFIRM = "了解",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — 新機能",
 }

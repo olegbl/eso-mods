@@ -33,6 +33,10 @@ local strings = {
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "Du musst an einem Transitus-Schrein sein, um zu einer Festung zu reisen.",
     SI_GPH_CYRODIIL_REVIVE = "Wiederbeleben",
     SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE = "Dieser Ort in Cyrodiil ist nicht mehr verfügbar.",
+    SI_GPH_TOOLTIP_SET_COLLECTION_COLLECTED = "gesammelt",
+    SI_GPH_TOOLTIP_SET_COLLECTION_MISSING = "fehlend",
+    SI_GPH_SETTING_TOOLTIP_SET_COLLECTION_NAME = "Set-Sammlung im Tooltip",
+    SI_GPH_SETTING_TOOLTIP_SET_COLLECTION_TOOLTIP = "Zeigt bei Behältern mit genau einem Gegenstandsset den Sammlungsfortschritt und die noch fehlenden Ausrüstungsplätze an.",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "Cyrodiil-Festungssuche",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "Zeigt zugängliche Cyrodiil-Festungen in der Kartensuche an, wenn die Cyrodiil-Karte angezeigt wird.",
 
@@ -297,7 +301,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t Tributzahlmeister|r – aktive Gruppe",
     SI_GPH_TOOLTIP_CROW_TITLE = "Tributzahlmeister",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\nBedeutung der Eigenschaftsfarbe:\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Ausgerüsteter erforschbarer Gegenstand\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Einzige verfügbare Kopie\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Du hast ein Duplikat im Inventar\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r Du hast ein Duplikat in der Bank\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r: Anzahl der Duplikate\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t Filigran\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t Verziert",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FFNeuigkeiten|r\n\n• |cFFFF00Cyrodiil: Wiederbelebung und Rückzug|r - die Kartensuche prüft Wiederbelebungsorte erneut, unterscheidet mehrere Vorposten-Lager und aktualisiert Gruppenpositionen, solange sie geöffnet ist. Rückzugsgegenstände und -fähigkeiten können jetzt über die Gamepad-Liste ein verfügbares Ziel auswählen.\n\n• |cFFFF00Freerunner-Auftragsbretter|r - die drei Gefallen-Bretter in Himmelswacht, Ebenherz und Aldfelden wurden als durchsuchbare tägliche Questgeber hinzugefügt.\n\n• |cFFFF00Kartensuche-Cache|r - verbesserte Cache-Logik verhindert Lade- und Suchhänger. Dank an Bazooper-blip für den Fix.",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FFNeuigkeiten|r\n\n• |cFFFF00Zuverlässiger Teleport-Rückfall|r - fehlgeschlagene Sprünge versuchen weitere Ziele, bevor ein Wegschrein angeboten wird; auch Häuser, kostenpflichtige Rückrufe und Chat-Teleports wurden verbessert. Dank an Bazooper-blip für den Beitrag.\n\n• |cFFFF00Set-Sammlung im Tooltip|r - Behälter mit einem Set zeigen Sammlungsfortschritt und fehlende Ausrüstungsplätze. Dank an Bazooper-blip für den Beitrag.\n\n• |cFFFF00Cyrodiil: Wiederbelebung und Rückzug|r - die Kartensuche prüft Wiederbelebungsorte erneut, unterscheidet mehrere Vorposten-Lager und aktualisiert Gruppenpositionen, solange sie geöffnet ist. Rückzugsgegenstände und -fähigkeiten können über die Gamepad-Liste ein verfügbares Ziel auswählen.\n\n• |cFFFF00Freerunner-Auftragsbretter|r - die drei Gefallen-Bretter in Himmelswacht, Ebenherz und Aldfelden wurden als durchsuchbare tägliche Questgeber hinzugefügt.\n\n• |cFFFF00Kartensuche-Cache|r - verbesserte Cache-Logik verhindert Lade- und Suchhänger. Dank an Bazooper-blip für den Fix.",
     SI_GPH_WHATS_NEW_CONFIRM = "Verstanden",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — Neuigkeiten",
 }

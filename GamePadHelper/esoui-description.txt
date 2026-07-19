@@ -18,6 +18,8 @@ Built only for gamepad and console UI.[/CENTER]
 [SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.18[/B][/COLOR][/SIZE]
 
 [LIST]
+[*][B]Reliable teleport fallback[/B] - failed or aborted player jumps now continue through available group, friend, and guild targets before offering a wayshrine fallback. Group members are preferred, unavailable houses are skipped, paid recalls require confirmation, and chat teleport uses the same retry handling. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
+[*][B]Set collection on container tooltips[/B] - single-set reward containers now show account collection progress and which equipment slots are still missing. Multi-set containers are excluded. Toggle via Settings → GPH Settings → Tooltips and UI → Tooltip Set Collection. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
 [*][B]Cyrodiil revive and retreat in Map Search[/B] - Map Search lists and revalidates all revive locations, gives multiple forward camps distinct names, and refreshes group positions while open. Retreat items and abilities now support selecting an available destination directly from the gamepad list.
 [*][B]Freerunner’s Post Favors[/B] - added the three Season One Favor boards in Skywatch, Ebonheart, and Aldcroft as searchable daily quest givers for Battlereeve Urcelmo, Holgunn One-Eye, and Lady Arabelle Davaux.
 [*][B]Map Search cache fix[/B] - improved Map Search caching logic to prevent load and search hangs. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the fix.
@@ -60,8 +62,15 @@ Built only for gamepad and console UI.[/CENTER]
 
 [B][COLOR="#DAA520"]Teleporter[/COLOR][/B] [Default: ON]
 [LIST]
-[*]Adds a world map hotkey to teleport to the hovered zone. Prioritizes free travel: jumps to a group member, friend, or guild member in the zone if available, otherwise uses the nearest wayshrine.
-[*]Adds chat context menu jump options for friends, guild members, and group members.
+[*]Adds a world map hotkey to teleport to the hovered zone. Prioritizes group members, then friends and guild members, before offering the nearest wayshrine.
+[*]Retries the next available player after failed or aborted jumps, skips unavailable houses, and asks before paid wayshrine recalls.
+[*]Adds chat context menu jump options using the same retry and failure handling.
+[/LIST]
+
+[B][COLOR="#DAA520"]Tooltip Set Collection[/COLOR][/B] [Default: ON]
+[LIST]
+[*]Single-set reward containers show account collection progress and missing equipment slots.
+[*]Multi-set containers are excluded. Toggle under Tooltips and UI.
 [/LIST]
 
 [B][COLOR="#DAA520"]Dungeon Finder[/COLOR][/B] [Default: ON]

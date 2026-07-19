@@ -19,7 +19,9 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 **Map Search** — gamepad search tab on the world map. Search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting set stations. The three Freerunner’s Post Favor boards in Skywatch, Ebonheart, and Aldcroft are included as daily quest givers. Includes fuzzy ranking, bookmarks, recent destinations, map panning, and ping markers. In Cyrodiil, shows accessible keeps with live group-member positions and the group leader highlighted. While dead, switches to revive mode and revalidates keeps, towns, outposts, and forward camps before respawning. Retreat items and abilities can also select an available destination directly from the gamepad list.
 
-**Teleporter** — world map hotkey to teleport to a hovered zone, prioritising free travel via group/friend/guild members. Adds chat context menu jump options.
+**Teleporter** — world map hotkey to teleport to a hovered zone, prioritising free travel via group, friend, or guild members. Failed player jumps automatically try the next target, unavailable houses fall back to wayshrines, paid recalls ask for confirmation, and chat teleport uses the same reliable retry flow.
+
+**Tooltip Set Collection** — single-set reward containers, such as Imperial City coffers, show account collection progress and the equipment slots still missing. Multi-set containers are ignored. Toggleable under `Tooltips and UI`.
 
 **Dungeon Finder** — replaces dungeon names in the finder list with their matching pledge quest names.
 

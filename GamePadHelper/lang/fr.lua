@@ -32,6 +32,7 @@ local strings = {
     SI_GPH_CYRODIIL_LEADER_NEARBY = "Le chef du groupe est ici",
     SI_GPH_CYRODIIL_TRAVEL_REQUIRES_SHRINE = "Vous devez être à un Sanctuaire de Transit pour voyager vers un fort.",
     SI_GPH_CYRODIIL_REVIVE = "Réanimer",
+    SI_GPH_CYRODIIL_LOCATION_UNAVAILABLE = "Ce lieu de Cyrodiil n’est plus disponible.",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_NAME = "Recherche de forts de Cyrodiil",
     SI_GPH_SETTING_CYRODIIL_KEEP_SEARCH_TOOLTIP = "Affiche les forts accessibles de Cyrodiil dans la recherche de carte lors de l'affichage de la carte de Cyrodiil.",
 
@@ -297,7 +298,7 @@ local strings = {
     SI_GPH_TREASURE_LEGEND_CROW = "|c3399FF|t32:32:/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds:inheritColor|t Boursier des tributs|r – groupe actif",
     SI_GPH_TOOLTIP_CROW_TITLE = "Boursier des tributs",
     SI_GPH_TRAIT_COLOR_LEGEND = "\n\nSignification de la couleur du trait :\n|c3399FF|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r objet équipé recherchable\n|c2DC50E|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r seule copie accessible\n|cFFFF00|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r doublon dans l'inventaire\n|cFF4444|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r doublon dans la banque\n|cA0A0A0|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_not_researched_icon.dds:inheritColor|t|r + |cFFFFFF2|r : nombre de doublons\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_intricate_icon.dds|t Complexe\n|t48:48:EsoUI/Art/Inventory/Gamepad/gp_inventory_trait_ornate_icon.dds|t Orné",
-    SI_GPH_WHATS_NEW_BODY = "|c3399FFNouveautés|r\n\n• |cFFFF00Réanimation à Cyrodiil|r - quand vous mourez à Cyrodiil et choisissez Choisir le lieu de réanimation, la Recherche de carte affiche tous les lieux où vous pouvez être réanimé, y compris les forts, villes, avant-postes et campements avancés. Sélectionnez une entrée et appuyez sur Réanimer.\n\n• |cFFFF00Cache de recherche de carte|r - logique de cache améliorée pour éviter les blocages lors du chargement et de la recherche. Merci à Bazooper-blip pour le correctif.",
+    SI_GPH_WHATS_NEW_BODY = "|c3399FFNouveautés|r\n\n• |cFFFF00Réanimation et retraite à Cyrodiil|r - la Recherche de carte revérifie les lieux de réanimation, distingue plusieurs campements avancés et actualise les positions du groupe tant qu’elle reste ouverte. Les objets et compétences de retraite permettent désormais de choisir une destination disponible dans la liste à la manette.\n\n• |cFFFF00Faveurs des postes des Freerunners|r - les trois panneaux de faveurs de Skywatch, Ebonheart et Aldcroft ont été ajoutés comme donneurs de quêtes quotidiennes consultables.\n\n• |cFFFF00Cache de recherche de carte|r - logique de cache améliorée pour éviter les blocages lors du chargement et de la recherche. Merci à Bazooper-blip pour le correctif.",
     SI_GPH_WHATS_NEW_CONFIRM = "Compris",
     SI_GPH_WHATS_NEW_TITLE = "GamePadHelper — Nouveautés",
 }

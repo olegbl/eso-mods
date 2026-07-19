@@ -1,5 +1,5 @@
 [CENTER][SIZE="5"][COLOR="#3399FF"][B]GamePadHelper[/B][/COLOR][/SIZE]
-[B]Version 1.06.17[/B] | API 101050 | by olegbl, quelron[/CENTER]
+[B]Version 1.06.18[/B] | API 101050 | by olegbl, quelron[/CENTER]
 
 [CENTER]A collection of UI improvements and quality-of-life features for Elder Scrolls Online.
 Built only for gamepad and console UI.[/CENTER]
@@ -15,10 +15,11 @@ Built only for gamepad and console UI.[/CENTER]
 
 [COLOR="#FF4444"][B]Important:[/B] If you installed [B]LibMultiIcon[/B] for older GamePadHelper builds, remove or disable it. GamePadHelper now uses its own private multi-icon helper.[/COLOR]
 
-[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.17[/B][/COLOR][/SIZE]
+[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.18[/B][/COLOR][/SIZE]
 
 [LIST]
-[*][B]Cyrodiil revive in Map Search[/B] - when you die in Cyrodiil and choose "Select Revive Location", Map Search now lists all revivable locations including keeps, towns, outposts, and forward camps (player-placed tents). Each entry shows group member counts and the location nearest your group leader is listed first. Select an entry and press Revive to respawn there directly.
+[*][B]Cyrodiil revive and retreat in Map Search[/B] - Map Search lists and revalidates all revive locations, gives multiple forward camps distinct names, and refreshes group positions while open. Retreat items and abilities now support selecting an available destination directly from the gamepad list.
+[*][B]Freerunner’s Post Favors[/B] - added the three Season One Favor boards in Skywatch, Ebonheart, and Aldcroft as searchable daily quest givers for Battlereeve Urcelmo, Holgunn One-Eye, and Lady Arabelle Davaux.
 [*][B]Map Search cache fix[/B] - improved Map Search caching logic to prevent load and search hangs. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the fix.
 [/LIST]
 
@@ -78,9 +79,9 @@ Built only for gamepad and console UI.[/CENTER]
 [*]Crafting stations show crafted set names, required trait counts, and full set bonuses in the right-side tooltip panel.
 [*]Special crafted set service pins such as Eyevea and The Earth Forge are included when available.
 [*]City service pins are searchable: guild traders, Mages/Fighters/Undaunted/Thieves Guild halls, banks, and other services, with teleport to the correct city wayshrine.
-[*]Daily quest givers are searchable by name or quest category across all zones.
+[*]Daily quest givers are searchable by name or quest category across all zones, including the three Freerunner’s Post Favor boards in Skywatch, Ebonheart, and Aldcroft.
 [*]Travel service NPCs (ferry, caravan, silt strider) are individual searchable entries with destination routes.
-[*]Cyrodiil keeps, towns, outposts, and border keeps are searchable when the Cyrodiil map is open, with group member counts and group leader keep highlighted. While dead, shows all revivable locations including forward camps with a Revive action.
+[*]Cyrodiil keeps, towns, outposts, and border keeps are searchable when the Cyrodiil map is open, with live group-member positions and the group leader's nearest keep highlighted. While dead, shows and revalidates all revive locations including forward camps. Retreat items and abilities can use the same gamepad list to select an available destination.
 [*]Includes fuzzy ranked results, per-character or account-wide bookmarks, map panning, ping markers, and nearest-wayshrine travel.
 [*]Supports gamepad screen narration for result name, category, ownership, discovery or lock status, and crafted set details when available.
 [*]Map pin: [B]Default ON[/B].

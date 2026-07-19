@@ -1,6 +1,6 @@
 local ADDON_NAME = "GamePadHelper"
-local ANNOUNCE_VERSION = 10617
-local ANNOUNCE_VERSION_STRING = "1.06.17"
+local ANNOUNCE_VERSION = 10618
+local ANNOUNCE_VERSION_STRING = "1.06.18"
 local GPH_NOTIFICATION_TYPE_WHATS_NEW = "GPH_WHATS_NEW"
 
 -- Make ADDON_NAME globally accessible for submodules

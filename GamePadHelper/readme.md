@@ -1,6 +1,6 @@
 # GamePadHelper
 
-**Version:** 1.06.17  
+**Version:** 1.06.18
 **Authors:** olegbl, quelron  
 **API:** 101050
 
@@ -17,7 +17,7 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 **Overview Panel** — adds a two-column root menu with quest details on the left and daily reminders (time, horse training, maps, crafting, companion) on the right.
 
-**Map Search** — gamepad search tab on the world map. Search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting set stations. Includes fuzzy ranking, bookmarks, recent destinations, map panning, and ping markers. In Cyrodiil, shows accessible keeps with group member counts and group leader highlighted. While dead in Cyrodiil, switches to revive mode — lists all revivable keeps, towns, outposts, and forward camps; select one and press Revive to respawn there directly.
+**Map Search** — gamepad search tab on the world map. Search wayshrines, zones, houses, city services, daily quest givers, travel NPCs, and crafting set stations. The three Freerunner’s Post Favor boards in Skywatch, Ebonheart, and Aldcroft are included as daily quest givers. Includes fuzzy ranking, bookmarks, recent destinations, map panning, and ping markers. In Cyrodiil, shows accessible keeps with live group-member positions and the group leader highlighted. While dead, switches to revive mode and revalidates keeps, towns, outposts, and forward camps before respawning. Retreat items and abilities can also select an available destination directly from the gamepad list.
 
 **Teleporter** — world map hotkey to teleport to a hovered zone, prioritising free travel via group/friend/guild members. Adds chat context menu jump options.
 

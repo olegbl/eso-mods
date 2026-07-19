@@ -24,13 +24,6 @@ Built only for gamepad and console UI.[/CENTER]
 [*][B]Freerunner’s Post Favors[/B] - added the three Season One Favor boards in Skywatch, Ebonheart, and Aldcroft as searchable daily quest givers for Battlereeve Urcelmo, Holgunn One-Eye, and Lady Arabelle Davaux.
 [/LIST]
 
-[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.16[/B][/COLOR][/SIZE]
-
-[LIST]
-[*][B]Cyrodiil Map Search[/B] - Map Search now shows accessible keeps, outposts, and border keeps when the Cyrodiil map is open. Group member counts appear on each keep entry and the keep nearest to your group leader is listed first with a green indicator. Open Map Search at a Transitus Shrine to select and travel to a keep directly. Toggle via Settings → GPH Settings → Map Search → Cyrodiil Keep Search.
-[*][B]Group leader pin[/B] - the group leader pin on the Cyrodiil map is enlarged to 64×64 for better visibility. A navigation marker is automatically placed at the leader's last known position when Map Search opens.
-[/LIST]
-
 [SIZE="4"][COLOR="#3399FF"][B]Features[/B][/COLOR][/SIZE]
 
 [B][COLOR="#DAA520"]Fishing[/COLOR][/B] [Default: ON]

@@ -48,7 +48,10 @@ AddFishingHoleName("Saltwater Fishing Hole", SALTWATER_HOLE)
 AddFishingHoleName("Foul Fishing Hole",      FOUL_HOLE)
 AddFishingHoleName("River Fishing Hole",     RIVER_HOLE)
 
-local setBait = true
+-- Tracks the interactable name bait was last selected for, so a change of
+-- fishing hole (even without a frame where nothing is interactable) still
+-- triggers a reselect. Cleared whenever the target isn't a fishing node.
+local lastBaitedHoleName = nil
 
 local function CountItemInBag(bagId, itemId)
     local total = 0
@@ -89,7 +92,6 @@ local function SelectFishingBait(interactableName)
     else
         SetFishingLure(hole.reg)
     end
-    setBait = false
 end
 
 local function OnFishBiteRumble()
@@ -163,11 +165,16 @@ local function OnAddonLoaded(event, name)
 
             if interactionPossible then
                 local action, interactableName, interactionBlocked, isOwned, additionalInteractInfo, context, contextLink, isCriminalInteract = GetGameCameraInteractableActionInfo()
-                if additionalInteractInfo == ADDITIONAL_INTERACT_INFO_FISHING_NODE and setBait then
-                    SelectFishingBait(interactableName)
+                if additionalInteractInfo == ADDITIONAL_INTERACT_INFO_FISHING_NODE then
+                    if interactableName ~= lastBaitedHoleName then
+                        SelectFishingBait(interactableName)
+                        lastBaitedHoleName = interactableName
+                    end
+                else
+                    lastBaitedHoleName = nil
                 end
             else
-                setBait = true
+                lastBaitedHoleName = nil
             end
         end)
     end

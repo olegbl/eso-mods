@@ -30,6 +30,8 @@ local function IsAnyOverviewActive(sv)
     return (sv.overviewQuestEnabled ~= false) or sv.overviewEnabled
 end
 
+local HideTooltips
+
 local function ShowTooltips()
     local sv = _G["GamePadHelper_CharSavedVars"]
     if not sv or not IsAnyOverviewActive(sv) or not IsGamepadOverviewAllowed() then
@@ -54,7 +56,7 @@ local function ShowTooltips()
     end
 end
 
-local function HideTooltips()
+function HideTooltips()
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_LEFT_TOOLTIP)
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_RIGHT_TOOLTIP)
     GAMEPAD_TOOLTIPS:ClearTooltip(GAMEPAD_QUAD3_TOOLTIP)

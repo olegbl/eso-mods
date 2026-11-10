@@ -1,5 +1,5 @@
 [CENTER][SIZE="5"][COLOR="#3399FF"][B]GamePadHelper[/B][/COLOR][/SIZE]
-[B]Version 1.06.18[/B] | API 101050 | by olegbl, quelron[/CENTER]
+[B]Version 1.06.19[/B] | API 101051 (Live) | by olegbl, quelron[/CENTER]
 
 [CENTER]A collection of UI improvements and quality-of-life features for Elder Scrolls Online.
 Built only for gamepad and console UI.[/CENTER]
@@ -15,9 +15,12 @@ Built only for gamepad and console UI.[/CENTER]
 
 [COLOR="#FF4444"][B]Important:[/B] If you installed [B]LibMultiIcon[/B] for older GamePadHelper builds, remove or disable it. GamePadHelper now uses its own private multi-icon helper.[/COLOR]
 
-[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.18[/B][/COLOR][/SIZE]
+[SIZE="4"][COLOR="#3399FF"][B]What's New In 1.06.19[/B][/COLOR][/SIZE]
 
 [LIST]
+[*][B]Custom research and treasure colors[/B] - freely choose five research-state colors, active Countess and Bursar colors, and the useful inactive treasure color with ESO's full gamepad color picker. No preset palettes. Saved per character and shared by inventory and tooltips, with separate trait/treasure reset buttons.
+[*][B]Clearer trait legends[/B] - larger icons and text, native equipped and lock markers, and fixes for duplicate-control errors when reopening the legend. Research magnifiers remain without extra bank/bag icon cycling; duplicate counts show bank first, then inventory.
+[*][B]Live API update[/B] - updated for API 101051. PTS API 101052 support is not declared in this release.
 [*][B]Reliable teleport fallback[/B] - player jumps now wait for ESO's teleport response and try the next target only after a confirmed unavailable-player error. Started teleports are monitored; movement, cancellation, silence, and unrelated errors stop retries. A wayshrine is offered only after every eligible target is confirmed unavailable, with the current recall fee shown before confirmation. Houses and chat teleports use the same safe handling. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
 [*][B]Set collection on container tooltips[/B] - single-set reward containers now show account collection progress and which equipment slots are still missing. Multi-set containers are excluded. Toggle via Settings → GPH Settings → Tooltips and UI → Tooltip Set Collection. Thanks to [URL="https://github.com/Bazooper-blip"][B]Bazooper-blip[/B][/URL] for the contribution.
 [*][B]Cyrodiil revive and retreat in Map Search[/B] - Map Search lists and revalidates all revive locations, gives multiple forward camps distinct names, and refreshes group positions while open. Retreat items and abilities now support selecting an available destination directly from the gamepad list.
@@ -105,20 +108,19 @@ Built only for gamepad and console UI.[/CENTER]
 [B][COLOR="#DAA520"]Inventory Countess and Bursar[/COLOR][/B] [Default: ON]
 [LIST]
 [*]Marks treasures useful for The Covetous Countess and Bursar of Tributes quests.
-[*][COLOR="#2DC50E"]Green[/COLOR] quest icon means useful for either enabled active quest or Bursar group.
-[*][COLOR="#FFFFFF"]White[/COLOR] quest icon means useful, but not currently active.
+[*]Under [B]Treasure Colors[/B], choose separate colors for active Countess quests, active Bursar groups, and useful inactive treasures with the full native color picker. Defaults remain green for active and white for inactive.
+[*]Colors are saved per character and shared with tooltips and settings legends. [B]Reset Treasure Colors[/B] resets only treasure colors. If an item serves both active quests and their chosen colors differ, its quest icon alternates between those colors.
 [*]Stolen items cycle between the stolen and quest icons.
 [/LIST]
 
 [B][COLOR="#DAA520"]Inventory Trait[/COLOR][/B] [Default: ON]
 [LIST]
 [*]Shows an icon next to items whose trait can be researched by the current character.
-[*][COLOR="#3399FF"]Blue[/COLOR] - equipped item with a researchable trait.
-[*][COLOR="#00FF00"]Green[/COLOR] - only copy with this trait you have access.
-[*][COLOR="#FFFF00"]Yellow[/COLOR] - have duplicate in inventory.
-[*][COLOR="#FF0000"]Red[/COLOR] - have duplicate in bank.
-[*]Displays duplicate counts on non-equipped items and excludes locked items from duplicate counting.
-[*]Adds a right-side legend panel in deconstruction screens showing research colors, sample duplicate counts, and ornate/intricate icon meanings.
+[*]Choose a separate color for equipped, only-copy, inventory-duplicate, bank/storage-duplicate, and locked states using ESO's full color picker under [B]Trait Colors[/B]. No preset palette is required.
+[*]Colors are saved per character and shared by inventory, bank, deconstruction, tooltips, and the legend. [B]Reset Trait Colors[/B] restores the original colors without changing other settings.
+[*]Keeps the research magnifier without adding bank/bag icons to its cycle. When both locations contain copies, it alternates between their colors.
+[*]Duplicate counts appear below the icon: bank/storage first, inventory second. Equipped and locked items show no duplicate count; locked copies are excluded from counting.
+[*]The right-side deconstruction legend shows the selected colors, sample counts, native equipped/lock markers, and ornate/intricate icon meanings.
 [/LIST]
 
 [B][COLOR="#DAA520"]Loot Offset[/COLOR][/B] [Default: ON]

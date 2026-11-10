@@ -1,8 +1,8 @@
 ﻿local _GetTraitIcon = _G["GamePadHelper_Utils"] and _G["GamePadHelper_Utils"].GetTraitIcon
 local RESEARCH_ICON = _GetTraitIcon and zo_iconFormatInheritColor(_GetTraitIcon(ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED), 32, 32)
+local Utils = _G["GamePadHelper_Utils"]
 local BAG_ICON = zo_iconFormatInheritColor("esoui/art/tooltips/icon_bag.dds", 20, 20)
 local BANK_ICON = zo_iconFormatInheritColor("esoui/art/tooltips/icon_bank.dds", 20, 20)
-local COLOR_WORN = ZO_ColorDef:New("3399FF")
 
 local function OnAddonLoaded(event, name)
     if name ~= "GamePadHelper" then return end
@@ -21,11 +21,8 @@ local function OnAddonLoaded(event, name)
 
                 local canBeResearched, colorOverall, duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal
                 if LibTraitResearch then
-                    if LibTraitResearch.GetItemLinkTraitResearchStateForSlot and extraData and extraData.bagId ~= nil and extraData.slotIndex ~= nil then
-                        canBeResearched, colorOverall, duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal = LibTraitResearch:GetItemLinkTraitResearchStateForSlot(itemLink, extraData.bagId, extraData.slotIndex)
-                    else
-                        canBeResearched, colorOverall, duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal = LibTraitResearch:GetItemLinkTraitResearchState(itemLink)
-                    end
+                    canBeResearched, colorOverall, duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal =
+                        Utils.GetTraitResearchState(itemLink, extraData and extraData.bagId, extraData and extraData.slotIndex)
                 end
 
                 local additionalTooltipStyle
@@ -42,7 +39,7 @@ local function OnAddonLoaded(event, name)
 
                 if canBeResearched then
                     local isWornItem = extraData and extraData.bagId == BAG_WORN
-                    local researchColor = isWornItem and COLOR_WORN or colorOverall
+                    local researchColor = colorOverall
                     local researchIcon = researchColor:Colorize(RESEARCH_ICON)
                     local duplicateRemoteText = colorRemote and colorRemote:Colorize(duplicateRemoteItems)
                     local duplicateLocalText = colorLocal and colorLocal:Colorize(duplicateLocalItems)
@@ -50,18 +47,18 @@ local function OnAddonLoaded(event, name)
                     if isWornItem then
                         title = string.format("%s (%s)", title, researchIcon)
                     elseif duplicateRemoteItems > 0 and duplicateLocalItems > 0 then
-                        title = string.format("%s (%s%s%s%s%s)", title, researchIcon, BANK_ICON, duplicateRemoteText, BAG_ICON, duplicateLocalText)
+                        title = string.format("%s (%s %s %s   %s %s)", title, researchIcon, BANK_ICON, duplicateRemoteText, BAG_ICON, duplicateLocalText)
                     elseif duplicateRemoteItems > 0 then
-                        title = string.format("%s (%s%s%s)", title, researchIcon, BANK_ICON, duplicateRemoteText)
+                        title = string.format("%s (%s %s %s)", title, researchIcon, BANK_ICON, duplicateRemoteText)
                     elseif duplicateLocalItems > 0 then
-                        title = string.format("%s (%s%s%s)", title, researchIcon, BAG_ICON, duplicateLocalText)
+                        title = string.format("%s (%s %s %s)", title, researchIcon, BAG_ICON, duplicateLocalText)
                     else
                         title = string.format("%s (%s)", title, researchIcon)
                     end
                 end
                 
                 if extraData and extraData.bagId == BAG_WORN then
-                    title = string.format("%s %s", title, COLOR_WORN:Colorize(GetString(SI_GPH_TOOLTIP_EQUIPPED)))
+                    title = string.format("%s %s", title, Utils.GetTraitColor("equipped"):Colorize(GetString(SI_GPH_TOOLTIP_EQUIPPED)))
                 end
 
                 traitSection:AddLine(title, self:GetStyle("bodyHeader"), additionalTooltipStyle)

@@ -1,5 +1,26 @@
 <GuiXml>
     <Controls>
         <Label name="GPH_OverviewBulletLabel" font="ZoFontGamepadCondensed34" virtual="true"/>
+        <Control name="GPH_TraitLegendRow" virtual="true">
+            <Dimensions x="400" y="92"/>
+            <Controls>
+                <Texture name="$(parent)Icon" inherits="ZO_MultiIcon">
+                    <Dimensions x="48" y="48"/>
+                    <Anchor point="TOPLEFT"/>
+                </Texture>
+                <Label name="$(parent)Count" font="ZoFontGamepad22" horizontalAlignment="CENTER" hidden="true">
+                    <Dimensions x="56" y="30"/>
+                    <Anchor point="TOP" relativeTo="$(parent)Icon" relativePoint="BOTTOM" offsetY="2"/>
+                </Label>
+                <Texture name="$(parent)NativeState" hidden="true" layer="OVERLAY" level="2">
+                    <Dimensions x="26" y="26"/>
+                    <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)Icon" relativePoint="BOTTOMRIGHT" offsetX="4" offsetY="2"/>
+                </Texture>
+                <Label name="$(parent)Caption" font="ZoFontGamepad27" maxLineCount="3">
+                    <Anchor point="TOPLEFT" offsetX="76"/>
+                    <Anchor point="TOPRIGHT"/>
+                </Label>
+            </Controls>
+        </Control>
     </Controls>
 </GuiXml>

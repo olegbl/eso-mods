@@ -1,6 +1,6 @@
 local ADDON_NAME = "GamePadHelper"
-local ANNOUNCE_VERSION = 10618
-local ANNOUNCE_VERSION_STRING = "1.06.18"
+local ANNOUNCE_VERSION = 10619
+local ANNOUNCE_VERSION_STRING = "1.06.19"
 local GPH_NOTIFICATION_TYPE_WHATS_NEW = "GPH_WHATS_NEW"
 
 -- Make ADDON_NAME globally accessible for submodules
@@ -55,6 +55,8 @@ local charDefaults = {
     tooltipPriceEnabled = true,
     gearComparisonEnabled = true,
     inventoryTraitEnabled = true,
+    traitColors = {},
+    treasureColors = {},
     inventoryTraitDeconstructionLegendEnabled = true,
     inventoryTraitDeconstructionLegendVisible = true,
     inventoryCovetousCountessEnabled = true,

@@ -1,10 +1,17 @@
 # GamePadHelper
 
-**Version:** 1.06.18
+**Version:** 1.06.19
 **Authors:** olegbl, quelron  
-**API:** 101050
+**API:** 101051 (live)
 
 A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI. Every feature can be toggled individually from `Options > GPH Settings`.
+
+## What's New in 1.06.19
+
+- Full native gamepad color pickers for five research states, active Countess treasures, active Bursar treasures, and useful inactive treasures. Saved per character and shared by inventory and tooltips, with separate trait/treasure reset buttons.
+- Research magnifiers remain without extra bank/bag icon cycling. Duplicate counts show bank/storage first, then inventory.
+- Larger trait legend icons and text, native equipped/lock markers, and fixes for duplicate-control errors when reopening the legend.
+- Updated for live API 101051, confirmed from current SavedVariables. PTS API 101052 support is not declared.
 
 ## Installation
 
@@ -50,15 +57,15 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 
 ## Inventory Features
 
-**Inventory Countess and Bursar** — adds a quest icon to treasures relevant to The Covetous Countess and Bursar of Tributes. Green = useful for either enabled active quest or Bursar group; White = useful, but not currently active. Stolen items cycle between the stolen and quest icons.
+**Inventory Countess and Bursar** — adds a quest icon to relevant treasures. Under **Treasure Colors**, freely choose separate colors for active Countess quests, active Bursar groups, and useful inactive treasures. Defaults remain green for active and white for inactive. Colors are saved per character and shared with tooltips and settings legends; **Reset Treasure Colors** resets only these colors. If both quests are active for one item and their chosen colors differ, the quest icon alternates between those colors. Stolen items retain the native stolen icon in the cycle.
 
 **Inventory Trait** — shows trait research indicators in inventory, bank, and deconstruction.
-- Blue — equipped item with a researchable trait.
-- Green — only accessible copy with this trait.
-- Yellow — have a duplicate in inventory.
-- Red — have a duplicate in bank.
+- Equipped, only-copy, inventory-duplicate, bank/storage-duplicate, and locked states each have their own color.
+- Choose any color for each state with ESO's full color picker under **Trait Colors**. Colors are saved per character and shared by inventory, bank, deconstruction, tooltips, and the legend.
+- The research magnifier is retained; no extra bank/bag icons are added to its cycle. When both locations contain copies, it alternates between their colors.
+- **Reset Trait Colors** restores the original colors without changing other settings.
 
-Duplicate counts shown on non-equipped items. Deconstruction screens include a right-side legend for trait colors, duplicate counts, and ornate/intricate icons.
+Duplicate counts appear below the research icon: bank/storage first, inventory second. Equipped and locked items do not show duplicate counts. Deconstruction screens include a right-side legend with the selected colors, sample counts, native equipped/lock markers, and ornate/intricate icons.
 
 ## Required Libraries
 

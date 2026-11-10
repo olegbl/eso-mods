@@ -2,9 +2,6 @@
 local MultiIcon = _G["GamePadHelper_IconExtensions"]
 local QUEST_ICON = "/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds"
 
-local COLOR_ACTIVE          = ZO_ColorDef:New(0.18, 0.77, 0.05)
-local COLOR_USEFUL_INACTIVE = ZO_ColorDef:New(1, 1, 1)
-
 local function ClearCovetousDecoration(statusIndicator)
     if not statusIndicator then return end
     MultiIcon.Initialize(statusIndicator)
@@ -81,7 +78,11 @@ local function SharedGamepadEntry_OnSetup_After(control, data)
     local anyUseful  = countessUseful or crowUseful
 
     if anyActive or anyUseful then
-        statusIndicator:AddIcon(QUEST_ICON, anyActive and COLOR_ACTIVE or COLOR_USEFUL_INACTIVE)
+        if countessActive then statusIndicator:AddIcon(QUEST_ICON, Utils.GetTreasureColor("countess")) end
+        if crowActive and (not countessActive or Utils.GetTreasureColor("countess"):ToHex() ~= Utils.GetTreasureColor("crow"):ToHex()) then
+            statusIndicator:AddIcon(QUEST_ICON, Utils.GetTreasureColor("crow"))
+        end
+        if not anyActive then statusIndicator:AddIcon(QUEST_ICON, Utils.GetTreasureColor("inactive")) end
         statusIndicator:Show()
     end
 
@@ -97,7 +98,7 @@ local function RedecorateInventoryList(inventoryList)
     if not visibleControls then return end
     for control in pairs(visibleControls) do
         local dataIndex = control.dataIndex
-        local data = dataIndex and list.dataList and list.dataList[dataIndex]
+        local data = (control.dataEntry and control.dataEntry.data) or (dataIndex and list.dataList and list.dataList[dataIndex])
         if data then SharedGamepadEntry_OnSetup_After(control, data) end
     end
 end
@@ -107,8 +108,14 @@ local function RefreshVisibleInventoryControls()
         if GAMEPAD_INVENTORY then
             RedecorateInventoryList(GAMEPAD_INVENTORY.itemList)
         end
+        if GAMEPAD_BANKING then
+            RedecorateInventoryList(GAMEPAD_BANKING.withdrawList)
+            RedecorateInventoryList(GAMEPAD_BANKING.depositList)
+        end
     end, 0)
 end
+
+_G.GamePadHelper_RefreshTreasureColors = RefreshVisibleInventoryControls
 
 EVENT_MANAGER:RegisterForEvent("GPH_CC_QuestAdded",    EVENT_QUEST_ADDED,    RefreshVisibleInventoryControls)
 EVENT_MANAGER:RegisterForEvent("GPH_CC_QuestRemoved",  EVENT_QUEST_REMOVED,  RefreshVisibleInventoryControls)

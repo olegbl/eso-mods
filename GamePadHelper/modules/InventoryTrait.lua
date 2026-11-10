@@ -1,5 +1,6 @@
 local _GetTraitIcon = _G["GamePadHelper_Utils"] and _G["GamePadHelper_Utils"].GetTraitIcon
 local MultiIcon = _G["GamePadHelper_IconExtensions"]
+local Utils = _G["GamePadHelper_Utils"]
 
 local function GetItemLinkFromData(data)
     if type(data) ~= "table" then
@@ -44,8 +45,7 @@ local function EnsureResearchLabel(control, icon)
     label:SetDrawLayer(DL_OVERLAY)
     label:SetDrawTier(DT_HIGH)
     label:ClearAnchors()
-    label:SetAnchor(TOPLEFT, icon, BOTTOMLEFT, 0, 2)
-    label:SetAnchor(TOPRIGHT, icon, BOTTOMRIGHT, 0, 2)
+    label:SetAnchor(TOP, icon, BOTTOM, 0, 2)
     return label
 end
 
@@ -98,10 +98,9 @@ local function RefreshDeconstructionTraitLegend()
         return
     end
 
-    GAMEPAD_TOOLTIPS:LayoutTitleAndDescriptionTooltip(
+    GAMEPAD_TOOLTIPS:LayoutGPHTraitLegendTooltip(
         GAMEPAD_RIGHT_TOOLTIP,
-        GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME),
-        GetString(SI_GPH_TRAIT_COLOR_LEGEND)
+        GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME)
     )
 end
 
@@ -136,19 +135,17 @@ local function AddDeconstructionTraitLegendKeybind(panel)
 end
 
 local function GetTraitResearchState(itemLink, bagId, slotIndex)
-    if not itemLink or not LibTraitResearch then return nil end
-    return LibTraitResearch:GetItemLinkTraitResearchStateForSlot(itemLink, bagId, slotIndex)
+    return Utils.GetTraitResearchState(itemLink, bagId, slotIndex)
 end
 
-local function BuildDuplicateLabelText(duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal)
-    if duplicateRemoteItems > 0 and duplicateLocalItems > 0 then
-        return colorRemote:Colorize(duplicateRemoteItems) .. " " .. colorLocal:Colorize(duplicateLocalItems)
-    elseif duplicateRemoteItems > 0 then
-        return colorRemote:Colorize(duplicateRemoteItems)
-    elseif duplicateLocalItems > 0 then
-        return colorLocal:Colorize(duplicateLocalItems)
+local function BuildDuplicateLabelText(remote, remoteColor, localCount, localColor)
+    if remote > 0 and localCount > 0 then
+        return remoteColor:Colorize(remote) .. "   " .. localColor:Colorize(localCount)
+    elseif remote > 0 then
+        return remoteColor:Colorize(remote)
+    elseif localCount > 0 then
+        return localColor:Colorize(localCount)
     end
-    return nil
 end
 
 local function ApplyTraitOverrideData(data)
@@ -167,8 +164,6 @@ local function ApplyTraitOverrideData(data)
     if not researchIcon then return end
 
     local traitNarration = GetString("SI_ITEMTRAITINFORMATION", ITEM_TRAIT_INFORMATION_CAN_BE_RESEARCHED)
-    local bothDuplicates = duplicateRemoteItems > 0 and duplicateLocalItems > 0
-
     local filtered = {}
     for _, iconData in ipairs(data.overrideStatusIndicatorIcons) do
         if iconData.iconTexture ~= researchIcon then
@@ -177,9 +172,9 @@ local function ApplyTraitOverrideData(data)
     end
     data.overrideStatusIndicatorIcons = filtered
 
-    if bothDuplicates then
+    if duplicateRemoteItems > 0 and duplicateLocalItems > 0 then
         table.insert(data.overrideStatusIndicatorIcons, { iconTexture = researchIcon, iconTint = colorRemote, iconNarration = traitNarration })
-        table.insert(data.overrideStatusIndicatorIcons, { iconTexture = researchIcon, iconTint = colorLocal,  iconNarration = traitNarration })
+        table.insert(data.overrideStatusIndicatorIcons, { iconTexture = researchIcon, iconTint = colorLocal, iconNarration = traitNarration })
     else
         table.insert(data.overrideStatusIndicatorIcons, { iconTexture = researchIcon, iconTint = colorOverall, iconNarration = traitNarration })
     end
@@ -202,11 +197,12 @@ local function SharedGamepadEntry_OnSetup_After(control, data)
 
     local itemLink, bagId, slotIndex = GetItemLinkFromData(data)
     if not itemLink then
-        ClearAndRefresh(icon, nil, researchIcon)
+        ClearAndRefresh(icon, control:GetNamedChild("StatusIndicatorLabel"), researchIcon)
         return
     end
 
     local label = EnsureResearchLabel(control, icon)
+    label:SetText("")
     label:SetHidden(true)
 
     local canBeResearched, colorOverall, duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal =
@@ -217,11 +213,9 @@ local function SharedGamepadEntry_OnSetup_After(control, data)
         return
     end
 
-    local bothDuplicates = duplicateRemoteItems > 0 and duplicateLocalItems > 0
-
     if researchIcon then
         if icon.RemoveIcon then icon:RemoveIcon(researchIcon) end
-        if bothDuplicates then
+        if duplicateRemoteItems > 0 and duplicateLocalItems > 0 then
             icon:AddIcon(researchIcon, colorRemote)
             icon:AddIcon(researchIcon, colorLocal)
         else
@@ -230,15 +224,10 @@ local function SharedGamepadEntry_OnSetup_After(control, data)
     end
     icon:Show()
 
-    local duplicateLabelText = BuildDuplicateLabelText(duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal)
-    if duplicateLabelText then
-        label:SetText(duplicateLabelText)
-        label:SetHidden(false)
-    else
-        label:SetText("")
-        label:SetHidden(true)
-    end
-
+    local duplicateText = BuildDuplicateLabelText(duplicateRemoteItems, colorRemote, duplicateLocalItems, colorLocal)
+    label:SetText(duplicateText or "")
+    if duplicateText then label:SetWidth(math.max(icon:GetWidth(), label:GetStringWidth())) end
+    label:SetHidden(duplicateText == nil)
     RefreshMultiIcon(icon)
 end
 
@@ -429,7 +418,8 @@ local function RedecorateInventoryList(inventoryList)
     if not visibleControls then return end
     for control in pairs(visibleControls) do
         local dataIndex = control.dataIndex
-        local data = dataIndex and list.dataList and list.dataList[dataIndex]
+        local data = control.dataEntry and control.dataEntry.data
+        if not data then data = dataIndex and list.dataList and list.dataList[dataIndex] end
         if data then SharedGamepadEntry_OnSetup_After(control, data) end
     end
 end
@@ -444,8 +434,18 @@ local function RefreshBagVisibleItems()
             RedecorateInventoryList(GAMEPAD_BANKING.withdrawList)
             RedecorateInventoryList(GAMEPAD_BANKING.depositList)
         end
+        if UNIVERSAL_DECONSTRUCTION_GAMEPAD and UNIVERSAL_DECONSTRUCTION_GAMEPAD.deconstructionPanel then
+            local inventory = UNIVERSAL_DECONSTRUCTION_GAMEPAD.deconstructionPanel.inventory
+            if inventory then RefreshDeconstructionInventory(inventory) end
+        end
+        if SMITHING_GAMEPAD and SMITHING_GAMEPAD.deconstructionPanel then
+            local inventory = SMITHING_GAMEPAD.deconstructionPanel.inventory
+            if inventory then RefreshDeconstructionInventory(inventory) end
+        end
     end, 0)
 end
+
+_G["GamePadHelper_RefreshTraitColors"] = RefreshBagVisibleItems
 
 EVENT_MANAGER:RegisterForEvent("GPH_InventoryTrait_SlotLocked",   EVENT_INVENTORY_SLOT_LOCKED,   RefreshBagVisibleItems)
 EVENT_MANAGER:RegisterForEvent("GPH_InventoryTrait_SlotUnlocked", EVENT_INVENTORY_SLOT_UNLOCKED, RefreshBagVisibleItems)

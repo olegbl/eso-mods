@@ -1,3 +1,12 @@
+1.06.19
+[LIST]
+[*][Inventory/Tooltip Traits] - choose all five research-state colors freely with ESO's full gamepad color picker, saved per character and shared across inventory, crafting, tooltips, and legends.
+[*][Countess and Bursar] - separate full color pickers for active Countess treasures, active Bursar treasures, and useful inactive treasures. Inventory and tooltips use the same chosen colors; separate reset buttons restore trait or treasure defaults.
+[*][Inventory Traits] - keep the research magnifier without extra bank/bag icon cycling; duplicate counts show bank first, then inventory.
+[*][Trait Legend] - larger icons and text, native equipped and lock markers, and fixes for duplicate-control errors when reopening the legend.
+[*][Compatibility] - updated for live API 101051. PTS API 101052 support is not declared.
+[/LIST]
+
 1.06.18
 [LIST]
 [*][Teleporter] - player jumps now wait for ESO's response and retry another player only after a confirmed unavailable-player error.

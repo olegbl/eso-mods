@@ -1,6 +1,15 @@
 # GamePadHelper
 
+Version 1.06.19 | Live API 101051
+
 A modular collection of quality-of-life improvements for Elder Scrolls Online, built for gamepad and console UI. Every feature can be toggled individually from Options > GPH Settings.
+
+## What's New in 1.06.19
+
+- Choose research and Countess/Bursar treasure colors freely with ESO's full native gamepad color picker. Saved per character and shared by inventory and tooltips, with separate reset buttons.
+- Keep research magnifiers without extra bank/bag icon cycling. Duplicate counts show bank/storage first, then inventory.
+- Larger trait legend icons and text, native equipped/lock markers, and fixes for errors when reopening the legend.
+- Updated for live API 101051. PTS API 101052 support is not declared.
 
 ## Features
 
@@ -16,8 +25,8 @@ A modular collection of quality-of-life improvements for Elder Scrolls Online, b
 - Gear Comparison — side-by-side item stat comparison panels.
 - Loot Offset — moves the loot history panel up to avoid chat overlap.
 - Tooltip improvements — set collection progress, price, enchantment, poison, trait, and font.
-- Inventory Trait — research indicators (blue/green/yellow/red) with duplicate counts and deconstruction legend.
-- Inventory Countess and Bursar — highlights treasures for The Covetous Countess and Bursar of Tributes quests.
+- Inventory Trait — customizable research-state colors, duplicate counts, and a larger deconstruction legend.
+- Inventory Countess and Bursar — highlights useful treasures with separately customizable active Countess, active Bursar, and useful inactive colors, shared with tooltips.
 
 ## Required Libraries
 

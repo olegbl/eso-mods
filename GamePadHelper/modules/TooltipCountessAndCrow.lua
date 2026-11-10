@@ -1,6 +1,5 @@
 ﻿local Utils = _G["GamePadHelper_Utils"]
 local QUEST_ICON = zo_iconFormatInheritColor("/esoui/art/inventory/gamepad/gp_inventory_icon_quest.dds", 32, 32)
-local COLOR_ACTIVE          = ZO_ColorDef:New(0.18, 0.77, 0.05)
 local COLOR_USEFUL_INACTIVE = ZO_ColorDef:New(1, 1, 1)
 local COLOR_TITLE           = ZO_ColorDef:New(1.0, 0.82, 0.30)
 
@@ -29,7 +28,7 @@ local function OnAddonLoaded(event, name)
         end
 
         if sv.tooltipCovetousCountessEnabled and isUsefulForQuest then
-            local iconColor = isUsefulForActiveQuest and COLOR_ACTIVE or COLOR_USEFUL_INACTIVE
+            local iconColor = Utils.GetTreasureColor(isUsefulForActiveQuest and "countess" or "inactive")
             local status = GetString(isUsefulForActiveQuest and SI_GPH_TOOLTIP_TREASURE_ACTIVE_SHORT or SI_GPH_TOOLTIP_TREASURE_INACTIVE_SHORT)
             local line = iconColor:Colorize(QUEST_ICON) .. COLOR_TITLE:Colorize(" " .. GetString(SI_GPH_TOOLTIP_COVETOUS_TITLE) .. " ") .. COLOR_USEFUL_INACTIVE:Colorize("(") .. iconColor:Colorize(status) .. COLOR_USEFUL_INACTIVE:Colorize(")")
             local section = self:AcquireSection(self:GetStyle("bodySection"))
@@ -38,7 +37,7 @@ local function OnAddonLoaded(event, name)
         end
 
         if sv.tooltipCrowEnabled and isUsefulForCrow then
-            local iconColor = isUsefulForActiveCrowGroup and COLOR_ACTIVE or COLOR_USEFUL_INACTIVE
+            local iconColor = Utils.GetTreasureColor(isUsefulForActiveCrowGroup and "crow" or "inactive")
             local status = GetString(isUsefulForActiveCrowGroup and SI_GPH_TOOLTIP_TREASURE_ACTIVE_SHORT or SI_GPH_TOOLTIP_TREASURE_INACTIVE_SHORT)
             local line = iconColor:Colorize(QUEST_ICON) .. COLOR_TITLE:Colorize(" " .. GetString(SI_GPH_TOOLTIP_CROW_TITLE) .. " ") .. COLOR_USEFUL_INACTIVE:Colorize("(") .. iconColor:Colorize(status) .. COLOR_USEFUL_INACTIVE:Colorize(")")
             local section = self:AcquireSection(self:GetStyle("bodySection"))

@@ -5,9 +5,14 @@ local GPH_RESET_DIALOG = "GPH_RESET_SETTINGS_CONFIRM"
 local gphLootReloadPending = false
 local gphExitHookRegistered = false
 local gphBackOverrideActive = false
-local TRAIT_COLOR_LEGEND = GetString(SI_GPH_TRAIT_COLOR_LEGEND)
-local COUNTESS_LEGEND = zo_strformat(SI_GPH_TREASURE_COLOR_LEGEND, GetString(SI_GPH_TREASURE_LEGEND_COUNTESS))
-local CROW_LEGEND = zo_strformat(SI_GPH_TREASURE_COLOR_LEGEND, GetString(SI_GPH_TREASURE_LEGEND_CROW))
+local function GetTraitLegend()
+    return _G["GamePadHelper_Utils"].GetTraitLegend()
+end
+local function TreasureTooltip(descriptionId, state)
+    return function()
+        return GetString(descriptionId) .. _G.GamePadHelper_Utils.GetTreasureLegend(state)
+    end
+end
 
 local function GetSavedVars()
     return _G["GamePadHelper_CharSavedVars"]
@@ -56,6 +61,21 @@ local function CopyDefaultValue(value)
     return copy
 end
 
+local function RefreshTraitColorDisplays()
+    if _G["GamePadHelper_RefreshTraitColors"] then _G["GamePadHelper_RefreshTraitColors"]() end
+    if _G.GamePadHelper_RefreshTreasureColors then _G.GamePadHelper_RefreshTreasureColors() end
+    if GAMEPAD_OPTIONS and GAMEPAD_OPTIONS.optionsList then
+        GAMEPAD_OPTIONS.optionsList:RefreshVisible()
+        if GAMEPAD_OPTIONS.currentCategory == GPH_PANEL_ID and GAMEPAD_OPTIONS:IsShowing() then
+            local control = GAMEPAD_OPTIONS.optionsList:GetSelectedControl()
+            local data = control and control.data
+            if data and data.gamepadCustomTooltipFunction then
+                data.gamepadCustomTooltipFunction(GAMEPAD_LEFT_TOOLTIP)
+            end
+        end
+    end
+end
+
 local function ResetSettingsToDefaults()
     local sv = GetSavedVars()
     local defaults = _G["GamePadHelper_CharDefaults"]
@@ -68,12 +88,13 @@ local function ResetSettingsToDefaults()
     end
 
     gphLootReloadPending = false
+    RefreshTraitColorDisplays()
     if GAMEPAD_OPTIONS and GAMEPAD_OPTIONS.RefreshOptionsList then
         GAMEPAD_OPTIONS:RefreshOptionsList()
     end
 end
 
-local function BuildCheckbox(text, tooltip, key)
+local function BuildCheckbox(text, tooltip, key, traitLegendDescription)
     return {
         panel = GPH_PANEL_ID,
         system = GPH_PANEL_ID,
@@ -82,7 +103,11 @@ local function BuildCheckbox(text, tooltip, key)
         gamepadTextOverride = text,
         tooltipText = tooltip,
         gamepadCustomTooltipFunction = function(tooltipControl)
-            GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, tooltip)
+            if traitLegendDescription then
+                GAMEPAD_TOOLTIPS:LayoutGPHTraitLegendTooltip(tooltipControl, nil, traitLegendDescription)
+            else
+                GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, type(tooltip) == "function" and tooltip() or tooltip)
+            end
         end,
         GetSettingOverride = function()
             return GetBoolSetting(key, false)
@@ -93,12 +118,13 @@ local function BuildCheckbox(text, tooltip, key)
     }
 end
 
-local function BuildCheckboxCustom(text, tooltip, getFunc, setFunc, header, disabledFunc)
+local function BuildCheckboxCustom(text, tooltip, getFunc, setFunc, header, disabledFunc, traitLegendDescription)
     local function getTooltip()
+        local value = type(tooltip) == "function" and tooltip() or tooltip
         if disabledFunc and disabledFunc() then
-            return tooltip .. "\n\n" .. GetString(SI_GPH_SETTING_DISABLED_NOTICE)
+            return value .. "\n\n" .. GetString(SI_GPH_SETTING_DISABLED_NOTICE)
         end
-        return tooltip
+        return value
     end
     return {
         panel = GPH_PANEL_ID,
@@ -111,7 +137,11 @@ local function BuildCheckboxCustom(text, tooltip, getFunc, setFunc, header, disa
         gamepadIsEnabledCallback = disabledFunc and function() return not disabledFunc() end or nil,
         tooltipText = getTooltip,
         gamepadCustomTooltipFunction = function(tooltipControl)
-            GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, getTooltip())
+            if traitLegendDescription then
+                GAMEPAD_TOOLTIPS:LayoutGPHTraitLegendTooltip(tooltipControl, nil, traitLegendDescription)
+            else
+                GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, getTooltip())
+            end
         end,
         GetSettingOverride = function()
             return getFunc()
@@ -164,6 +194,35 @@ local function BuildInvoke(text, tooltip, callback)
             GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, tooltip)
         end,
         callback = callback,
+    }
+end
+
+local function BuildTraitColor(state, nameId, header, treasure)
+    local text = GetString(nameId)
+    return {
+        panel = GPH_PANEL_ID,
+        system = GPH_PANEL_ID,
+        controlType = OPTIONS_COLOR,
+        text = text,
+        gamepadTextOverride = text,
+        header = header,
+        gphTraitColorState = not treasure and state or nil,
+        gphTreasureColorState = treasure and state or nil,
+        GetSettingOverride = function()
+            local utils = _G.GamePadHelper_Utils
+            return (treasure and utils.GetTreasureColor(state) or utils.GetTraitColor(state)):ToHex()
+        end,
+        tooltipText = function()
+            if treasure then return GetString(SI_GPH_TREASURE_COLOR_PICKER_TOOLTIP) .. _G.GamePadHelper_Utils.GetTreasureLegend(state == "crow" and "crow" or "countess") end
+            return GetString(SI_GPH_TRAIT_COLOR_PICKER_TOOLTIP) .. "\n\n" .. GetTraitLegend()
+        end,
+        gamepadCustomTooltipFunction = function(tooltipControl)
+            if treasure then
+                GAMEPAD_TOOLTIPS:LayoutTextBlockTooltip(tooltipControl, GetString(SI_GPH_TREASURE_COLOR_PICKER_TOOLTIP) .. _G.GamePadHelper_Utils.GetTreasureLegend(state == "crow" and "crow" or "countess"))
+            else
+                GAMEPAD_TOOLTIPS:LayoutGPHTraitLegendTooltip(tooltipControl, text, GetString(SI_GPH_TRAIT_COLOR_PICKER_TOOLTIP))
+            end
+        end,
     }
 end
 
@@ -421,20 +480,20 @@ local function BuildSettingsData()
     end, nil, overviewDisabled))
 
     -- Tooltips and UI
-    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_TOOLTIP) .. "\n\n" .. TRAIT_COLOR_LEGEND, function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_TOOLTIP) .. "\n\n" .. GetTraitLegend(), function()
         return GetBoolSetting("tooltipTraitEnabled", false)
     end, function(v)
         SetSetting("tooltipTraitEnabled", v)
-    end, GetString(SI_GPH_SETTINGS_HEADER_TOOLTIPS_UI)))
+    end, GetString(SI_GPH_SETTINGS_HEADER_TOOLTIPS_UI), nil, GetString(SI_GPH_SETTING_TOOLTIP_TRAITS_TOOLTIP)))
 
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_PRICE_NAME), GetString(SI_GPH_SETTING_TOOLTIP_PRICE_TOOLTIP), "tooltipPriceEnabled"))
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_POISON_NAME), GetString(SI_GPH_SETTING_TOOLTIP_POISON_TOOLTIP), "tooltipPoisonEnabled"))
-    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_COVETOUS_COUNTESS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_COVETOUS_COUNTESS_TOOLTIP) .. COUNTESS_LEGEND, function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_COVETOUS_COUNTESS_NAME), TreasureTooltip(SI_GPH_SETTING_TOOLTIP_COVETOUS_COUNTESS_TOOLTIP, "countess"), function()
         return GetBoolSetting("tooltipCovetousCountessEnabled", false)
     end, function(v)
         SetSetting("tooltipCovetousCountessEnabled", v)
     end))
-    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_CROW_NAME), GetString(SI_GPH_SETTING_TOOLTIP_CROW_TOOLTIP) .. CROW_LEGEND, function()
+    add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_TOOLTIP_CROW_NAME), TreasureTooltip(SI_GPH_SETTING_TOOLTIP_CROW_TOOLTIP, "crow"), function()
         return GetBoolSetting("tooltipCrowEnabled", false)
     end, function(v)
         SetSetting("tooltipCrowEnabled", v)
@@ -452,7 +511,17 @@ local function BuildSettingsData()
     end))
     add(BuildCheckbox(GetString(SI_GPH_SETTING_TOOLTIP_ENCHANTMENTS_NAME), GetString(SI_GPH_SETTING_TOOLTIP_ENCHANTMENTS_TOOLTIP), "tooltipEnchantmentEnabled"))
     add(BuildCheckbox(GetString(SI_GPH_SETTING_GEAR_COMPARISON_NAME), GetString(SI_GPH_SETTING_GEAR_COMPARISON_TOOLTIP), "gearComparisonEnabled"))
-    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME), GetString(SI_GPH_SETTING_INVENTORY_TRAITS_TOOLTIP) .. "\n\n" .. TRAIT_COLOR_LEGEND, "inventoryTraitEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_TRAITS_NAME), GetString(SI_GPH_SETTING_INVENTORY_TRAITS_TOOLTIP) .. "\n\n" .. GetTraitLegend(), "inventoryTraitEnabled", GetString(SI_GPH_SETTING_INVENTORY_TRAITS_TOOLTIP)))
+    add(BuildTraitColor("equipped", SI_GPH_TRAIT_COLOR_EQUIPPED, GetString(SI_GPH_TRAIT_COLORS_HEADER)))
+    add(BuildTraitColor("unique", SI_GPH_TRAIT_COLOR_UNIQUE))
+    add(BuildTraitColor("inventory", SI_GPH_TRAIT_COLOR_INVENTORY))
+    add(BuildTraitColor("bank", SI_GPH_TRAIT_COLOR_BANK))
+    add(BuildTraitColor("locked", SI_GPH_TRAIT_COLOR_LOCKED))
+    add(BuildInvoke(GetString(SI_GPH_TRAIT_COLORS_RESET), GetString(SI_GPH_TRAIT_COLORS_RESET_TOOLTIP), function()
+        local sv = GetSavedVars()
+        if sv then sv.traitColors = {} end
+        RefreshTraitColorDisplays()
+    end))
     add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_DECONSTRUCTION_TRAIT_LEGEND_NAME), GetString(SI_GPH_SETTING_DECONSTRUCTION_TRAIT_LEGEND_TOOLTIP), function()
         return GetBoolSetting("inventoryTraitDeconstructionLegendEnabled", true)
     end, function(v)
@@ -460,8 +529,16 @@ local function BuildSettingsData()
     end, nil, function()
         return not GetBoolSetting("inventoryTraitEnabled", true)
     end))
-    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_NAME), GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_TOOLTIP) .. COUNTESS_LEGEND, "inventoryCovetousCountessEnabled"))
-    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_CROW_NAME), GetString(SI_GPH_SETTING_INVENTORY_CROW_TOOLTIP) .. CROW_LEGEND, "inventoryCrowEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_NAME), TreasureTooltip(SI_GPH_SETTING_INVENTORY_COVETOUS_COUNTESS_TOOLTIP, "countess"), "inventoryCovetousCountessEnabled"))
+    add(BuildCheckbox(GetString(SI_GPH_SETTING_INVENTORY_CROW_NAME), TreasureTooltip(SI_GPH_SETTING_INVENTORY_CROW_TOOLTIP, "crow"), "inventoryCrowEnabled"))
+    add(BuildTraitColor("countess", SI_GPH_TREASURE_COLOR_COUNTESS, GetString(SI_GPH_TREASURE_COLORS_HEADER), true))
+    add(BuildTraitColor("crow", SI_GPH_TREASURE_COLOR_CROW, nil, true))
+    add(BuildTraitColor("inactive", SI_GPH_TREASURE_COLOR_INACTIVE, nil, true))
+    add(BuildInvoke(GetString(SI_GPH_TREASURE_COLORS_RESET), GetString(SI_GPH_TREASURE_COLORS_RESET_TOOLTIP), function()
+        local sv = GetSavedVars()
+        if sv then sv.treasureColors = {} end
+        RefreshTraitColorDisplays()
+    end))
     add(BuildCheckboxCustom(GetString(SI_GPH_SETTING_DUNGEON_FINDER_NAME), GetString(SI_GPH_SETTING_DUNGEON_FINDER_TOOLTIP), function()
         return GetBoolSetting("dungeonFinderEnabled", false)
     end, function(v)
@@ -574,6 +651,34 @@ local function HookInvokeCallback()
     end)
 end
 
+local function HookTraitColorPicker()
+    -- ESO's OPTIONS_COLOR click handler writes directly to the engine's
+    -- SetSetting, bypassing addon overrides. Route only our color rows
+    -- through the same full native picker, saving into character variables.
+    ZO_PreHook("ZO_Options_ColorOnClicked", function(control)
+        local data = control and control.data
+        if not data or data.system ~= GPH_PANEL_ID or not (data.gphTraitColorState or data.gphTreasureColorState) then return false end
+        if not ZO_Options_IsOptionActive(control) then return true end
+        local treasure = data.gphTreasureColorState ~= nil
+        local state = data.gphTreasureColorState or data.gphTraitColorState
+        local colorsKey = treasure and "treasureColors" or "traitColors"
+        local utils = _G.GamePadHelper_Utils
+        local color = treasure and utils.GetTreasureColor(state) or utils.GetTraitColor(state)
+        SYSTEMS:GetObject("colorPicker"):Show(function(r, g, b)
+            if type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then return end
+            local sv = GetSavedVars()
+            if not sv then return end
+            if type(sv[colorsKey]) ~= "table" then sv[colorsKey] = {} end
+            sv[colorsKey][state] = ZO_ColorDef:New(r, g, b):ToHex()
+            RefreshTraitColorDisplays()
+            if SCREEN_NARRATION_MANAGER and GAMEPAD_OPTIONS and GAMEPAD_OPTIONS:IsShowing() then
+                SCREEN_NARRATION_MANAGER:QueueParametricListEntry(GAMEPAD_OPTIONS:GetCurrentList())
+            end
+        end, color:UnpackRGB())
+        return true
+    end)
+end
+
 local function InstallBackOverride()
     if gphBackOverrideActive or not GAMEPAD_OPTIONS then
         return
@@ -611,6 +716,7 @@ local function InitializeGamepadSettings()
     EnsureReloadDialog()
     EnsureResetDialog()
     HookInvokeCallback()
+    HookTraitColorPicker()
 
     local tryRegisterAttempts = 0
     local function TryRegister()
